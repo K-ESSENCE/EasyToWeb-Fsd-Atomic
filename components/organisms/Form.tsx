@@ -36,10 +36,10 @@ const Form: React.FC = () => {
             <span className="px-2 bg-white text-gray-500">또는</span>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className=" mt-6 grid gap-4">
           <SocialButton platform="google" />
-          <SocialButton platform="naver" />
-          <SocialButton platform="kakao" />
+          {/* <SocialButton platform="naver" />
+          <SocialButton platform="kakao" /> */}
         </div>
       </div>
     </div>
