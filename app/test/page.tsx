@@ -104,7 +104,7 @@ export default function Home() {
         </button>
       )}
 
-      <section className={` flex w-screen justify-center transition-all duration-200 ${responsiveStyle.isReponsive ? 'bg-[#d8d5d5]' : ''}`}>
+      <section className={'flex w-screen justify-center transition-all duration-200 bg-[#d8d5d5]'}>
         <div 
           className="flex flex-col gap-5 transition-all duration-200"
           style={{ width: responsiveStyle.width }}
