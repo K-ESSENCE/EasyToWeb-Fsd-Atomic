@@ -97,7 +97,7 @@ export default function Home() {
 
       {sidebar === false && (
         <button 
-          className="fixed top-1/2 left-0 -translate-y-1/2 z-[1] px-4 py-2 bg-white rounded shadow"
+          className="fixed top-1/2 right-2 -translate-y-1/2 z-[1] px-2 py-3 bg-white rounded shadow"
           onClick={() => setSidebar(true)}
         >
           {'<<'}
