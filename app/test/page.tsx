@@ -18,6 +18,7 @@ export default function Home() {
   const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
   const selectedItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
   const dispatch = useDispatch();
+  const activeBgColor='bg-white'
 
   const [sidebar, setSidebar] = useState(false);
   const [responsiveStyle, setResponsiveStyle] = useState<ResponsiveState>({
@@ -70,7 +71,7 @@ export default function Home() {
       <div className="flex justify-center items-center gap-[15px] h-[63px] w-[1980px] bg-[#535353] text-grayscale-100 text-lg fixed top-0 z-[2]">
         <div
           className={`p-[5px] rounded-[10px] ${
-            responsiveStyle.state === 'desktop' ? 'bg-black' : ''
+            responsiveStyle.state === 'desktop' ? activeBgColor : ''
           }`}
           onClick={() => handleResponsiveView('desktop')}
         >
@@ -78,7 +79,7 @@ export default function Home() {
         </div>
         <div
           className={`p-[5px] rounded-[10px] ${
-            responsiveStyle.state === 'tablet' ? 'bg-black' : ''
+            responsiveStyle.state === 'tablet' ? activeBgColor : ''
           }`}
           onClick={() => handleResponsiveView('tablet')}
         >
@@ -86,7 +87,7 @@ export default function Home() {
         </div>
         <div
           className={`p-[5px] rounded-[10px] ${
-            responsiveStyle.state === 'mobile' ? 'bg-black' : ''
+            responsiveStyle.state === 'mobile' ? activeBgColor : ''
           }`}
           onClick={() => handleResponsiveView('mobile')}
         >
