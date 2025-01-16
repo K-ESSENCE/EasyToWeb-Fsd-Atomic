@@ -16,93 +16,99 @@ const SideMenu = ({
     setSelectedSectionId(newSectionId);
   };
 
-  const deleteSection = () => {
-    setSections(sections.filter(id => id !== selectedSectionId));
-    setSelectedSectionId('');
-  };
-
   if (!isOpen) return null;
 
-  // Empty state UI
-  if (sections.length === 0) {
-    return (
-      <div className="fixed top-0 right-0 w-[320px] h-screen bg-gray-100 shadow-lg flex flex-col">
-        <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-          <div className="text-gray-500 mb-4">
-            <i className="fas fa-folder-plus text-4xl"></i>
-          </div>
-          <p className="text-gray-600 mb-4">
-            아직 생성된 섹션이 없습니다.<br/>
-            새로운 섹션을 추가해보세요.
-          </p>
-          <button 
-            onClick={addSection}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-          >
-            섹션 추가하기
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Normal UI with sections
   return (
-    <div className="mt-[63px] fixed top-0 right-0 w-[320px] h-screen bg-gray-100 shadow-lg flex flex-col">
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+    <div className="w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed right-0 top-0">
+      <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center bg-white">
+        <h2 className="text-xl font-bold text-gray-900">설정</h2>
         <button 
-          className="text-sm font-medium text-gray-700 !rounded-button"
-          onClick={addSection}
-        >
-          섹션 추가하기
-        </button>
-        <button 
-          className="text-sm font-medium text-gray-700 !rounded-button"
-          onClick={deleteSection}
-        >
-          섹션 삭제하기
-        </button>
-        <button 
-          className="text-gray-500 hover:text-gray-700"
           onClick={() => onClose(false)}
+          className="text-gray-500 hover:text-gray-700 transition-colors relative group"
+          title="닫기 (Ctrl + [)"
         >
           <i className="fas fa-times"></i>
+          <span className="invisible group-hover:visible absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap">
+            Ctrl + [
+          </span>
         </button>
       </div>
 
-      <div className="px-4 py-3 bg-blue-50 text-sm text-blue-600">
-        <i className="fas fa-info-circle mr-2"></i>
-        아이템은 총 6개까지 추가할 수 있습니다.
-      </div>
-
-      <div className="bg-white p-4 border border-gray-200 shadow-md rounded-lg m-2 hover:shadow-lg transition-shadow">
-        <div className="flex items-center">
-          <div className="w-16 h-16 rounded-lg bg-gray-200 overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1720048171527-208cb3e93192?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHw0MXx8fGVufDB8fHx8fA%3D%3D"
-              alt="프로필 이미지"
-              className="w-full h-full object-cover"
-            />
+      <div className="overflow-y-auto flex-1 p-4">
+        <div className="space-y-4">
+          {/* 섹션 설정 */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">섹션 설정</h3>
+            <div className="space-y-2">
+              <label className="block">
+                <span className="text-sm text-gray-600">섹션 제목</span>
+                <input 
+                  type="text" 
+                  className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                  placeholder="섹션 제목을 입력하세요"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">배경색</span>
+                <div className="mt-1 flex gap-2">
+                  <button className="w-6 h-6 rounded-full bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500"></button>
+                  <button className="w-6 h-6 rounded-full bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-blue-500"></button>
+                  <button className="w-6 h-6 rounded-full bg-blue-50 border border-gray-300 focus:ring-2 focus:ring-blue-500"></button>
+                </div>
+              </label>
+            </div>
           </div>
-          <div className="ml-4">
-            <h3 className="font-semibold text-gray-900 mb-1">김민수</h3>
-            <p className="text-sm text-gray-500">웹 디자이너</p>
-            <p className="text-sm text-gray-500">서울, 대한민국</p>
+
+          {/* 요소 추가 */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">요소 추가</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center">
+                <i className="fas fa-heading text-lg mb-1"></i>
+                <span className="text-xs">제목</span>
+              </button>
+              <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center">
+                <i className="fas fa-align-left text-lg mb-1"></i>
+                <span className="text-xs">텍스트</span>
+              </button>
+              <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center">
+                <i className="fas fa-image text-lg mb-1"></i>
+                <span className="text-xs">이미지</span>
+              </button>
+              <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center">
+                <i className="fas fa-play-circle text-lg mb-1"></i>
+                <span className="text-xs">비디오</span>
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="bg-white p-4 border border-gray-200 shadow-md rounded-lg m-2 hover:shadow-lg transition-shadow">
-        <p className="text-sm text-gray-600 leading-relaxed">
-          안녕하세요! 저는 사용자 중심의 디자인을 추구하는 웹 디자이너입니다.
-          5년간의 경력을 바탕으로 창의적이고 직관적인 디자인 솔루션을 제공합니다.
-        </p>
-      </div>
-
-      <div className="bg-white p-4 border border-gray-200 shadow-md rounded-lg m-2 hover:shadow-lg transition-shadow">
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center hover:bg-gray-300 cursor-pointer transition-colors">
-            <i className="fas fa-plus text-gray-600"></i>
+          {/* 스타일 설정 */}
+          <div className="bg-white p-4 rounded-xl border border-gray-200">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">스타일 설정</h3>
+            <div className="space-y-2">
+              <label className="block">
+                <span className="text-sm text-gray-600">글꼴</span>
+                <select className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <option>Noto Sans KR</option>
+                  <option>Roboto</option>
+                  <option>Open Sans</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">정렬</span>
+                <div className="mt-1 flex gap-2">
+                  <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex-1 flex items-center justify-center">
+                    <i className="fas fa-align-left"></i>
+                  </button>
+                  <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex-1 flex items-center justify-center">
+                    <i className="fas fa-align-center"></i>
+                  </button>
+                  <button className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex-1 flex items-center justify-center">
+                    <i className="fas fa-align-right"></i>
+                  </button>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
       </div>
