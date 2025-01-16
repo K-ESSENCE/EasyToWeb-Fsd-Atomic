@@ -109,17 +109,25 @@ export default function Home() {
           className="flex flex-col gap-5 transition-all duration-200"
           style={{ width: responsiveStyle.width }}
         >
-          {layoutDatas.length === 0 && (
-            <div
-              className={`flex items-center justify-center min-w-[383px] h-[160px] bg-grayscale-30 text-white px-5 py-[10px] rounded cursor-pointer
-                ${sidebar ? 'w-[calc(100%-413px)]' : 'w-full'}
-                ${responsiveStyle.isReponsive ? 'w-full' : ''}
-              `}
-              onClick={() => addFirstSection()}
-            >
-              섹션 추가 하기
-            </div>
-          )}
+{layoutDatas.length === 0 && (
+  <div
+    className={`
+      flex items-center justify-center
+      min-w-[383px] h-[160px]
+      bg-white p-8
+      rounded-xl shadow-md
+      border border-gray-100 hover:border-blue-200
+      transition-colors
+      text-gray-600 text-center text-lg
+      cursor-pointer
+      ${sidebar ? 'w-[calc(100%-413px)]' : 'w-full'}
+      ${responsiveStyle.isReponsive ? 'w-full' : ''}
+    `}
+    onClick={() => addFirstSection()}
+  >
+    섹션 추가 하기
+  </div>
+)}
 
           {layoutDatas.map((section, key) => (
             <EmptyFrame key={key} isEmpty={section.layoutValues.length === 0}>
