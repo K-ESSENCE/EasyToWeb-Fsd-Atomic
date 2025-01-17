@@ -68,7 +68,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex justify-center items-center gap-[15px] h-[63px] w-full bg-[#535353] text-grayscale-100 text-lg fixed top-0 z-[2]">
+      {/* <div className="flex justify-center items-center gap-[15px] h-[63px] w-full bg-[#535353] text-grayscale-100 text-lg fixed top-0 z-[2]">
         <div
           className={`p-[5px] rounded-[10px] ${
             responsiveStyle.state === 'desktop' ? activeBgColor : ''
@@ -93,7 +93,7 @@ export default function Home() {
         >
           <Icon width={42} height={42} icon="mobile"></Icon>
         </div>
-      </div>
+      </div> */}
 
       {sidebar === false && (
         <button 
