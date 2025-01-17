@@ -2,7 +2,7 @@
 
 import { useSelector } from 'react-redux';
 import { useCallback, useState } from 'react';
-import Icon from './../../components/icons/Icon';
+import Icon from '../../components/icons/Icon';
 import { useDispatch } from 'react-redux';
 import SideMenu from '../../components/SideMenu/SideMenu';
 import SectionList from '../../components/SideMenu/SectionList';
