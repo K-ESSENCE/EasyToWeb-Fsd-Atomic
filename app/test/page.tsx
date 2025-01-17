@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { useCallback, useState } from 'react';
 import Icon from './../../components/icons/Icon';
 import { useDispatch } from 'react-redux';
-import SectionFrame from '../../components/SectionLayout/SectionFrame';
 import SideMenu from '../../components/SideMenu/SideMenu';
 import SectionList from '../../components/SideMenu/SectionList';
 import { ResponsiveCondition, ResponsiveState, SectionData } from '../../components/types/common/layoutStyle';
@@ -12,14 +11,14 @@ import { changeNowSectionKey } from '../../store/slices/keys';
 import { addSection } from '../../store/slices/layouts';
 import { RESPONSIVE_VALUES } from '../../utils/constants';
 import { RootState } from '../../store/configureStore';
-import EmptyFrame from '../../components/EmptyFrame';
+import MainContent from '../../components/organisms/MainContent';
 
 export default function Home() {
+  const dispatch = useDispatch();
   const layoutDatas = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
   const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
   const selectedItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
-  const dispatch = useDispatch();
-  const activeBgColor='bg-white'
+  const activeBgColor = 'bg-white';
 
   const [settingsSidebar, setSettingsSidebar] = useState(false);
   const [sectionsSidebar, setSectionsSidebar] = useState(false);
@@ -70,8 +69,7 @@ export default function Home() {
 
   return (
     <>
-
-    {/* 기존 반응형 헤더 */}
+      {/* 기존 반응형 헤더 */}
       {/* <div className="flex justify-center items-center gap-[15px] h-[63px] w-full bg-[#535353] text-grayscale-100 text-lg fixed top-0 z-[2]">
         <div
           className={`p-[5px] rounded-[10px] ${
@@ -99,9 +97,7 @@ export default function Home() {
         </div>
       </div> */}
 
-
-
-{/* 사이드바 */}
+      {/* 사이드바 */}
       {/* {settingsSidebar === false && (
         <button 
           className="fixed top-1/2 right-2 -translate-y-1/2 z-[1] px-2 py-3 bg-white rounded shadow"
@@ -112,50 +108,15 @@ export default function Home() {
       )} */}
 
       <section className={'flex w-screen justify-center transition-all duration-200 bg-[#d8d5d5]'}>
-        <div 
-          className="flex flex-col gap-5 transition-all duration-200 px-8 py-6"
-          style={{ 
-            width: settingsSidebar && sectionsSidebar ? 'calc(100% - 560px)' :
-                   settingsSidebar ? 'calc(100% - 280px)' :
-                   sectionsSidebar ? 'calc(100% - 280px)' :
-                   responsiveStyle.width,
-            marginLeft: sectionsSidebar ? '280px' : '0px',
-            marginRight: settingsSidebar ? '280px' : '0px'
-          }}
-        >
-{layoutDatas.length === 0 && (
-  <div
-    className={`
-      flex items-center justify-center
-      min-w-[383px] h-[160px]
-      bg-white p-8
-      rounded-xl shadow-md
-      border border-gray-100 hover:border-blue-200
-      transition-colors
-      text-gray-600 text-center text-lg
-      cursor-pointer
-      ${responsiveStyle.isReponsive ? 'w-full' : ''}
-    `}
-    onClick={() => addFirstSection()}
-  >
-    섹션 추가 하기
-  </div>
-)}
-
-          {layoutDatas.map((section, key) => (
-            <EmptyFrame key={key} isEmpty={section.layoutValues.length === 0}>
-              <SectionFrame
-                selectedItemKey={selectedItemKey}
-                selectedSectionkey={nowSectionKey}
-                shapeType="defaultSection"
-                sectionKey={section.sectionKey}
-                isSideOpen={settingsSidebar}
-                isResponsive={responsiveStyle.isReponsive}
-                sectionData={section}
-              ></SectionFrame>
-            </EmptyFrame>
-          ))}
-        </div>
+        <MainContent 
+          layoutDatas={layoutDatas}
+          selectedItemKey={selectedItemKey}
+          nowSectionKey={nowSectionKey}
+          settingsSidebar={settingsSidebar}
+          sectionsSidebar={sectionsSidebar}
+          responsiveStyle={responsiveStyle}
+          onAddFirstSection={addFirstSection}
+        />
         <SideMenu addSection={onAddSection} onClose={setSettingsSidebar} isOpen={settingsSidebar} />
         <SectionList onClose={setSectionsSidebar} isOpen={sectionsSidebar} />
       </section>
