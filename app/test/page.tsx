@@ -18,7 +18,7 @@ export default function Home() {
   const layoutDatas = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
   const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
   const selectedItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
-  const activeBgColor = 'bg-white';
+  // const activeBgColor = 'bg-white';
 
   const [settingsSidebar, setSettingsSidebar] = useState(false);
   const [sectionsSidebar, setSectionsSidebar] = useState(false);
