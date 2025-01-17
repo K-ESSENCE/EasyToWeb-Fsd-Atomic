@@ -10,13 +10,13 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-  const settingsSidebar = useSelector((state: RootState) => state.settings?.isOpen ?? false);
-  const sectionsSidebar = useSelector((state: RootState) => state.sections?.isOpen ?? false);
+  const settingsSidebar = useSelector((state: RootState) => state.settings.isOpen);
+  const sectionsSidebar = useSelector((state: RootState) => state.sections.isOpen);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar settingsSidebar={settingsSidebar} sectionsSidebar={sectionsSidebar} />
-      <main className="flex-1 flex items-center pt-16 ">{children}</main>
+      <main className="flex-1 flex items-center pt-16">{children}</main>
       <Footer settingsSidebar={settingsSidebar} sectionsSidebar={sectionsSidebar} />
     </div>
   );

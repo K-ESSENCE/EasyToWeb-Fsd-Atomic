@@ -1,11 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import layoutsSlice from './slices/layouts';
 import keysSlice from './slices/keys';
+import settingsSlice from './slices/settings';
+import sectionsSlice from './slices/sections';
 
 export const store = configureStore({
   reducer: {
     layouts: layoutsSlice.reducer,
     keys: keysSlice.reducer,
+    settings: settingsSlice.reducer,
+    sections: sectionsSlice.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
