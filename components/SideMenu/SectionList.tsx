@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../store/configureStore';
+import { addSection, deleteSection } from '../../store/slices/layouts';
+import { changeNowSectionKey } from '../../store/slices/keys';
 
 const SectionList = ({
   isOpen,
@@ -7,18 +11,26 @@ const SectionList = ({
   isOpen: boolean;
   onClose: (value: boolean) => void;
 }) => {
-  const [sections, setSections] = useState<string[]>([]);
-  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
+  const dispatch = useDispatch();
+  const sections = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
+  const selectedSectionId = useSelector((state: RootState) => state.keys.nowSectionKey);
 
-  const addSection = () => {
-    const newSectionId = crypto.randomUUID();
-    setSections([...sections, newSectionId]);
-    setSelectedSectionId(newSectionId);
+  const handleAddSection = () => {
+    const newSectionKey = crypto.randomUUID();
+    dispatch(addSection({ 
+      newSection: {
+        sectionKey: newSectionKey,
+        layoutValues: []
+      }
+    }));
+    dispatch(changeNowSectionKey(newSectionKey));
   };
 
-  const deleteSection = () => {
-    setSections(sections.filter(id => id !== selectedSectionId));
-    setSelectedSectionId('');
+  const handleDeleteSection = () => {
+    if (selectedSectionId) {
+      dispatch(deleteSection({ id: selectedSectionId }));
+      dispatch(changeNowSectionKey(''));
+    }
   };
 
   useEffect(() => {
@@ -35,7 +47,7 @@ const SectionList = ({
 
   if (!isOpen) return null;
 
-  if (sections.length === 0) {
+  if (!sections || sections.length === 0) {
     return (
       <div className="w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed left-0 top-0">
         <div className="mt-[64px] px-4 py-5 border-b border-gray-200 flex justify-between items-center bg-white">
@@ -50,7 +62,6 @@ const SectionList = ({
         </div>
         <div className="overflow-y-auto flex-1 p-2 pb-24">
           <div className="space-y-2">
-            {/* Empty state message */}
             <div className="flex flex-col items-center justify-center h-full p-4 text-center">
               <div className="text-gray-500 mb-4">
                 <i className="fas fa-folder-plus text-4xl"></i>
@@ -64,7 +75,7 @@ const SectionList = ({
         </div>
         <div className="p-4 border-t border-gray-200 absolute bottom-16 w-full bg-gray-50">
           <button 
-            onClick={addSection}
+            onClick={handleAddSection}
             className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-md"
           >
             <i className="fas fa-plus"></i>
@@ -81,7 +92,7 @@ const SectionList = ({
         <h2 className="text-xl font-bold text-gray-900">섹션 목록</h2>
         <div className="flex items-center space-x-2">
           <button
-            onClick={deleteSection}
+            onClick={handleDeleteSection}
             className="text-gray-500 hover:text-gray-700 transition-colors relative group"
             title="섹션 삭제"
             disabled={!selectedSectionId}
@@ -100,23 +111,23 @@ const SectionList = ({
       
       <div className="overflow-y-auto flex-1 p-2 pb-24">
         <div className="space-y-2">
-          {sections.map((sectionId) => (
+          {sections.map((section, index) => (
             <div 
-              key={sectionId}
+              key={section.sectionKey}
               className={`p-4 rounded-xl border cursor-pointer transition-colors
-                ${selectedSectionId === sectionId 
+                ${selectedSectionId === section.sectionKey 
                   ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
                   : 'bg-white border-gray-200 hover:bg-gray-50'
                 }`}
-              onClick={() => setSelectedSectionId(sectionId)}
+              onClick={() => dispatch(changeNowSectionKey(section.sectionKey))}
             >
               <div className="flex items-center justify-between">
                 <span className={`font-medium ${
-                  selectedSectionId === sectionId ? 'text-blue-700' : 'text-gray-900'
+                  selectedSectionId === section.sectionKey ? 'text-blue-700' : 'text-gray-900'
                 }`}>
-                  섹션 {sections.indexOf(sectionId) + 1}
+                  섹션 {index + 1}
                 </span>
-                {selectedSectionId === sectionId && (
+                {selectedSectionId === section.sectionKey && (
                   <span className="text-blue-600 text-sm">선택됨</span>
                 )}
               </div>
@@ -127,7 +138,7 @@ const SectionList = ({
 
       <div className="p-4 border-t border-gray-200 absolute bottom-16 w-full bg-gray-50">
         <button 
-          onClick={addSection}
+          onClick={handleAddSection}
           className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-md"
         >
           <i className="fas fa-plus"></i>
