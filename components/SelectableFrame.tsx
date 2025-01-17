@@ -30,9 +30,8 @@ const SelectableFrame = ({
 
   return (
     <div
-      style={{ width: shapeStyleValues.width }}
       className={`
-        relative flex flex-col justify-center gap-5 text-center transition-border duration-400
+        relative flex flex-col justify-center gap-5 text-center transition-border duration-400 w-full
         ${isSelected ? 'border-4 border-[#39ff14]' : 'border-4 border-transparent'}
         hover:${isSelected ? 'border-[#39ff14]' : 'border-[#007bff]'}
         group
