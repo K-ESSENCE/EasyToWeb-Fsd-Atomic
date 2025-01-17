@@ -108,8 +108,15 @@ export default function Home() {
 
       <section className={'flex w-screen justify-center transition-all duration-200 bg-[#d8d5d5]'}>
         <div 
-          className="flex flex-col gap-5 transition-all duration-200"
-          style={{ width: responsiveStyle.width }}
+          className="flex flex-col gap-5 transition-all duration-200 px-8 py-6"
+          style={{ 
+            width: settingsSidebar && sectionsSidebar ? 'calc(100% - 560px)' :
+                   settingsSidebar ? 'calc(100% - 280px)' :
+                   sectionsSidebar ? 'calc(100% - 280px)' :
+                   responsiveStyle.width,
+            marginLeft: sectionsSidebar ? '280px' : '0px',
+            marginRight: settingsSidebar ? '280px' : '0px'
+          }}
         >
 {layoutDatas.length === 0 && (
   <div
@@ -122,7 +129,6 @@ export default function Home() {
       transition-colors
       text-gray-600 text-center text-lg
       cursor-pointer
-      ${settingsSidebar ? 'w-[calc(100%-413px)]' : 'w-full'}
       ${responsiveStyle.isReponsive ? 'w-full' : ''}
     `}
     onClick={() => addFirstSection()}
