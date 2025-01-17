@@ -20,7 +20,8 @@ const SectionList = ({
     dispatch(addSection({ 
       newSection: {
         sectionKey: newSectionKey,
-        layoutValues: []
+        layoutValues: [],
+        title: ''
       }
     }));
     dispatch(changeNowSectionKey(newSectionKey));
@@ -131,7 +132,7 @@ const SectionList = ({
                 <span className={`font-medium ${
                   selectedSectionId === section.sectionKey ? 'text-blue-700' : 'text-gray-900'
                 }`}>
-                  섹션 {index + 1}
+                  {section.title || `섹션 ${index + 1}`}
                 </span>
                 {selectedSectionId === section.sectionKey && (
                   <span className="text-blue-600 text-sm">선택됨</span>

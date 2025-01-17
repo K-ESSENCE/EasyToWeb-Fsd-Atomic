@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../store/configureStore';
+import { updateSectionTitle } from '../../store/slices/layouts';
 
 const SideMenu = ({
   isOpen,
@@ -7,18 +10,39 @@ const SideMenu = ({
   isOpen: boolean;
   onClose: (value: boolean) => void;
 }) => {
-  const [sections, setSections] = useState<string[]>([]);
+  const dispatch = useDispatch();
+  const selectedSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
+  const sections = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
+  const selectedSection = sections.find(section => section.sectionKey === selectedSectionKey);
+  
+  const [sectionsState, setSections] = useState<string[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   const [menuType, setMenuType] = useState<'settings' | 'sections'>('settings');
+  const [title, setTitle] = useState(selectedSection?.title || '');
+
+  React.useEffect(() => {
+    setTitle(selectedSection?.title || '');
+  }, [selectedSection]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    if (selectedSectionKey) {
+      dispatch(updateSectionTitle({ 
+        sectionKey: selectedSectionKey, 
+        title: newTitle 
+      }));
+    }
+  };
 
   const addSection = () => {
     const newSectionId = crypto.randomUUID();
-    setSections([...sections, newSectionId]);
+    setSections([...sectionsState, newSectionId]);
     setSelectedSectionId(newSectionId);
   };
 
   const deleteSection = () => {
-    setSections(sections.filter(id => id !== selectedSectionId));
+    setSections(sectionsState.filter(id => id !== selectedSectionId));
     setSelectedSectionId('');
   };
 
@@ -60,6 +84,8 @@ const SideMenu = ({
                   <span className="text-sm text-gray-600">섹션 제목</span>
                   <input 
                     type="text" 
+                    value={title}
+                    onChange={handleTitleChange}
                     className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
                     placeholder="섹션 제목을 입력하세요"
                   />
@@ -133,7 +159,7 @@ const SideMenu = ({
   }
 
   // Sections menu (menuType === 'sections')
-  if (sections.length === 0) {
+  if (sectionsState.length === 0) {
     return (
       <div className="w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed right-0 top-0">
         <div className="mt-[64px] px-4 py-5 border-b border-gray-200 flex justify-between items-center bg-white">
@@ -188,7 +214,7 @@ const SideMenu = ({
       
       <div className="overflow-y-auto flex-1 p-2">
         <div className="space-y-2">
-          {sections.map((sectionId) => (
+          {sectionsState.map((sectionId) => (
             <div 
               key={sectionId}
               className={`p-4 rounded-xl border cursor-pointer transition-colors
@@ -202,7 +228,7 @@ const SideMenu = ({
                 <span className={`font-medium ${
                   selectedSectionId === sectionId ? 'text-blue-700' : 'text-gray-900'
                 }`}>
-                  섹션 {sections.indexOf(sectionId) + 1}
+                  섹션 {sectionsState.indexOf(sectionId) + 1}
                 </span>
                 {selectedSectionId === sectionId && (
                   <span className="text-blue-600 text-sm">선택됨</span>

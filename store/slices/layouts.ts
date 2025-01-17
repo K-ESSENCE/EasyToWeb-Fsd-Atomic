@@ -24,6 +24,11 @@ interface LayoutItemPayLoadI {
   newLayoutItemValue: LayoutItemValues;
 }
 
+interface UpdateSectionTitlePayloadI {
+  sectionKey: string;
+  title: string;
+}
+
 const initialState: InitialInterface = {
   layoutDatas: {
     layoutId: 'initial-layout',
@@ -36,13 +41,24 @@ const layoutSlice = createSlice({
   initialState: initialState,
   reducers: {
     addSection: function (state, { payload: { newSection } }: AddSectionPayloadI) {
-      state.layoutDatas.sectionValues.push(newSection);
+      state.layoutDatas.sectionValues.push({
+        ...newSection,
+        title: `섹션 ${state.layoutDatas.sectionValues.length + 1}` // 기본 제목 추가
+      });
     },
     deleteSection: (state, { payload }: { payload: IdPayloadI }) => {
       const updatedState = state.layoutDatas.sectionValues.filter(
         (section) => section.sectionKey !== payload.id,
       );
       state.layoutDatas.sectionValues = updatedState;
+    },
+    updateSectionTitle: (state, { payload }: { payload: UpdateSectionTitlePayloadI }) => {
+      const section = state.layoutDatas.sectionValues.find(
+        section => section.sectionKey === payload.sectionKey
+      );
+      if (section) {
+        section.title = payload.title;
+      }
     },
     addLayoutItem: (state, { payload }: PayLoadI) => {
       const sectionIndex = state.layoutDatas.sectionValues.findIndex(
@@ -77,4 +93,4 @@ const layoutSlice = createSlice({
 });
 
 export default layoutSlice;
-export const { addSection, deleteSection, addLayoutItem, deleteLayoutItem } = layoutSlice.actions;
+export const { addSection, deleteSection, addLayoutItem, deleteLayoutItem, updateSectionTitle } = layoutSlice.actions;
