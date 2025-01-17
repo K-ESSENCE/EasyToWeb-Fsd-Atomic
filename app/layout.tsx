@@ -1,9 +1,9 @@
+
 import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
-import Navbar from "../components/organisms/Navbar";
-import Footer from "../components/organisms/Footer";
 import { Providers } from "./providers";
+import MainLayout from "../components/templates/MainLayout";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description: "Easy Web Builder로 쉽고 빠르게 웹사이트를 제작해보세요.",
 };
 
-export default function RootLayout({
+export default  function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -44,11 +44,7 @@ export default function RootLayout({
       </head>
       <body className={`min-h-screen bg-gray-50 ${notoSansKr.className}`}>
         <Providers>
-          <div className="min-h-screen flex flex-col">
-            <Navbar/>
-              <main className="flex-1 flex items-center ">{children}</main>
-            <Footer/>
-          </div>
+          <MainLayout>{children}</MainLayout>
         </Providers>
       </body>
     </html>

@@ -23,14 +23,14 @@ const MainContent = ({
   onAddFirstSection
 }: MainContentProps) => (
   <div 
-    className="flex flex-col gap-5 transition-all duration-200 px-8 py-6"
+    className="flex flex-col gap-5 transition-all duration-200 px-8 py-6 min-h-screen overflow-y-auto"
     style={{ 
       width: settingsSidebar && sectionsSidebar ? 'calc(100% - 560px)' :
              settingsSidebar ? 'calc(100% - 280px)' :
              sectionsSidebar ? 'calc(100% - 280px)' :
              responsiveStyle.width,
       marginLeft: sectionsSidebar ? '280px' : '0px',
-      marginRight: settingsSidebar ? '280px' : '0px'
+      marginRight: settingsSidebar ? '280px' : '0px',
     }}
   >
     {layoutDatas.length === 0 && (
