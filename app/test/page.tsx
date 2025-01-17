@@ -70,6 +70,8 @@ export default function Home() {
 
   return (
     <>
+
+    {/* 기존 반응형 헤더 */}
       {/* <div className="flex justify-center items-center gap-[15px] h-[63px] w-full bg-[#535353] text-grayscale-100 text-lg fixed top-0 z-[2]">
         <div
           className={`p-[5px] rounded-[10px] ${
@@ -97,14 +99,17 @@ export default function Home() {
         </div>
       </div> */}
 
-      {settingsSidebar === false && (
+
+
+{/* 사이드바 */}
+      {/* {settingsSidebar === false && (
         <button 
           className="fixed top-1/2 right-2 -translate-y-1/2 z-[1] px-2 py-3 bg-white rounded shadow"
           onClick={() => setSettingsSidebar(true)}
         >
           {'<<'}
         </button>
-      )}
+      )} */}
 
       <section className={'flex w-screen justify-center transition-all duration-200 bg-[#d8d5d5]'}>
         <div 
