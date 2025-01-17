@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/configureStore';
 import { addSection, deleteSection } from '../../store/slices/layouts';
-import { changeNowSectionKey } from '../../store/slices/keys';
+import { changeNowSectionKey, changeNowItemKey } from '../../store/slices/keys';
 
 const SectionList = ({
   isOpen,
@@ -30,7 +30,13 @@ const SectionList = ({
     if (selectedSectionId) {
       dispatch(deleteSection({ id: selectedSectionId }));
       dispatch(changeNowSectionKey(''));
+      dispatch(changeNowItemKey(''));
     }
+  };
+
+  const handleSelectSection = (sectionKey: string) => {
+    dispatch(changeNowSectionKey(sectionKey));
+    dispatch(changeNowItemKey(''));
   };
 
   useEffect(() => {
@@ -119,7 +125,7 @@ const SectionList = ({
                   ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
                   : 'bg-white border-gray-200 hover:bg-gray-50'
                 }`}
-              onClick={() => dispatch(changeNowSectionKey(section.sectionKey))}
+              onClick={() => handleSelectSection(section.sectionKey)}
             >
               <div className="flex items-center justify-between">
                 <span className={`font-medium ${

@@ -3,7 +3,7 @@ import EditableSection from './EditableSection';
 import { useDispatch, useSelector } from 'react-redux';
 import { SectionData, Shapes } from '../types/common/layoutStyle';
 import { deleteSection } from '../../store/slices/layouts';
-import { changeNowSectionKey } from '../../store/slices/keys';
+import { changeNowSectionKey, changeNowItemKey } from '../../store/slices/keys';
 import { getShapeStyleValues } from '../../utils/utils';
 import { RootState } from '../../store/configureStore';
 
@@ -29,15 +29,15 @@ const SectionFrame = ({
   const shapeStyleValues = getShapeStyleValues(shapeType, 'dynamic');
   const dispatch = useDispatch();
 
-  const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
-
   const onDeleteSection = () => {
-    dispatch(deleteSection({ id: nowSectionKey }));
+    dispatch(deleteSection({ id: sectionKey }));
     dispatch(changeNowSectionKey(''));
+    dispatch(changeNowItemKey(''));
   };
 
   const onChangeKey = (key: string) => {
     dispatch(changeNowSectionKey(key));
+    dispatch(changeNowItemKey(''));
   };
 
   return (

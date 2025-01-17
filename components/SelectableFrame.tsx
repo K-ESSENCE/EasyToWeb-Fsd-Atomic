@@ -19,11 +19,18 @@ const SelectableFrame = ({
   onHandleRemove,
 }: DefalutProps) => {
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const isBackground = (e.target as HTMLElement).classList.contains('bg');
-    if (isBackground) {
-      changeKey(thisKey);
+    // 삭제 버튼 클릭 시 이벤트 전파 방지
+    if ((e.target as HTMLElement).closest('.delete-button')) {
+      e.stopPropagation();
       return;
     }
+    
+    changeKey(thisKey);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onHandleRemove();
   };
 
   const isSelected = selectedKey === thisKey;
@@ -39,11 +46,14 @@ const SelectableFrame = ({
       onClick={handleClick}
     >
       {isSelected && (
-        <div className="absolute top-[2%] right-[2%] text-base text-black cursor-pointer w-10 ml-auto" onClick={onHandleRemove}>
+        <div 
+          className="absolute top-[2%] right-[2%] text-base text-black cursor-pointer w-10 ml-auto delete-button" 
+          onClick={handleDelete}
+        >
           삭제
         </div>
       )}
-      <div className="invisible group-hover:visible">
+      <div className="group-hover:visible">
         {children}
       </div>
     </div>
