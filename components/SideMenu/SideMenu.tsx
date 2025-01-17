@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const SideMenu = ({
   isOpen,
@@ -16,11 +16,23 @@ const SideMenu = ({
     setSelectedSectionId(newSectionId);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === ']') {
+        event.preventDefault();
+        onClose(!isOpen);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed right-0 top-0">
-      <div className="px-4 py-5 border-b border-gray-200 flex justify-between items-center bg-white">
+      <div className="mt-[64px] px-4 py-5 border-b border-gray-200 flex justify-between items-center bg-white">
         <h2 className="text-xl font-bold text-gray-900">설정</h2>
         <button 
           onClick={() => onClose(false)}
@@ -29,7 +41,7 @@ const SideMenu = ({
         >
           <i className="fas fa-times"></i>
           <span className="invisible group-hover:visible absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap">
-            Ctrl + [
+            Ctrl + ]
           </span>
         </button>
       </div>
