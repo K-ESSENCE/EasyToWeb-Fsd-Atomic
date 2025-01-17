@@ -6,6 +6,7 @@ import Icon from './../../components/icons/Icon';
 import { useDispatch } from 'react-redux';
 import SectionFrame from '../../components/SectionLayout/SectionFrame';
 import SideMenu from '../../components/SideMenu/SideMenu';
+import SectionList from '../../components/SideMenu/SectionList';
 import { ResponsiveCondition, ResponsiveState, SectionData } from '../../components/types/common/layoutStyle';
 import { changeNowSectionKey } from '../../store/slices/keys';
 import { addSection } from '../../store/slices/layouts';
@@ -20,7 +21,8 @@ export default function Home() {
   const dispatch = useDispatch();
   const activeBgColor='bg-white'
 
-  const [sidebar, setSidebar] = useState(false);
+  const [settingsSidebar, setSettingsSidebar] = useState(false);
+  const [sectionsSidebar, setSectionsSidebar] = useState(false);
   const [responsiveStyle, setResponsiveStyle] = useState<ResponsiveState>({
     width: '100%',
     isReponsive: false,
@@ -45,7 +47,7 @@ export default function Home() {
 
   const addFirstSection = useCallback(() => {
     onAddSection();
-    setSidebar(true);
+    setSettingsSidebar(true);
   }, [onAddSection]);
 
   const handleResponsiveView = useCallback((condition: ResponsiveCondition) => {
@@ -95,10 +97,10 @@ export default function Home() {
         </div>
       </div> */}
 
-      {sidebar === false && (
+      {settingsSidebar === false && (
         <button 
           className="fixed top-1/2 right-2 -translate-y-1/2 z-[1] px-2 py-3 bg-white rounded shadow"
-          onClick={() => setSidebar(true)}
+          onClick={() => setSettingsSidebar(true)}
         >
           {'<<'}
         </button>
@@ -120,7 +122,7 @@ export default function Home() {
       transition-colors
       text-gray-600 text-center text-lg
       cursor-pointer
-      ${sidebar ? 'w-[calc(100%-413px)]' : 'w-full'}
+      ${settingsSidebar ? 'w-[calc(100%-413px)]' : 'w-full'}
       ${responsiveStyle.isReponsive ? 'w-full' : ''}
     `}
     onClick={() => addFirstSection()}
@@ -136,14 +138,15 @@ export default function Home() {
                 selectedSectionkey={nowSectionKey}
                 shapeType="defaultSection"
                 sectionKey={section.sectionKey}
-                isSideOpen={sidebar}
+                isSideOpen={settingsSidebar}
                 isResponsive={responsiveStyle.isReponsive}
                 sectionData={section}
               ></SectionFrame>
             </EmptyFrame>
           ))}
         </div>
-        <SideMenu addSection={onAddSection} onClose={setSidebar} isOpen={sidebar}></SideMenu>
+        <SideMenu addSection={onAddSection} onClose={setSettingsSidebar} isOpen={settingsSidebar} />
+        <SectionList onClose={setSectionsSidebar} isOpen={sectionsSidebar} />
       </section>
     </>
   );
