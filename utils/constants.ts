@@ -36,7 +36,7 @@ const SHAPE_SIZES_OBJ: CardConstantI = {
   },
   ROUND: { width: '157px', height: '157px', borderRadius: 100 },
   SECTION: {
-    width: '100vw',
+    width: '100%',
     height: '160px',
     borderRadius: null,
   },
@@ -54,7 +54,7 @@ const MOCK_SHAPE_SIZES_OBJ: CardConstantI = {
   },
   ROUND: { width: '85px', height: '85px', borderRadius: 100 },
   SECTION: {
-    width: '100vw',
+    width: '100%',
     height: '160px',
     borderRadius: null,
   },
