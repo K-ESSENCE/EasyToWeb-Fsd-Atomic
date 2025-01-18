@@ -18,7 +18,7 @@ const SideMenu = ({
   const [sectionsState, setSections] = useState<string[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   const [menuType, setMenuType] = useState<'settings' | 'sections'>('settings');
-  const [title, setTitle] = useState(selectedSection?.title || '');
+  const [title, setTitle] = useState<string>(selectedSection?.title || '');
 
   React.useEffect(() => {
     setTitle(selectedSection?.title || '');

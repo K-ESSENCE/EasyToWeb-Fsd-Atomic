@@ -8,6 +8,7 @@ export interface LayoutData {
 export interface SectionData {
   sectionKey: string;
   layoutValues: LayoutItemValues[];
+  title?: string;  // 섹션 제목 추가
 }
 
 export interface LayoutItemValues {
