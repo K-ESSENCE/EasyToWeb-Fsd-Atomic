@@ -29,6 +29,10 @@ interface UpdateSectionTitlePayloadI {
   title: string;
 }
 
+interface AddImagePayloadI {
+  sectionKey: string;
+}
+
 const initialState: InitialInterface = {
   layoutDatas: {
     layoutId: 'initial-layout',
@@ -77,6 +81,18 @@ const layoutSlice = createSlice({
         payload.newLayoutItemValue,
       );
     },
+    addImageToSection: (state, { payload }: { payload: AddImagePayloadI }) => {
+      const section = state.layoutDatas.sectionValues.find(
+        section => section.sectionKey === payload.sectionKey
+      );
+      if (section) {
+        section.layoutValues.push({
+          id: crypto.randomUUID(),
+          layoutName: 'rectNormal',
+          imgValue: '',
+        });
+      }
+    },
     deleteLayoutItem: (state, { payload }: { payload: { sectionId: string; itemId: string } }) => {
       const sectionIndex = state.layoutDatas.sectionValues.findIndex(
         (section) => section.sectionKey === payload.sectionId,
@@ -93,4 +109,11 @@ const layoutSlice = createSlice({
 });
 
 export default layoutSlice;
-export const { addSection, deleteSection, addLayoutItem, deleteLayoutItem, updateSectionTitle } = layoutSlice.actions;
+export const { 
+  addSection, 
+  deleteSection, 
+  addLayoutItem, 
+  deleteLayoutItem, 
+  updateSectionTitle,
+  addImageToSection 
+} = layoutSlice.actions;

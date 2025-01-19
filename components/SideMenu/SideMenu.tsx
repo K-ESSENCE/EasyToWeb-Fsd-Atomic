@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/configureStore';
-import { updateSectionTitle } from '../../store/slices/layouts';
+import { updateSectionTitle, addImageToSection } from '../../store/slices/layouts';
 import { MenuHeader } from './components/MenuHeader';
 import { SectionItem } from './components/SectionItem';
 import { FONTS, BACKGROUND_COLORS, ELEMENTS } from './constants';
@@ -90,6 +90,13 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
             <button 
               key={icon}
               className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center"
+              onClick={() => {
+                if (label === '이미지' && selectedSectionKey) {
+                  dispatch(addImageToSection({ 
+                    sectionKey: selectedSectionKey,
+                  }));
+                }
+              }}
             >
               <i className={`fas ${icon} text-lg mb-1`}></i>
               <span className="text-xs">{label}</span>
