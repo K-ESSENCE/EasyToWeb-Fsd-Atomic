@@ -47,6 +47,7 @@ export default function Home() {
   const addFirstSection = useCallback(() => {
     onAddSection();
     setSettingsSidebar(true);
+    setSectionsSidebar(true);
   }, [onAddSection]);
 
   const handleResponsiveView = useCallback((condition: ResponsiveCondition) => {
