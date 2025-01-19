@@ -37,22 +37,13 @@ const SelectableFrame = ({
 
   return (
     <div
-      className={`
-        relative flex flex-col justify-center gap-5 text-center transition-border duration-400 w-full
+      className={`p-4
         ${isSelected ? 'border-4 border-[#39ff14]' : 'border-4 border-transparent'}
         hover:${isSelected ? 'border-[#39ff14]' : 'border-[#007bff]'}
-        group
       `}
       onClick={handleClick}
     >
-      {isSelected && (
-        <div 
-          className="absolute top-[2%] right-[2%] text-base text-black cursor-pointer w-10 ml-auto delete-button" 
-          onClick={handleDelete}
-        >
-          삭제
-        </div>
-      )}
+  
       <div className="group-hover:visible">
         {children}
       </div>

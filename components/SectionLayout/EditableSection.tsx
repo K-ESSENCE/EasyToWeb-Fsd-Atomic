@@ -17,12 +17,8 @@ const EditableSection = ({
   return (
     <section
       className={`
-        flex items-center justify-center gap-5 min-w-[300px] transition-all duration-400
-        ${isSideOpen ? 'w-[calc(100%-413px)]' : 'w-full'}
-        ${isResponsive ? 'w-full h-full min-h-[1080px] flex-col' : 'h-[380px] min-h-[380px]'}
-        md:flex-col md:h-full
-        sm:flex-col sm:h-full
-      `}
+        flex items-center justify-center gap-5  transition-all duration-400
+w-full      `}
     >
       {sectionData.layoutValues &&
         sectionData.layoutValues.map((layout) => {
