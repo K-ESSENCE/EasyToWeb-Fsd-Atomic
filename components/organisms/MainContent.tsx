@@ -23,7 +23,7 @@ const MainContent = ({
   onAddFirstSection
 }: MainContentProps) => (
   <div 
-    className="flex flex-col gap-5 transition-all duration-200 px-8 py-6 min-h-screen overflow-y-auto"
+    className="flex flex-col gap-5 transition-all duration-200 px-8 py-6 min-h-screen overflow-y-auto  mb-[80px]"
     style={{ 
       width: settingsSidebar && sectionsSidebar ? 'calc(100% - 560px)' :
              settingsSidebar ? 'calc(100% - 280px)' :
