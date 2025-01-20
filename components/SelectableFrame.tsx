@@ -1,5 +1,4 @@
 import { CardStyleI } from '../utils/constants';
-import React from 'react';
 
 interface DefalutProps {
   shapeStyleValues: CardStyleI;
@@ -28,10 +27,10 @@ const SelectableFrame = ({
     changeKey(thisKey);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onHandleRemove();
-  };
+  // const handleDelete = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   onHandleRemove();
+  // };
 
   const isSelected = selectedKey === thisKey;
 
