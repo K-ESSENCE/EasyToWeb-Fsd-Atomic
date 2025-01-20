@@ -16,10 +16,12 @@ interface DefaultProps {
   describe?: TextStyleI;
 }
 
+
 const CardFrame = ({ shapeType, titleStyle, describe, itemKey, selctedItemkey }: DefaultProps) => {
-  const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
+  const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);  
 
   const nowItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
+
 
   const dispatch = useDispatch();
 
@@ -34,8 +36,10 @@ const CardFrame = ({ shapeType, titleStyle, describe, itemKey, selctedItemkey }:
     dispatch(changeNowItemKey(''));
   };
 
+
   return (
     <SelectableFrame
+    isItem={true}
       shapeStyleValues={shapeStyleValues}
       thisKey={itemKey}
       changeKey={onChangeKey}

@@ -1,6 +1,7 @@
 import { CardStyleI } from '../utils/constants';
 
 interface DefalutProps {
+  isItem:boolean
   shapeStyleValues: CardStyleI;
   thisKey: string;
   selectedKey: string | null;
@@ -10,6 +11,7 @@ interface DefalutProps {
 }
 
 const SelectableFrame = ({
+  isItem=false,
   shapeStyleValues,
   thisKey,
   selectedKey,
@@ -19,10 +21,14 @@ const SelectableFrame = ({
 }: DefalutProps) => {
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // 삭제 버튼 클릭 시 이벤트 전파 방지
-    if ((e.target as HTMLElement).closest('.delete-button')) {
+    if (isItem) {
+    changeKey(thisKey);
       e.stopPropagation();
       return;
     }
+
+
+    //divElement
     
     changeKey(thisKey);
   };
