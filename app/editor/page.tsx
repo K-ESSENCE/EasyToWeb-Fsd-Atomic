@@ -2,14 +2,12 @@
 
 import { useSelector } from 'react-redux';
 import { useCallback, useState } from 'react';
-import Icon from '../../components/icons/Icon';
 import { useDispatch } from 'react-redux';
 import SideMenu from '../../components/SideMenu/SideMenu';
 import SectionList from '../../components/SideMenu/SectionList';
-import { ResponsiveCondition, ResponsiveState, SectionData } from '../../components/types/common/layoutStyle';
+import { ResponsiveState, SectionData } from '../../components/types/common/layoutStyle';
 import { changeNowSectionKey } from '../../store/slices/keys';
 import { addSection } from '../../store/slices/layouts';
-import { RESPONSIVE_VALUES } from '../../utils/constants';
 import { RootState } from '../../store/configureStore';
 import MainContent from '../../components/organisms/MainContent';
 
