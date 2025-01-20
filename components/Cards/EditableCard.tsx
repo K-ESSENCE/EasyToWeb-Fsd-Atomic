@@ -1,9 +1,11 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { CardStyleI } from './../../utils/constants';
 import { TextStyleI } from '../types/common/layoutStyle';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/configureStore';
+import { updateImageUrl } from '../../store/slices/layouts';
+import { changeNowItemKey } from '../../store/slices/keys';
 
 interface DefaultProps {
   shapeStyleValues: CardStyleI;
@@ -18,12 +20,29 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
   const sections = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
   const currentSection = sections.find(section => section.sectionKey === nowSectionKey);
   const currentItem = currentSection?.layoutValues.find(item => item.id === itemKey);
-  
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(changeNowItemKey(itemKey));
+  }, [dispatch, itemKey]);
+
+
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = (e.target.files as FileList)[0];
 
     if (file) {
-      setSelectedImageData(URL.createObjectURL(file));
+      console.log('File selected, updating with itemKey:', itemKey);
+      const imageUrl = URL.createObjectURL(file);
+      setSelectedImageData(imageUrl);
+      // 먼저 아이템 키를 업데이트
+      dispatch(changeNowItemKey(itemKey));
+      console.log('Dispatched changeNowItemKey with:', itemKey);
+      // 그 다음 이미지 URL 업데이트
+      dispatch(updateImageUrl({
+        sectionKey: nowSectionKey,
+        itemId: itemKey,
+        imageUrl: imageUrl
+      }));
     } else {
       return;
     }
@@ -43,7 +62,7 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
       <label
         className={`
           cursor-pointer flex items-center justify-center
-          ${imageUrl ? 'bg-transparent' : 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors'}
+          'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors}
         `}
         htmlFor={itemKey}
         style={{

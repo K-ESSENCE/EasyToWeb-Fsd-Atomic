@@ -33,6 +33,12 @@ interface AddImagePayloadI {
   sectionKey: string;
 }
 
+interface UpdateImageUrlPayloadI {
+  sectionKey: string;
+  itemId: string;
+  imageUrl: string;
+}
+
 const initialState: InitialInterface = {
   layoutDatas: {
     layoutId: 'initial-layout',
@@ -105,6 +111,17 @@ const layoutSlice = createSlice({
           (item) => item.id !== payload.itemId,
         );
     },
+    updateImageUrl(state, { payload }: { payload: UpdateImageUrlPayloadI }) {
+      const section = state.layoutDatas.sectionValues.find(
+        section => section.sectionKey === payload.sectionKey
+      );
+      if (section) {
+        const item = section.layoutValues.find(item => item.id === payload.itemId);
+        if (item) {
+          item.currentItemImageValue = payload.imageUrl;
+        }
+      }
+    },
   },
 });
 
@@ -112,8 +129,9 @@ export default layoutSlice;
 export const { 
   addSection, 
   deleteSection, 
-  addLayoutItem, 
-  deleteLayoutItem, 
   updateSectionTitle,
-  addImageToSection 
+  addLayoutItem, 
+  addImageToSection,
+  deleteLayoutItem,
+  updateImageUrl,
 } = layoutSlice.actions;
