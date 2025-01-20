@@ -6,17 +6,20 @@ interface DefaultProps {
 }
 
 const EmptyFrame = ({ isEmpty, children }: DefaultProps) => {
+  const sectionLayoutRef = useRef<HTMLDivElement | null>(null);     
+
   useEffect(() => {
-    if (sectionLayoutRef.current) {
+    if (isEmpty && sectionLayoutRef.current) {
       sectionLayoutRef.current.focus();
     }
-  }, []);
+  }, [isEmpty]);
 
-  const sectionLayoutRef = useRef<HTMLDivElement | null>(null);
 
+  
   return (
-    <section 
+    <section
       ref={sectionLayoutRef} 
+      tabIndex={0}
       className={`relative ${isEmpty ? 'bg-gray-500 cursor-pointer' : 'bg-white cursor-default'}`}
     >
       {isEmpty && (
