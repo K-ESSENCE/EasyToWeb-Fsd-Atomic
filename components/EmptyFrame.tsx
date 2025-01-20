@@ -19,7 +19,7 @@ const EmptyFrame = ({ isEmpty, children, sectionKey }: DefaultProps) => {
   }, [isEmpty]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (isEmpty && sectionKey && (event.key === 'Enter' || event.key === ' ')) {
+    if ( sectionKey && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();
       dispatch(changeNowSectionKey(sectionKey));
       dispatch(changeNowItemKey(''));
@@ -27,7 +27,7 @@ const EmptyFrame = ({ isEmpty, children, sectionKey }: DefaultProps) => {
   };
 
   const handleClick = () => {
-    if (isEmpty && sectionKey) {
+    if (sectionKey) {
       dispatch(changeNowSectionKey(sectionKey));
       dispatch(changeNowItemKey(''));
     }
