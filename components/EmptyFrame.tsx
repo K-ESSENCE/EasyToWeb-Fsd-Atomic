@@ -1,12 +1,16 @@
 import { useRef, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { changeNowSectionKey, changeNowItemKey } from '../store/slices/keys';
 
 interface DefaultProps {
   isEmpty: boolean;
   children: React.ReactNode;
+  sectionKey?: string;
 }
 
-const EmptyFrame = ({ isEmpty, children }: DefaultProps) => {
+const EmptyFrame = ({ isEmpty, children, sectionKey }: DefaultProps) => {
   const sectionLayoutRef = useRef<HTMLDivElement | null>(null);     
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (isEmpty && sectionLayoutRef.current) {
@@ -14,12 +18,27 @@ const EmptyFrame = ({ isEmpty, children }: DefaultProps) => {
     }
   }, [isEmpty]);
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (isEmpty && sectionKey && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      dispatch(changeNowSectionKey(sectionKey));
+      dispatch(changeNowItemKey(''));
+    }
+  };
 
-  
+  const handleClick = () => {
+    if (isEmpty && sectionKey) {
+      dispatch(changeNowSectionKey(sectionKey));
+      dispatch(changeNowItemKey(''));
+    }
+  };
+
   return (
     <section
       ref={sectionLayoutRef} 
       tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onClick={isEmpty ? handleClick : undefined}
       className={`scroll-x-auto overflow-hidden relative ${isEmpty ? 'bg-gray-500 cursor-pointer' : 'bg-white cursor-default'}`}
     >
       {isEmpty && (

@@ -38,7 +38,7 @@ const MainContent = ({
     )}
 
     {layoutDatas.map((section, key) => (
-      <EmptyFrame key={key} isEmpty={section.layoutValues.length === 0}>
+      <EmptyFrame key={key} isEmpty={section.layoutValues.length === 0} sectionKey={section.sectionKey}>
         <SectionFrame
           selectedItemKey={selectedItemKey}
           selectedSectionkey={nowSectionKey}
