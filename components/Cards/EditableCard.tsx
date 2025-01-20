@@ -58,6 +58,7 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
             height={parseInt(shapeStyleValues.height)}
             src={imageUrl}
             className="object-cover w-full h-full"
+            alt={`${itemKey} image`}
             style={{
               borderRadius: `${shapeStyleValues.borderRadius}%`,
             }}
