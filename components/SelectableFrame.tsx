@@ -27,8 +27,6 @@ const SelectableFrame = ({
       return;
     }
 
-
-    //divElement
     
     changeKey(thisKey);
   };
