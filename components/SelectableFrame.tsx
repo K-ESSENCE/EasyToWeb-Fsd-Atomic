@@ -43,7 +43,7 @@ const SelectableFrame = ({
       onClick={handleClick}
     >
   
-      <div className="group-hover:visible">
+      <div >
         {children}
       </div>
     </div>
