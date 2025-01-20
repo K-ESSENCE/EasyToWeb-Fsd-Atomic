@@ -50,23 +50,27 @@ export default function Home() {
     setSectionsSidebar(true);
   }, [onAddSection]);
 
-  const handleResponsiveView = useCallback((condition: ResponsiveCondition) => {
-    switch (condition) {
-      case 'desktop':
-        setResponsiveStyle({
-          width: RESPONSIVE_VALUES.DESKTOP,
-          isReponsive: false,
-          state: 'desktop',
-        });
-        break;
-      case 'mobile':
-        setResponsiveStyle({ width: RESPONSIVE_VALUES.MOBILE, isReponsive: true, state: 'mobile' });
-        break;
-      case 'tablet':
-        setResponsiveStyle({ width: RESPONSIVE_VALUES.TABLET, isReponsive: true, state: 'tablet' });
-        break;
-    }
-  }, []);
+  
+
+  // 추후 사용 반응형 코드 
+
+  // const handleResponsiveView = useCallback((condition: ResponsiveCondition) => {
+  //   switch (condition) {
+  //     case 'desktop':
+  //       setResponsiveStyle({
+  //         width: RESPONSIVE_VALUES.DESKTOP,
+  //         isReponsive: false,
+  //         state: 'desktop',
+  //       });
+  //       break;
+  //     case 'mobile':
+  //       setResponsiveStyle({ width: RESPONSIVE_VALUES.MOBILE, isReponsive: true, state: 'mobile' });
+  //       break;
+  //     case 'tablet':
+  //       setResponsiveStyle({ width: RESPONSIVE_VALUES.TABLET, isReponsive: true, state: 'tablet' });
+  //       break;
+  //   }
+  // }, []);
 
   return (
     <>
