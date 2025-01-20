@@ -9,7 +9,7 @@ interface MainContentProps {
   nowSectionKey: string | null;
   settingsSidebar: boolean;
   sectionsSidebar: boolean;
-  responsiveStyle: ResponsiveState;
+  // responsiveStyle: ResponsiveState;
   onAddFirstSection: () => void;
 }
 
@@ -19,7 +19,7 @@ const MainContent = ({
   nowSectionKey,
   settingsSidebar,
   sectionsSidebar,
-  responsiveStyle,
+  // responsiveStyle,
   onAddFirstSection
 }: MainContentProps) => (
   <div 
@@ -28,13 +28,13 @@ const MainContent = ({
       width: settingsSidebar && sectionsSidebar ? 'calc(100% - 560px)' :
              settingsSidebar ? 'calc(100% - 280px)' :
              sectionsSidebar ? 'calc(100% - 280px)' :
-             responsiveStyle.width,
+             '100%',
       marginLeft: sectionsSidebar ? '280px' : '0px',
       marginRight: settingsSidebar ? '280px' : '0px',
     }}
   >
     {layoutDatas.length === 0 && (
-      <AddSectionButton onClick={onAddFirstSection} isResponsive={responsiveStyle.isReponsive} />
+      <AddSectionButton onClick={onAddFirstSection} isResponsive={false} />
     )}
 
     {layoutDatas.map((section, key) => (
@@ -45,7 +45,7 @@ const MainContent = ({
           shapeType="defaultSection"
           sectionKey={section.sectionKey}
           isSideOpen={settingsSidebar}
-          isResponsive={responsiveStyle.isReponsive}
+          // isResponsive={responsiveStyle.isReponsive}
           sectionData={section}
         />
       </EmptyFrame>

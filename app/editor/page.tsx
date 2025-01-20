@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import SideMenu from '../../components/SideMenu/SideMenu';
 import SectionList from '../../components/SideMenu/SectionList';
-import { ResponsiveState, SectionData } from '../../components/types/common/layoutStyle';
+import {  SectionData } from '../../components/types/common/layoutStyle';
 import { changeNowSectionKey } from '../../store/slices/keys';
 import { addSection } from '../../store/slices/layouts';
 import { RootState } from '../../store/configureStore';
@@ -20,11 +20,11 @@ export default function Home() {
 
   const [settingsSidebar, setSettingsSidebar] = useState(false);
   const [sectionsSidebar, setSectionsSidebar] = useState(false);
-  const [responsiveStyle, setResponsiveStyle] = useState<ResponsiveState>({
-    width: '100%',
-    isReponsive: false,
-    state: 'desktop',
-  });
+  // const [responsiveStyle, setResponsiveStyle] = useState<ResponsiveState>({
+  //   width: '100%',
+  //   isReponsive: false,
+  //   state: 'desktop',
+  // });
 
   const generateUUID = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -117,7 +117,7 @@ export default function Home() {
           nowSectionKey={nowSectionKey}
           settingsSidebar={settingsSidebar}
           sectionsSidebar={sectionsSidebar}
-          responsiveStyle={responsiveStyle}
+          // responsiveStyle={responsiveStyle}
           onAddFirstSection={addFirstSection}
         />
         <SideMenu addSection={onAddSection} onClose={setSettingsSidebar} isOpen={settingsSidebar} />

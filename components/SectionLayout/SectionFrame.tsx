@@ -12,7 +12,7 @@ interface DefaultProps {
   sectionKey: string;
   selectedSectionkey: string | null;
   isSideOpen: boolean;
-  isResponsive: boolean;
+  // isResponsive: boolean;
   selectedItemKey: string | null;
   sectionData: SectionData;
 }
@@ -22,7 +22,7 @@ const SectionFrame = ({
   sectionKey,
   selectedSectionkey,
   isSideOpen,
-  isResponsive,
+  // isResponsive,
   selectedItemKey,
   sectionData,
 }: DefaultProps) => {
@@ -52,7 +52,7 @@ const SectionFrame = ({
         sectionData={sectionData}
         selctedItemkey={selectedItemKey}
         isSideOpen={isSideOpen}
-        isResponsive={isResponsive}
+        // isResponsive={isResponsive}
       ></EditableSection>
     </SelectableFrame>
   );

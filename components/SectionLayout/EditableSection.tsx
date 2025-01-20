@@ -3,14 +3,14 @@ import { SectionData } from '../types/common/layoutStyle';
 
 interface DefaultProps {
   isSideOpen: boolean;
-  isResponsive: boolean;
+  // isResponsive: boolean;
   sectionData: SectionData;
   selctedItemkey: string | null;
 }
 
 const EditableSection = ({
   isSideOpen,
-  isResponsive,
+  // isResponsive,
   sectionData,
   selctedItemkey,
 }: DefaultProps) => {
