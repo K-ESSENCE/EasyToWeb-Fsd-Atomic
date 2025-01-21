@@ -14,6 +14,7 @@ interface CardConstantI {
   };
   ROUND: CardStyleI;
   SECTION: CardStyleI;
+  TEXT: CardStyleI;
 }
 
 export const MAX_LAYOUT_VALUE = 6;
@@ -40,6 +41,11 @@ const SHAPE_SIZES_OBJ: CardConstantI = {
     height: '160px',
     borderRadius: null,
   },
+  TEXT: {
+    width: '383px',
+    height: '160px',
+    borderRadius: null,
+  },
 };
 
 const MOCK_SHAPE_SIZES_OBJ: CardConstantI = {
@@ -49,12 +55,17 @@ const MOCK_SHAPE_SIZES_OBJ: CardConstantI = {
       height: '68px',
       borderRadius: null,
     },
-    BIG: { width: '124px', height: '66px', borderRadius: null },
-    SMALL: { width: '157px', height: '58px', borderRadius: null },
+    BIG: { width: '120px', height: '90px', borderRadius: null },
+    SMALL: { width: '52px', height: '52px', borderRadius: null },
   },
-  ROUND: { width: '85px', height: '85px', borderRadius: 100 },
+  ROUND: { width: '52px', height: '52px', borderRadius: 100 },
   SECTION: {
     width: '100%',
+    height: '160px',
+    borderRadius: null,
+  },
+  TEXT: {
+    width: '383px',
     height: '160px',
     borderRadius: null,
   },

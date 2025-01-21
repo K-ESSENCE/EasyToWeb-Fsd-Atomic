@@ -16,16 +16,17 @@ interface DefaultProps {
   describe?: TextStyleI;
 }
 
-
 const CardFrame = ({ shapeType, titleStyle, describe, itemKey, selctedItemkey }: DefaultProps) => {
   const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);  
-
   const nowItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
-
+  const sections = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
+  const currentSection = sections.find(section => section.sectionKey === nowSectionKey);
+  const currentItem = currentSection?.layoutValues.find(item => item.id === itemKey);
 
   const dispatch = useDispatch();
 
-  const shapeStyleValues = getShapeStyleValues(shapeType, 'dynamic');
+  const actualShapeType = currentItem?.layoutName || shapeType;
+  const shapeStyleValues = getShapeStyleValues(actualShapeType, 'dynamic');
 
   const onChangeKey = (key: string) => {
     dispatch(changeNowItemKey(key));
@@ -36,10 +37,9 @@ const CardFrame = ({ shapeType, titleStyle, describe, itemKey, selctedItemkey }:
     dispatch(changeNowItemKey(''));
   };
 
-
   return (
     <SelectableFrame
-    isItem={true}
+      isItem={true}
       shapeStyleValues={shapeStyleValues}
       thisKey={itemKey}
       changeKey={onChangeKey}
@@ -51,7 +51,7 @@ const CardFrame = ({ shapeType, titleStyle, describe, itemKey, selctedItemkey }:
         itemKey={itemKey}
         titleStyle={titleStyle}
         describe={describe}
-      ></EditableCard>
+      />
     </SelectableFrame>
   );
 };

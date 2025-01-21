@@ -29,6 +29,9 @@ export function getShapeStyleValues(shapeType: Shapes, condition: 'dynamic' | 'm
 
     case 'defaultSection':
       return targetObj.SECTION;
+      
+    case 'text':
+      return targetObj.TEXT;
 
     default:
       const invalid: never = shapeType;

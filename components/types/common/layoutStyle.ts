@@ -16,13 +16,14 @@ export interface LayoutItemValues {
   layoutName: Shapes;
 
   imgValue?: string;
+  textValue?: string;
   titleValue?: string;
   descriptionValue?: string;
 }
 
 // Shapes는 추가 가능
 
-export type Shapes = 'rectNormal' | 'rectBig' | 'rectSmall' | 'round' | 'defaultSection';
+export type Shapes = 'rectNormal' | 'rectBig' | 'rectSmall' | 'round' | 'defaultSection' | 'text';
 
 // Editable interface
 

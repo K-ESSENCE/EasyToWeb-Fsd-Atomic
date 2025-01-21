@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/configureStore';
-import { updateSectionTitle, addImageToSection } from '../../store/slices/layouts';
+import { updateSectionTitle, addImageToSection, addLayoutItem } from '../../store/slices/layouts';
 import { MenuHeader } from './components/MenuHeader';
 import { SectionItem } from './components/SectionItem';
 import { FONTS, BACKGROUND_COLORS, ELEMENTS } from './constants';
@@ -52,6 +52,23 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
     setSelectedSectionId(newSectionId);
   };
 
+  const handleElementClick = (label: string) => {
+    if (!selectedSectionKey) return;
+
+    if (label === '이미지') {
+      dispatch(addImageToSection({ sectionKey: selectedSectionKey }));
+    } else if (label === '텍스트') {
+      const newTextItem: LayoutItemValues = {
+        id: crypto.randomUUID(),
+        layoutName: 'text',
+      };
+      dispatch(addLayoutItem({
+        id: selectedSectionKey,
+        newLayoutItemValue: newTextItem
+      }));
+    }
+  };
+
   if (!isOpen) return null;
 
   const renderSettingsContent = () => (
@@ -85,21 +102,15 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
 
       <div className="bg-white p-4 rounded-xl border border-gray-200">
         <h3 className="text-sm font-medium text-gray-700 mb-3">요소 추가</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {ELEMENTS.map(({ icon, label }) => (
-            <button 
-              key={icon}
+        <div className="grid grid-cols-3 gap-2">
+          {ELEMENTS.map((element) => (
+            <button
+              key={element.label}
+              onClick={() => handleElementClick(element.label)}
               className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center"
-              onClick={() => {
-                if (label === '이미지' && selectedSectionKey) {
-                  dispatch(addImageToSection({ 
-                    sectionKey: selectedSectionKey,
-                  }));
-                }
-              }}
             >
-              <i className={`fas ${icon} text-lg mb-1`}></i>
-              <span className="text-xs">{label}</span>
+              <i className={`fas ${element.icon} text-lg mb-1`}></i>
+              <span className="text-xs">{element.label}</span>
             </button>
           ))}
         </div>
@@ -149,11 +160,8 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
   );
 
   return (
-    <div className="w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed right-0 top-0">
-      <MenuHeader 
-        title={menuType === 'settings' ? '설정' : '섹션 목록'} 
-        onClose={() => onClose(false)}
-      />
+    <div className={`w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed ${isOpen ? 'right-0' : '-right-[280px]'} top-0 transition-all duration-300`}>
+      <MenuHeader title="편집" onClose={onClose} />
       <div className="overflow-y-auto flex-1 p-4">
         {menuType === 'settings' ? renderSettingsContent() : renderSectionsList()}
       </div>

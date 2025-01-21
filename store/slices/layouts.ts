@@ -39,6 +39,12 @@ interface UpdateImageUrlPayloadI {
   imageUrl: string;
 }
 
+interface UpdateTextContentPayloadI {
+  sectionKey: string;
+  itemId: string;
+  textContent: string;
+}
+
 const initialState: InitialInterface = {
   layoutDatas: {
     layoutId: 'initial-layout',
@@ -127,6 +133,17 @@ const layoutSlice = createSlice({
         }
       }
     },
+    updateTextContent(state, { payload }: { payload: UpdateTextContentPayloadI }) {
+      const section = state.layoutDatas.sectionValues.find(
+        section => section.sectionKey === payload.sectionKey
+      );
+      if (section) {
+        const item = section.layoutValues.find(item => item.id === payload.itemId);
+        if (item) {
+          item.textValue = payload.textContent;
+        }
+      }
+    },
   },
 });
 
@@ -139,4 +156,5 @@ export const {
   addImageToSection,
   deleteLayoutItem,
   updateImageUrl,
+  updateTextContent,
 } = layoutSlice.actions;
