@@ -97,18 +97,22 @@ const layoutSlice = createSlice({
       const section = state.layoutDatas.sectionValues.find(
         section => section.sectionKey === payload.sectionKey
       );
-      if(section?.layoutValues.length==4){
-        alert('4개까지')
-        return
+      if (!section) return;
+      
+      if (!section.layoutValues) {
+        section.layoutValues = [];
       }
-      if (section) {
-        section.layoutValues.push({
-          id: crypto.randomUUID(),
-          layoutName: 'rectNormal',
-          imgValue: '',
-        });
+      
+      if (section.layoutValues.length >= 4) {
+        alert('4개까지');
+        return;
       }
-   
+      
+      section.layoutValues.push({
+        id: crypto.randomUUID(),
+        layoutName: 'rectNormal',
+        imgValue: '',
+      });
     },
     deleteLayoutItem: (state, { payload }: { payload: { sectionId: string; itemId: string } }) => {
       const sectionIndex = state.layoutDatas.sectionValues.findIndex(
