@@ -1,6 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { LayoutData, LayoutItemValues, SectionData } from "../../components/types/common/layoutStyle";
 import { MAX_LAYOUT_VALUE } from "../../utils/constants";
+import { saveEditorState } from "../../utils/localStorage";
 
 interface InitialInterface {
   layoutDatas: LayoutData;
@@ -61,12 +62,14 @@ const layoutSlice = createSlice({
         ...newSection,
         title: `섹션 ${state.layoutDatas.sectionValues.length + 1}` // 기본 제목 추가
       });
+      saveEditorState(state.layoutDatas);
     },
     deleteSection: (state, { payload }: { payload: IdPayloadI }) => {
       const updatedState = state.layoutDatas.sectionValues.filter(
         (section) => section.sectionKey !== payload.id,
       );
       state.layoutDatas.sectionValues = updatedState;
+      saveEditorState(state.layoutDatas);
     },
     updateSectionTitle: (state, { payload }: { payload: UpdateSectionTitlePayloadI }) => {
       const section = state.layoutDatas.sectionValues.find(
@@ -74,6 +77,7 @@ const layoutSlice = createSlice({
       );
       if (section) {
         section.title = payload.title;
+        saveEditorState(state.layoutDatas);
       }
     },
     addLayoutItem: (state, { payload }: PayLoadI) => {
@@ -92,6 +96,7 @@ const layoutSlice = createSlice({
       state.layoutDatas.sectionValues[sectionIndex].layoutValues.push(
         payload.newLayoutItemValue,
       );
+      saveEditorState(state.layoutDatas);
     },
     addImageToSection: (state, { payload }: { payload: AddImagePayloadI }) => {
       const section = state.layoutDatas.sectionValues.find(
@@ -113,6 +118,7 @@ const layoutSlice = createSlice({
         layoutName: 'rectNormal',
         imgValue: '',
       });
+      saveEditorState(state.layoutDatas);
     },
     deleteLayoutItem: (state, { payload }: { payload: { sectionId: string; itemId: string } }) => {
       const sectionIndex = state.layoutDatas.sectionValues.findIndex(
@@ -125,6 +131,7 @@ const layoutSlice = createSlice({
         state.layoutDatas.sectionValues[sectionIndex].layoutValues.filter(
           (item) => item.id !== payload.itemId,
         );
+      saveEditorState(state.layoutDatas);
     },
     updateImageUrl(state, { payload }: { payload: UpdateImageUrlPayloadI }) {
       const section = state.layoutDatas.sectionValues.find(
@@ -134,6 +141,7 @@ const layoutSlice = createSlice({
         const item = section.layoutValues.find(item => item.id === payload.itemId);
         if (item) {
           item.currentItemImageValue = payload.imageUrl;
+          saveEditorState(state.layoutDatas);
         }
       }
     },
@@ -145,8 +153,13 @@ const layoutSlice = createSlice({
         const item = section.layoutValues.find(item => item.id === payload.itemId);
         if (item) {
           item.textValue = payload.textContent;
+          saveEditorState(state.layoutDatas);
         }
       }
+    },
+    setLayoutData(state, action: PayloadAction<LayoutData>) {
+      state.layoutDatas = action.payload;
+      saveEditorState(state.layoutDatas);
     },
   },
 });
@@ -161,4 +174,5 @@ export const {
   deleteLayoutItem,
   updateImageUrl,
   updateTextContent,
+  setLayoutData,
 } = layoutSlice.actions;

@@ -1,15 +1,16 @@
 'use client';
 
 import { useSelector } from 'react-redux';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import SideMenu from '../../components/SideMenu/SideMenu';
 import SectionList from '../../components/SideMenu/SectionList';
-import {  SectionData } from '../../components/types/common/layoutStyle';
+import { SectionData } from '../../components/types/common/layoutStyle';
 import { changeNowSectionKey } from '../../store/slices/keys';
-import { addSection } from '../../store/slices/layouts';
+import { addSection, setLayoutData } from '../../store/slices/layouts';
 import { RootState } from '../../store/configureStore';
 import MainContent from '../../components/organisms/MainContent';
+import { loadEditorState } from '../../utils/localStorage';
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -48,7 +49,13 @@ export default function Home() {
     setSectionsSidebar(true);
   }, [onAddSection]);
 
-  
+  useEffect(() => {
+    // 저장된 에디터 상태 불러오기
+    const savedState = loadEditorState();
+    if (savedState) {
+      dispatch(setLayoutData(savedState));
+    }
+  }, [dispatch]);
 
   // 추후 사용 반응형 코드 
 
