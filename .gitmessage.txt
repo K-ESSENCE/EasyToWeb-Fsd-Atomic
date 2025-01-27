@@ -1,0 +1,11 @@
+# <타입>(<범위>): <제목>
+# 예: feat(auth): add email validation
+#
+# [본문] 변경 사항을 자세히 설명 (선택 사항)
+# - "왜" 변경했는지, "무엇"을 변경했는지 작성
+# - 72자마다 줄 바꿈
+#
+# [푸터] 이슈 참조 (예: Closes #123)
+#
+# 사용 가능한 타입:
+# feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
