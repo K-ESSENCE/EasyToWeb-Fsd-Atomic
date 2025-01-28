@@ -86,7 +86,7 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
               placeholder="섹션 제목을 입력하세요"
             />
           </label>
-          <label className="block">
+          {/* <label className="block">
             <span className="text-sm text-gray-600">배경색</span>
             <div className="mt-1 flex gap-2">
               {BACKGROUND_COLORS.map(({ color, class: bgClass }) => (
@@ -96,7 +96,7 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
                 />
               ))}
             </div>
-          </label>
+          </label> */}
         </div>
       </div>
 
