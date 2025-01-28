@@ -116,7 +116,7 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-gray-200">
+      {/* <div className="bg-white p-4 rounded-xl border border-gray-200">
         <h3 className="text-sm font-medium text-gray-700 mb-3">스타일 설정</h3>
         <div className="space-y-2">
           <label className="block">
@@ -128,7 +128,7 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
             </select>
           </label>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 
