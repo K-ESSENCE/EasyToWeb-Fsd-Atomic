@@ -8,4 +8,4 @@
 # [푸터] 이슈 참조 (예: Closes #123)
 #
 # 사용 가능한 타입:
-# feat, fix, docs, style, refactor, test, chore, perf, ci, build, design, rename , remove 
+# feat, fix, docs, style, refactor, test, chore, ci, build, design, rename , remove, !BREAKING CHANGE , !HOTFIX 
