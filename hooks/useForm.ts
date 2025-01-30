@@ -4,12 +4,14 @@ interface FormState {
   email: string;
   password: string;
   confirmPassword: string;
+  verificationCode: string;
 }
 
 interface FormErrors {
   email: string;
   password: string;
   confirmPassword: string;
+  verificationCode: string;
 }
 
 export const useForm = () => {
@@ -17,12 +19,14 @@ export const useForm = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    verificationCode: '',
   });
 
   const [errors, setErrors] = useState<FormErrors>({
     email: '',
     password: '',
     confirmPassword: '',
+    verificationCode: '',
   });
 
   const validateEmail = (email: string) => {
@@ -79,12 +83,14 @@ export const useForm = () => {
     setFormData({
       email: '',
       password: '',
-      confirmPassword: '',
+      confirmPassword: '',  
+      verificationCode: '',
     });
     setErrors({
       email: '',
       password: '',
       confirmPassword: '',
+      verificationCode: '',
     });
   };
 

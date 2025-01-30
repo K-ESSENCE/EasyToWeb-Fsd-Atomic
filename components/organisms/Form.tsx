@@ -8,6 +8,7 @@ import { useForm } from '../../hooks/useForm';
 
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const { formData, errors, handleChange, resetForm } = useForm();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,6 +20,7 @@ const Form = () => {
   const handleVerification = () => {
     // 이메일 인증 로직 추가
     console.log('Verification requested for:', formData.email);
+    setShowVerification(true);
   };
 
   const toggleForm = () => {
@@ -58,10 +60,10 @@ const Form = () => {
           type="email"
           value={formData.email}
           onChange={handleChange('email')}
-          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom focus:invalid:border-red-500 focus:invalid:ring-red-500"
+          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
           placeholder="your@email.com"
         />
-        {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+        <p className="mt-2 hidden peer-invalid:block text-sm text-red-600">올바른 이메일 주소를 입력해주세요.</p>
       </div>
       <div className="mt-4">
         <button
@@ -72,6 +74,29 @@ const Form = () => {
           인증번호 받기
         </button>
       </div>
+      {showVerification && (
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">인증번호</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
+              placeholder="인증번호 6자리 입력"
+              maxLength={6}
+              value={formData.verificationCode || ''}
+              onChange={handleChange('verificationCode')}
+            />
+            <button
+              type="button"
+              className="!rounded-button bg-custom text-white py-2 px-4 font-medium hover:bg-custom/90"
+              onClick={() => console.log('Verification code submitted:', formData.verificationCode)}
+            >
+              확인
+            </button>
+          </div>
+          <p className="mt-2 text-sm text-gray-500">인증번호가 발송되었습니다. (유효시간 3:00)</p>
+        </div>
+      )}
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
         <input
