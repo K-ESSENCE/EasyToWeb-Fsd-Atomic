@@ -40,14 +40,15 @@ const Form = () => {
         type="password"
         placeholder="••••••••"
       />
+
+      <Button className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50">
+        로그인
+      </Button>
       <Button 
         className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90" 
         onClick={toggleForm}
       >
         회원가입
-      </Button>
-      <Button className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50">
-        로그인
       </Button>
     </form>
   );
