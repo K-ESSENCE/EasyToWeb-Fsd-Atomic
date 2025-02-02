@@ -5,22 +5,115 @@ import Button from '../atoms/Button';
 import FormField from '../molecules/FormField';
 import SocialButton from '../molecules/SocialButton';
 import { useForm } from '../../hooks/useForm';
+import apiHandler from '../../shared/api/axios';
+import { useRouter } from 'next/navigation';
 
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [certifyLoading, setCertifyLoading] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false);
   const { formData, errors, handleChange, resetForm } = useForm();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 회원가입 로직 추가
-    console.log('Form submitted:', formData);
+    setIsLoading(true);
+    try {
+      const response = await apiHandler.login({
+        email: formData.email,
+        password: formData.password
+      });
+      
+        router.push('/editor');
+    } catch (error) {
+      alert('로그인 중 오류가 발생했습니다.');
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVerification = () => {
-    // 이메일 인증 로직 추가
-    console.log('Verification requested for:', formData.email);
+  const handleVerification = async () => {
+    if (!formData.email) {
+      alert('이메일을 입력해주세요.');
+      return;
+    }
+
+    setVerificationLoading(true);
+    try {
+      const response = await apiHandler.sendJoinMail({
+        email: formData.email
+      });
+      
     setShowVerification(true);
+    
+ 
+    } catch (error) {
+      alert('인증번호 발송 중 오류가 발생했습니다.');
+      console.error('Verification error:', error);
+    }
+    finally{
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleCertifyCode = async () => {
+    if (!formData.verificationCode) {
+      alert('인증번호를 입력해주세요.');
+      return;
+    }
+
+    setCertifyLoading(true);
+    try {
+      const response = await apiHandler.certifyMail({
+        email: formData.email,
+        certificationCode: formData.verificationCode,
+        type:"VERIFIED_EMAIL"
+      });
+      
+        alert('이메일 인증이 완료되었습니다.');
+    } catch (error) {
+      alert('인증번호 확인 중 오류가 발생했습니다.');
+      console.error('Certification error:', error);
+    } finally {
+      setCertifyLoading(false);
+    }
+  };
+
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
+      alert('모든 필드를 입력해주세요.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setJoinLoading(true);
+    try {
+      const response = await apiHandler.join({
+        email: formData.email,
+        password: formData.password,
+        certificationCode: formData.verificationCode,
+        type:"VERIFIED_EMAIL"
+      });
+
+      alert('회원가입이 완료되었습니다. 로그인해주세요.');
+      setIsSignUp(false);
+      resetForm();
+    } catch (error) {
+      alert('회원가입 중 오류가 발생했습니다.');
+      console.error('Join error:', error);
+    } finally {
+      setJoinLoading(false);
+    }
   };
 
   const toggleForm = () => {
@@ -29,22 +122,38 @@ const Form = () => {
   };
 
   const renderInitialForm = () => (
-    <form className="space-y-6">
-      <FormField
-        label="이메일"
-        type="email"
-        placeholder="your@email.com"
-      />
-      <FormField
-        label="비밀번호"
-        type="password"
-        placeholder="••••••••"
-      />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
+        <input
+          type="email"
+          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
+          placeholder="your@email.com"
+          value={formData.email}
+          onChange={(e) => handleChange('email')(e)}
+        />
+        <p className="mt-2 hidden peer-invalid:block text-sm text-red-600">올바른 이메일 주소를 입력해주세요.</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+        <input
+          type="password"
+          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
+          placeholder="••••••••"
+          value={formData.password}
+          onChange={(e) => handleChange('password')(e)}
+        />
+      </div>
 
-      <Button className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50">
-        로그인
+      <Button 
+        type="submit"
+        className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50"
+        disabled={isLoading}
+      >
+        {isLoading ? '로그인 중...' : '로그인'}
       </Button>
       <Button 
+        type="button"
         className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90" 
         onClick={toggleForm}
       >
@@ -54,13 +163,13 @@ const Form = () => {
   );
 
   const renderSignUpForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSignUpSubmit} className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
         <input
           type="email"
           value={formData.email}
-          onChange={handleChange('email')}
+          onChange={(e) => handleChange('email')(e)}
           className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
           placeholder="your@email.com"
         />
@@ -70,9 +179,10 @@ const Form = () => {
         <button
           type="button"
           onClick={handleVerification}
+          disabled={verificationLoading}
           className="mt-2 w-full !rounded-button bg-gray-200 text-gray-700 py-2 px-4 font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          인증번호 받기
+          {verificationLoading ? '인증번호 발송 중...' : '인증번호 받기'}
         </button>
       </div>
       {showVerification && (
@@ -84,15 +194,16 @@ const Form = () => {
               className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
               placeholder="인증번호 6자리 입력"
               maxLength={6}
-              value={formData.verificationCode || ''}
-              onChange={handleChange('verificationCode')}
+              value={formData.verificationCode}
+              onChange={(e) => handleChange('verificationCode')(e)}
             />
             <button
               type="button"
-              className="!rounded-button bg-custom text-white py-2 px-4 font-medium hover:bg-custom/90"
-              onClick={() => console.log('Verification code submitted:', formData.verificationCode)}
+              className="!rounded-button bg-custom text-white py-2 px-4 font-medium hover:bg-custom/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleCertifyCode}
+              disabled={certifyLoading}
             >
-              확인
+              {certifyLoading ? '확인 중...' : '확인'}
             </button>
           </div>
           <p className="mt-2 text-sm text-gray-500">인증번호가 발송되었습니다. (유효시간 3:00)</p>
@@ -103,7 +214,7 @@ const Form = () => {
         <input
           type="password"
           value={formData.password}
-          onChange={handleChange('password')}
+          onChange={(e) => handleChange('password')(e)}
           className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom focus:invalid:border-red-500 focus:invalid:ring-red-500"
           placeholder="••••••••"
         />
@@ -114,7 +225,7 @@ const Form = () => {
         <input
           type="password"
           value={formData.confirmPassword}
-          onChange={handleChange('confirmPassword')}
+          onChange={(e) => handleChange('confirmPassword')(e)}
           className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom focus:invalid:border-red-500 focus:invalid:ring-red-500"
           placeholder="••••••••"
         />
@@ -123,9 +234,10 @@ const Form = () => {
       <div className="mt-6">
         <button
           type="submit"
-          className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90"
+          className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={joinLoading}
         >
-          가입하기
+          {joinLoading ? '가입 중...' : '가입하기'}
         </button>
       </div>
       <p className="mt-4 text-sm text-center text-gray-500">

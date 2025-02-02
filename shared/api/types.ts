@@ -18,6 +18,8 @@ export interface ApiResponse<T> {
     email: string;
     password: string;
     nickname?: string;
+    certificationCode: string;
+    type:"VERIFIED_EMAIL"
   }
   
   export interface AccountLoginRequest {
@@ -38,7 +40,8 @@ export interface ApiResponse<T> {
   
   export interface MailCertificationRequest {
     email: string;
-    code: string;
+    certificationCode: string;
+    type:"VERIFIED_EMAIL"
   }
   
   // Token Types

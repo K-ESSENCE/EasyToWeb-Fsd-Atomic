@@ -75,12 +75,12 @@ class ApiHandler {
 
   async changePassword(data: AccountPasswordChangeRequest): Promise<ApiResponse<void>> {
     const response = await this.client.post<ApiResponse<void>>('/account/password/change', data);
-    return response.data;
+    return response.data; 
   }
 
   // Mail APIs
   async sendJoinMail(data: MailSendRequest): Promise<ApiResponse<void>> {
-    const response = await this.client.post<ApiResponse<void>>('/mail/join/send', data);
+    const response = await this.client.get<ApiResponse<void>>(`/account/mail/join?email=${encodeURIComponent(data.email)}`);
     return response.data;
   }
 
@@ -90,7 +90,7 @@ class ApiHandler {
   }
 
   async certifyMail(data: MailCertificationRequest): Promise<ApiResponse<void>> {
-    const response = await this.client.post<ApiResponse<void>>('/mail/certify', data);
+    const response = await this.client.post<ApiResponse<void>>(`/account/mail/certification`,data);
     return response.data;
   }
 
