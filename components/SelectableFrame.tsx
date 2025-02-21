@@ -1,7 +1,7 @@
 import { CardStyleI } from '../utils/constants';
 
 interface DefalutProps {
-  isItem:boolean
+  isItem?:boolean
   shapeStyleValues: CardStyleI;
   thisKey: string;
   selectedKey: string | null;

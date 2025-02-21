@@ -6,6 +6,7 @@ import { MenuHeader } from './components/MenuHeader';
 import { SectionItem } from './components/SectionItem';
 import { FONTS, BACKGROUND_COLORS, ELEMENTS } from './constants';
 import { MenuType, SideMenuProps } from './types';
+import { LayoutItemValues } from '../types/common/layoutStyle';
 
 const useKeyboardShortcut = (isOpen: boolean, onClose: (value: boolean) => void) => {
   useEffect(() => {
@@ -161,7 +162,7 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
 
   return (
     <div className={`w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed ${isOpen ? 'right-0' : '-right-[280px]'} top-0 transition-all duration-300`}>
-      <MenuHeader title="편집" onClose={onClose} />
+      <MenuHeader title="편집" onClose={()=>onClose(false)} />
       <div className="overflow-y-auto flex-1 p-4">
         {menuType === 'settings' ? renderSettingsContent() : renderSectionsList()}
       </div>

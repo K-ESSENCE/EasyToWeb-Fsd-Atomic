@@ -38,6 +38,7 @@ interface UpdateImageUrlPayloadI {
   sectionKey: string;
   itemId: string;
   imageUrl: string;
+  
 }
 
 interface UpdateTextContentPayloadI {
@@ -140,7 +141,7 @@ const layoutSlice = createSlice({
       if (section) {
         const item = section.layoutValues.find(item => item.id === payload.itemId);
         if (item) {
-          item.currentItemImageValue = payload.imageUrl;
+          item.imgValue = payload.imageUrl;
           saveEditorState(state.layoutDatas);
         }
       }

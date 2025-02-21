@@ -146,14 +146,11 @@ const Form = () => {
       </div>
 
       <Button 
-        type="submit"
         className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50"
-        disabled={isLoading}
       >
         {isLoading ? '로그인 중...' : '로그인'}
       </Button>
       <Button 
-        type="button"
         className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90" 
         onClick={toggleForm}
       >

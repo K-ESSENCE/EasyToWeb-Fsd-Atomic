@@ -63,11 +63,7 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
     <>
       {currentItem?.layoutName === 'text' ? (
         <div 
-          className={`w-full h-full rounded-xl overflow-hidden ${shapeStyleValues.bgColor} p-4`}
-          style={{ 
-            boxShadow: shapeStyleValues.shadow,
-            border: shapeStyleValues.border,
-          }}
+          className={`w-full h-full rounded-xl overflow-hidden  p-4`}
         >
           <div className="w-full max-w-xl">
             <div

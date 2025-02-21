@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import layouts from '@/store/slices/layouts';
 
 interface initialInerface {
   nowSectionKey: string;
