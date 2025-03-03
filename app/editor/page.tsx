@@ -1,7 +1,7 @@
 "use client";
 
 import { useSelector } from "react-redux";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import SideMenu from "../../components/SideMenu/SideMenu";
 import SectionList from "../../components/SideMenu/SectionList";
@@ -68,6 +68,10 @@ export default function Home() {
   const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
   const [provider, setProvider] = useState<any>(null);
 
+  // YJS 동기화 관련 변수
+  const isLocalUpdateRef = useRef(false); // 로컬 업데이트 플래그
+  const lastReceivedHashRef = useRef(""); // 마지막으로 받은 원격 데이터 해시
+
   useEffect(() => {
     const roomName = "layout-modal-room";
     const { doc, provider } = createYjsDocument(roomName);
@@ -85,14 +89,27 @@ export default function Home() {
 
     // 원격 변경사항 감지 및 적용
     sharedLayoutMap.observe(() => {
+      if (isLocalUpdateRef.current) {
+        return; // 로컬 업데이트 중이면 무시
+      }
+
       const remoteLayoutDatas = sharedLayoutMap.get(
         "sections"
       ) as SectionData[];
-      if (
-        remoteLayoutDatas &&
-        JSON.stringify(remoteLayoutDatas) !== JSON.stringify(layoutDatas)
-      ) {
+      if (!remoteLayoutDatas) return;
+
+      // 해시 비교를 통한 중복 업데이트 방지
+      const currentHash = JSON.stringify(remoteLayoutDatas);
+      if (currentHash === lastReceivedHashRef.current) {
+        return; // 동일한 데이터면 무시
+      }
+
+      // 진짜 데이터 비교 (구조와 값이 정확히 같은지)
+      if (JSON.stringify(remoteLayoutDatas) !== JSON.stringify(layoutDatas)) {
         console.log("Remote change detected:", remoteLayoutDatas);
+        lastReceivedHashRef.current = currentHash;
+
+        // Redux 업데이트
         dispatch(
           setLayoutData({
             layoutId: "default",
@@ -111,9 +128,31 @@ export default function Home() {
 
   useEffect(() => {
     if (yjsDoc) {
-      console.log("Local change synced:", layoutDatas);
+      // 로컬 변경을 YJS에 반영
       const sharedLayoutMap = yjsDoc.getMap("layoutDatas");
-      sharedLayoutMap.set("sections", layoutDatas);
+
+      // 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
+      const currentSections = sharedLayoutMap.get("sections") as
+        | SectionData[]
+        | undefined;
+
+      if (
+        !currentSections ||
+        JSON.stringify(currentSections) !== JSON.stringify(layoutDatas)
+      ) {
+        console.log("Local change synced:", layoutDatas);
+
+        // 로컬 업데이트 플래그 설정 (원격 변경 감지 중지)
+        isLocalUpdateRef.current = true;
+
+        // YJS 데이터 업데이트
+        sharedLayoutMap.set("sections", layoutDatas);
+
+        // 플래그 초기화 (지연시켜 비동기 처리 완료 보장)
+        setTimeout(() => {
+          isLocalUpdateRef.current = false;
+        }, 50);
+      }
     }
   }, [layoutDatas, yjsDoc]);
 
