@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Shapes, TextStyleI } from "../types/common/layoutStyle";
 import { getShapeStyleValues } from "../../utils/utils";
 import { changeNowItemKey } from "../../store/slices/keys";
-import { deleteLayoutItem } from "../../store/slices/layouts";
 import { RootState } from "../../store/configureStore";
 
 interface DefaultProps {
@@ -26,7 +25,7 @@ const CardFrame = ({
   const nowSectionKey = useSelector(
     (state: RootState) => state.keys.nowSectionKey
   );
-  const nowItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
+  // const nowItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
   const sections = useSelector(
     (state: RootState) => state.layouts.layoutDatas.sectionValues
   );
@@ -46,21 +45,12 @@ const CardFrame = ({
     dispatch(changeNowItemKey(key));
   };
 
-  const onDeleteLayout = () => {
-    dispatch(
-      deleteLayoutItem({ sectionId: nowSectionKey, itemId: nowItemKey })
-    );
-    dispatch(changeNowItemKey(""));
-  };
-
   return (
     <SelectableFrame
       isItem={true}
-      shapeStyleValues={shapeStyleValues}
       thisKey={itemKey}
       changeKey={onChangeKey}
       selectedKey={selctedItemkey}
-      onHandleRemove={onDeleteLayout}
     >
       <EditableCard
         shapeStyleValues={shapeStyleValues}

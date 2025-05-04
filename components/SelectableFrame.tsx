@@ -1,4 +1,4 @@
-interface DefalutProps {
+interface DefaultProps {
   isItem?: boolean;
   thisKey: string;
   selectedKey: string | null;
@@ -12,7 +12,7 @@ const SelectableFrame = ({
   selectedKey,
   children,
   changeKey,
-}: DefalutProps) => {
+}: DefaultProps) => {
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // 삭제 버튼 클릭 시 이벤트 전파 방지
     if (isItem) {
