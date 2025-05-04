@@ -12,7 +12,7 @@ export const createYjsDocument = ({ roomName, accessToken }: YjsConfig) => {
 
   // Create WebSocket provider with the specified configuration
   const provider = new WebsocketProvider(
-    "ws://dev-api.easytoweb.store/layout-modal-room",
+    "wss://dev-api.easytoweb.store/layout-modal-room",
     roomName,
     doc,
     {
