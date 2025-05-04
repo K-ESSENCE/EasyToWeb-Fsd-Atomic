@@ -4,6 +4,13 @@
 
 https://dev.easytoweb.store/
 
+# 기능 
+
+프로젝트 초대 , 관리 
+이메일 인증
+웹 에디터 
+발행
+
 
 # Trouble shooting
 
