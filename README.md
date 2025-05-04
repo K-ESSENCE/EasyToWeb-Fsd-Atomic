@@ -10,6 +10,11 @@ https://dev.easytoweb.store/
 이메일 인증
 웹 에디터 
 발행
+클릭 가능한 UI 
+
+# 추후 추가 기능 
+상세한 웹 변경 
+요소별 핸들
 
 
 # Trouble shooting
