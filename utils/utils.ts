@@ -1,7 +1,7 @@
-import { Shapes } from '../components/types/common/layoutStyle';
-import { MOCK_SHAPE_SIZES, SHAPE_SIZES } from './constants';
+import { Shapes } from "../components/types/common/layoutStyle";
+import { MOCK_SHAPE_SIZES, SHAPE_SIZES } from "./constants";
 
-export function objDeepFreeze<T extends Object, V extends keyof T>(obj: T): T {
+export function objDeepFreeze<T extends object, V extends keyof T>(obj: T): T {
   Object.keys(obj).forEach((key) => {
     const objProperty = obj[key as V];
     if (objProperty instanceof Object) {
@@ -11,27 +11,33 @@ export function objDeepFreeze<T extends Object, V extends keyof T>(obj: T): T {
   return Object.freeze(obj);
 }
 
-export function getShapeStyleValues(shapeType: Shapes, condition: 'dynamic' | 'mock') {
-  const targetObj = condition === 'mock' ? MOCK_SHAPE_SIZES : SHAPE_SIZES;
+export function getShapeStyleValues(
+  shapeType: Shapes,
+  condition: "dynamic" | "mock"
+) {
+  const targetObj = condition === "mock" ? MOCK_SHAPE_SIZES : SHAPE_SIZES;
 
   switch (shapeType) {
-    case 'rectNormal':
+    case "rectNormal":
       return targetObj.RECT.NORMAL;
 
-    case 'rectBig':
+    case "rectBig":
       return targetObj.RECT.BIG;
 
-    case 'rectSmall':
+    case "rectSmall":
       return targetObj.RECT.SMALL;
 
-    case 'round':
+    case "round":
       return targetObj.ROUND;
 
-    case 'defaultSection':
+    case "defaultSection":
       return targetObj.SECTION;
-      
-    case 'text':
+
+    case "text":
       return targetObj.TEXT;
+
+    case "img":
+      return targetObj.IMG;
 
     default:
       const invalid: never = shapeType;

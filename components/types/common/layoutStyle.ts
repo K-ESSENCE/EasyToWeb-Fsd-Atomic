@@ -8,7 +8,7 @@ export interface LayoutData {
 export interface SectionData {
   sectionKey: string;
   layoutValues: LayoutItemValues[];
-  title?: string;  // 섹션 제목 추가
+  title?: string; // 섹션 제목 추가
 }
 
 export interface LayoutItemValues {
@@ -23,7 +23,14 @@ export interface LayoutItemValues {
 
 // Shapes는 추가 가능
 
-export type Shapes = 'rectNormal' | 'rectBig' | 'rectSmall' | 'round' | 'defaultSection' | 'text';
+export type Shapes =
+  | "rectNormal"
+  | "rectBig"
+  | "rectSmall"
+  | "round"
+  | "defaultSection"
+  | "text"
+  | "img";
 
 // Editable interface
 
@@ -37,7 +44,7 @@ export interface TextStyleI {
 
 // Responsive
 
-export type ResponsiveCondition = 'mobile' | 'desktop' | 'tablet';
+export type ResponsiveCondition = "mobile" | "desktop" | "tablet";
 
 export interface ResponsiveState {
   width: string;

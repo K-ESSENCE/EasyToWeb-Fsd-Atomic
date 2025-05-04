@@ -1,54 +1,28 @@
-import { ResponsiveState, SectionData } from '../types/common/layoutStyle';
-import AddSectionButton from '../atoms/AddSectionButton';
-import EmptyFrame from '../EmptyFrame';
-import SectionFrame from '../SectionLayout/SectionFrame';
+import { SectionData } from "../types/common/layoutStyle";
+import SectionFrame from "../SectionLayout/SectionFrame";
 
 interface MainContentProps {
   layoutDatas: SectionData[];
   selectedItemKey: string | null;
   nowSectionKey: string | null;
-  settingsSidebar: boolean;
-  sectionsSidebar: boolean;
-  // responsiveStyle: ResponsiveState;
-  onAddFirstSection: () => void;
 }
 
-const MainContent = ({ 
-  layoutDatas, 
+const MainContent = ({
+  layoutDatas,
   selectedItemKey,
   nowSectionKey,
-  settingsSidebar,
-  sectionsSidebar,
-  // responsiveStyle,
-  onAddFirstSection
 }: MainContentProps) => (
-  <div 
-    className="flex flex-col gap-5 transition-all duration-200 px-8 py-6 min-h-screen overflow-y-auto  mb-[80px]"
-    style={{ 
-      width: settingsSidebar && sectionsSidebar ? 'calc(100% - 560px)' :
-             settingsSidebar ? 'calc(100% - 280px)' :
-             sectionsSidebar ? 'calc(100% - 280px)' :
-             '100%',
-      marginLeft: sectionsSidebar ? '280px' : '0px',
-      marginRight: settingsSidebar ? '280px' : '0px',
-    }}
-  >
-    {layoutDatas.length === 0 && (
-      <AddSectionButton onClick={onAddFirstSection} isResponsive={false} />
-    )}
-
+  <div className="flex-col gap-5 transition-all duration-200 px-8 py-6 min-h-screen overflow-y-auto  mb-[80px]">
     {layoutDatas.map((section, key) => (
-      <EmptyFrame key={key} isEmpty={section.layoutValues.length === 0} sectionKey={section.sectionKey}>
-        <SectionFrame
-          selectedItemKey={selectedItemKey}
-          selectedSectionkey={nowSectionKey}
-          shapeType="defaultSection"
-          sectionKey={section.sectionKey}
-          isSideOpen={settingsSidebar}
-          // isResponsive={responsiveStyle.isReponsive}
-          sectionData={section}
-        />
-      </EmptyFrame>
+      <SectionFrame
+        key={key}
+        isEmpty={section.layoutValues.length === 0}
+        selctedItemkey={selectedItemKey}
+        selectedSectionkey={nowSectionKey}
+        shapeType="defaultSection"
+        sectionKey={section.sectionKey}
+        sectionData={section}
+      ></SectionFrame>
     ))}
   </div>
 );

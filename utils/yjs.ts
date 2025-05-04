@@ -1,16 +1,71 @@
-import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { Awareness } from "y-protocols/awareness";
 
-export const createYjsDocument = (roomName: string) => {
+interface YjsConfig {
+  roomName: string;
+  accessToken: string;
+}
+
+export const createYjsDocument = ({ roomName, accessToken }: YjsConfig) => {
   const doc = new Y.Doc();
-  const provider = new WebrtcProvider(roomName, doc);
 
-  // 현재 사용자의 상태 설정
+  // Create WebSocket provider with the specified configuration
+  const provider = new WebsocketProvider(
+    "ws://dev-api.easytoweb.store/layout-modal-room",
+    roomName,
+    doc,
+    {
+      params: {
+        roomName: roomName,
+      },
+      protocols: [`Authorization_${accessToken}`],
+    }
+  );
+
+  // Handle WebSocket errors
+  provider.on("connection-error", (event: Event) => {
+    console.error("WebSocket connection error:", event);
+    // Handle specific error codes
+    const error = event as unknown as {
+      code: number;
+      message: string;
+      errorFieldName?: string;
+    };
+
+    switch (error.code) {
+      case 1002:
+        console.error("Resource not found");
+        break;
+      case 1003:
+        console.error("Invalid input value:", error.errorFieldName);
+        break;
+      case 1008:
+        if (error.message === "PROJECT_NOT_FOUND") {
+          console.error("Project not found");
+        } else if (error.message === "USER_NOT_LOGIN") {
+          console.error("User not logged in");
+        } else if (error.message === "ACCESS_DENIED") {
+          console.error("Access denied");
+        }
+        break;
+      case 1011:
+        console.error("Internal server error");
+        break;
+      case 4401:
+        console.error("Access token expired");
+        break;
+      default:
+        console.error("Unknown error:", error);
+    }
+  });
+
+  // Set up awareness for user presence
   const awareness = provider.awareness;
   awareness.setLocalState({
     user: {
       name: `사용자${Math.floor(Math.random() * 1000)}`,
-      color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
       id: Math.random().toString(36).substr(2, 9),
     },
     selection: {
@@ -22,7 +77,11 @@ export const createYjsDocument = (roomName: string) => {
   return { doc, provider, awareness };
 };
 
-export const updateUserSelection = (awareness: any, sectionKey: string | null, itemKey: string | null) => {
+export const updateUserSelection = (
+  awareness: Awareness,
+  sectionKey: string | null,
+  itemKey: string | null
+) => {
   const currentState = awareness.getLocalState();
   if (currentState) {
     awareness.setLocalState({
@@ -35,6 +94,6 @@ export const updateUserSelection = (awareness: any, sectionKey: string | null, i
   }
 };
 
-export const cleanupYjsProvider = (provider: WebrtcProvider) => {
+export const cleanupYjsProvider = (provider: WebsocketProvider) => {
   provider.destroy();
 };

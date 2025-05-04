@@ -1,58 +1,65 @@
-import SelectableFrame from '../SelectableFrame';
-import EditableSection from './EditableSection';
-import { useDispatch, useSelector } from 'react-redux';
-import { SectionData, Shapes } from '../types/common/layoutStyle';
-import { deleteSection } from '../../store/slices/layouts';
-import { changeNowSectionKey, changeNowItemKey } from '../../store/slices/keys';
-import { getShapeStyleValues } from '../../utils/utils';
-import { RootState } from '../../store/configureStore';
+import SelectableFrame from "../SelectableFrame";
+import EditableSection from "./EditableSection";
+import { useDispatch } from "react-redux";
+import { SectionData, Shapes } from "../types/common/layoutStyle";
+// import { deleteSection } from "../../store/slices/layouts";
+import { changeNowSectionKey, changeNowItemKey } from "../../store/slices/keys";
+// import { getShapeStyleValues } from "../../utils/utils";
 
 interface DefaultProps {
   shapeType: Shapes;
   sectionKey: string;
   selectedSectionkey: string | null;
-  isSideOpen: boolean;
   // isResponsive: boolean;
-  selectedItemKey: string | null;
+  selctedItemkey: string | null;
   sectionData: SectionData;
+  isEmpty: boolean;
 }
 
 const SectionFrame = ({
-  shapeType,
+  // shapeType,
   sectionKey,
   selectedSectionkey,
-  isSideOpen,
   // isResponsive,
-  selectedItemKey,
+  isEmpty,
+  selctedItemkey,
   sectionData,
 }: DefaultProps) => {
-  const shapeStyleValues = getShapeStyleValues(shapeType, 'dynamic');
+  // const shapeStyleValues = getShapeStyleValues(shapeType, "dynamic");
   const dispatch = useDispatch();
 
-  const onDeleteSection = () => {
-    dispatch(deleteSection({ id: sectionKey }));
-    dispatch(changeNowSectionKey(''));
-    dispatch(changeNowItemKey(''));
-  };
+  // const onDeleteSection = () => {
+  //   dispatch(deleteSection({ id: sectionKey }));
+  //   dispatch(changeNowSectionKey(""));
+  //   dispatch(changeNowItemKey(""));
+  // };
 
   const onChangeKey = (key: string) => {
     dispatch(changeNowSectionKey(key));
-    dispatch(changeNowItemKey(''));
+    dispatch(changeNowItemKey(""));
   };
 
   return (
     <SelectableFrame
       changeKey={onChangeKey}
       selectedKey={selectedSectionkey}
-      shapeStyleValues={shapeStyleValues}
+      // shapeStyleValues={shapeStyleValues}
       thisKey={sectionKey}
-      onHandleRemove={onDeleteSection}
+      // onHandleRemove={onDeleteSection}
     >
+      {isEmpty && (
+        <>
+          <p className="text-gray-400 text-lg font-medium">
+            이 컨테이너를 선택후 요소를 추가하세요
+          </p>
+          <p className="text-gray-400 text-sm mt-2">
+            왼쪽 패널에서 원하는 요소를 선택하여 드래그하세요
+          </p>
+        </>
+      )}
       <EditableSection
         sectionData={sectionData}
-        selctedItemkey={selectedItemKey}
-        isSideOpen={isSideOpen}
-        // isResponsive={isResponsive}
+        selctedItemkey={selctedItemkey}
       ></EditableSection>
     </SelectableFrame>
   );

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Awareness } from 'y-protocols/awareness';
+import React, { useEffect, useState } from "react";
+import { Awareness } from "y-protocols/awareness";
+import { SectionData } from "./types/common/layoutStyle";
 
 interface User {
   name: string;
@@ -19,7 +20,7 @@ interface AwarenessState {
 
 interface ActiveUsersProps {
   awareness: Awareness;
-  layoutDatas: any[]; // 실제 타입으로 변경 필요
+  layoutDatas: SectionData[]; // 실제 타입으로 변경 필요
 }
 
 function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
@@ -28,12 +29,14 @@ function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
   useEffect(() => {
     // awareness 변경사항 감지
     const handleChange = () => {
-      const states = Array.from(awareness.getStates().values()) as AwarenessState[];
+      const states = Array.from(
+        awareness.getStates().values()
+      ) as AwarenessState[];
       setActiveUsers(states);
     };
 
-    awareness.on('change', handleChange);
-    return () => awareness.off('change', handleChange);
+    awareness.on("change", handleChange);
+    return () => awareness.off("change", handleChange);
   }, [awareness]);
 
   const getSelectionInfo = (selection: Selection) => {
@@ -41,7 +44,9 @@ function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
 
     const sectionName = `섹션 ${layoutDatas.findIndex((section) => section.sectionKey === selection.sectionKey) + 1}`;
 
-    return selection.itemKey ? `${sectionName} - 아이템 편집 중` : `${sectionName} 선택`;
+    return selection.itemKey
+      ? `${sectionName} - 아이템 편집 중`
+      : `${sectionName} 선택`;
   };
 
   return (
@@ -51,10 +56,17 @@ function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
         {activeUsers.map(({ user, selection }) => (
           <li key={user.id} className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: user.color }} />
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: user.color }}
+              />
               <span>{user.name}</span>
             </div>
-            {selection.sectionKey && <div className="text-sm text-gray-600 ml-5">{getSelectionInfo(selection)}</div>}
+            {selection.sectionKey && (
+              <div className="text-sm text-gray-600 ml-5">
+                {getSelectionInfo(selection)}
+              </div>
+            )}
           </li>
         ))}
       </ul>

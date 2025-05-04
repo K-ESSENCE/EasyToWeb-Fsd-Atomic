@@ -1,11 +1,11 @@
-import React, { useState, ChangeEvent, useEffect } from 'react';
-import Image from 'next/image';
-import { CardStyleI } from './../../utils/constants';
-import { TextStyleI } from '../types/common/layoutStyle';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../store/configureStore';
-import { updateImageUrl, updateTextContent } from '../../store/slices/layouts';
-import { changeNowItemKey } from '../../store/slices/keys';
+import React, { useState, ChangeEvent, useEffect } from "react";
+import Image from "next/image";
+import { CardStyleI } from "./../../utils/constants";
+import { TextStyleI } from "../types/common/layoutStyle";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../store/configureStore";
+import { updateImageUrl, updateTextContent } from "../../store/slices/layouts";
+import { changeNowItemKey } from "../../store/slices/keys";
 
 interface DefaultProps {
   shapeStyleValues: CardStyleI;
@@ -14,16 +14,29 @@ interface DefaultProps {
   describe?: TextStyleI;
 }
 
-const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: DefaultProps) => {
-  const [selectedImageData, setSelectedImageData] = useState<string | null>(null);
-  const [textContent, setTextContent] = useState<string>('여기에 텍스트를 입력하세요.');
-  const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
-  const sections = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
-  
+const EditableCard = ({
+  shapeStyleValues,
+  titleStyle,
+  describe,
+  itemKey,
+}: DefaultProps) => {
+  const [selectedImageData, setSelectedImageData] = useState<string | null>(
+    null
+  );
+  const [textContent, setTextContent] =
+    useState<string>("여기에 텍스트를 입력하세요.");
+  const nowSectionKey = useSelector(
+    (state: RootState) => state.keys.nowSectionKey
+  );
+  const sections = useSelector(
+    (state: RootState) => state.layouts.layoutDatas.sectionValues
+  );
+
   // Find the item across all sections
-  const currentItem = sections.flatMap(section => section.layoutValues)
-    .find(item => item.id === itemKey);
-  
+  const currentItem = sections
+    .flatMap((section) => section.layoutValues)
+    .find((item) => item.id === itemKey);
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -33,13 +46,15 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
   }, [currentItem?.textValue]);
 
   const handleTextChange = (e: React.FocusEvent<HTMLDivElement>) => {
-    const newText = e.currentTarget.textContent || '';
+    const newText = e.currentTarget.textContent || "";
     setTextContent(newText);
-    dispatch(updateTextContent({
-      sectionKey: nowSectionKey,
-      itemId: itemKey,
-      textContent: newText
-    }));
+    dispatch(
+      updateTextContent({
+        sectionKey: nowSectionKey,
+        itemId: itemKey,
+        textContent: newText,
+      })
+    );
   };
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,11 +64,13 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
       const imageUrl = URL.createObjectURL(file);
       setSelectedImageData(imageUrl);
       dispatch(changeNowItemKey(itemKey));
-      dispatch(updateImageUrl({
-        sectionKey: nowSectionKey,
-        itemId: itemKey,
-        imageUrl: imageUrl
-      }));
+      dispatch(
+        updateImageUrl({
+          sectionKey: nowSectionKey,
+          itemId: itemKey,
+          imageUrl: imageUrl,
+        })
+      );
     }
   };
 
@@ -61,10 +78,8 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
 
   return (
     <>
-      {currentItem?.layoutName === 'text' ? (
-        <div 
-          className={`w-full h-full rounded-xl overflow-hidden  p-4`}
-        >
+      {currentItem?.layoutName === "text" ? (
+        <div className={`w-full h-full rounded-xl overflow-hidden  p-4`}>
           <div className="w-full max-w-xl">
             <div
               contentEditable
@@ -74,16 +89,19 @@ const EditableCard = ({ shapeStyleValues, titleStyle, describe, itemKey }: Defau
             >
               {textContent}
             </div>
-            <p className="text-gray-600">텍스트의 크기, 줄 간격, 자간 등을 오른쪽 사이드바에서 조절할 수 있습니다.</p>
+            <p className="text-gray-600">
+              텍스트의 크기, 줄 간격, 자간 등을 오른쪽 사이드바에서 조절할 수
+              있습니다.
+            </p>
           </div>
         </div>
       ) : (
         <>
-          <input 
-            className="hidden" 
-            onChange={handleImageChange} 
-            id={itemKey} 
-            type="file" 
+          <input
+            className="hidden"
+            onChange={handleImageChange}
+            id={itemKey}
+            type="file"
             accept="image/*"
           />
           <label

@@ -1,33 +1,26 @@
-import { CardStyleI } from '../utils/constants';
-
 interface DefalutProps {
-  isItem?:boolean
-  shapeStyleValues: CardStyleI;
+  isItem?: boolean;
   thisKey: string;
   selectedKey: string | null;
   children: React.ReactNode;
   changeKey: (key: string) => void;
-  onHandleRemove: () => void;
 }
 
 const SelectableFrame = ({
-  isItem=false,
-  shapeStyleValues,
+  isItem = false,
   thisKey,
   selectedKey,
   children,
   changeKey,
-  onHandleRemove,
 }: DefalutProps) => {
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // 삭제 버튼 클릭 시 이벤트 전파 방지
     if (isItem) {
-    changeKey(thisKey);
+      changeKey(thisKey);
       e.stopPropagation();
       return;
     }
 
-    
     changeKey(thisKey);
   };
 
@@ -40,16 +33,13 @@ const SelectableFrame = ({
 
   return (
     <div
-      className={`p-4
-        ${isSelected ? 'border-4 border-[#39ff14]' : 'border-4 border-transparent'}
-        hover:${isSelected ? 'border-[#39ff14]' : 'border-[#007bff]'}
+      className={`mt-5 p-4
+        ${isSelected ? "border-4 border-[#39ff14]" : "border-4 border-transparent"}
+        hover:${isSelected ? "border-[#39ff14]" : "border-[#007bff]"}
       `}
       onClick={handleClick}
     >
-  
-      <div >
-        {children}
-      </div>
+      <div>{children}</div>
     </div>
   );
 };

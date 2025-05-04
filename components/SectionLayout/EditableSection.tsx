@@ -1,15 +1,13 @@
-import CardFrame from '../Cards/CardFrame';
-import { SectionData } from '../types/common/layoutStyle';
+import CardFrame from "../Cards/CardFrame";
+import { SectionData } from "../types/common/layoutStyle";
 
 interface DefaultProps {
-  isSideOpen: boolean;
   // isResponsive: boolean;
   sectionData: SectionData;
   selctedItemkey: string | null;
 }
 
 const EditableSection = ({
-  isSideOpen,
   // isResponsive,
   sectionData,
   selctedItemkey,
@@ -27,7 +25,7 @@ w-full      `}
               selctedItemkey={selctedItemkey}
               itemKey={layout.id}
               key={layout.id}
-              titleStyle={{ text: '임시' }}
+              titleStyle={{ text: "임시" }}
               shapeType={layout.layoutName}
             ></CardFrame>
           );

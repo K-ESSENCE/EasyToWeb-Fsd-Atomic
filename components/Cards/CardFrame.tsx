@@ -1,11 +1,11 @@
-import EditableCard from './EditableCard';
-import SelectableFrame from '../SelectableFrame';
-import { useDispatch, useSelector } from 'react-redux';
-import { Shapes, TextStyleI } from '../types/common/layoutStyle';
-import { getShapeStyleValues } from '../../utils/utils';
-import { changeNowItemKey } from '../../store/slices/keys';
-import { deleteLayoutItem } from '../../store/slices/layouts';
-import { RootState } from '../../store/configureStore';
+import EditableCard from "./EditableCard";
+import SelectableFrame from "../SelectableFrame";
+import { useDispatch, useSelector } from "react-redux";
+import { Shapes, TextStyleI } from "../types/common/layoutStyle";
+import { getShapeStyleValues } from "../../utils/utils";
+import { changeNowItemKey } from "../../store/slices/keys";
+import { deleteLayoutItem } from "../../store/slices/layouts";
+import { RootState } from "../../store/configureStore";
 
 interface DefaultProps {
   shapeType: Shapes;
@@ -16,25 +16,41 @@ interface DefaultProps {
   describe?: TextStyleI;
 }
 
-const CardFrame = ({ shapeType, titleStyle, describe, itemKey, selctedItemkey }: DefaultProps) => {
-  const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);  
+const CardFrame = ({
+  shapeType,
+  titleStyle,
+  describe,
+  itemKey,
+  selctedItemkey,
+}: DefaultProps) => {
+  const nowSectionKey = useSelector(
+    (state: RootState) => state.keys.nowSectionKey
+  );
   const nowItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
-  const sections = useSelector((state: RootState) => state.layouts.layoutDatas.sectionValues);
-  const currentSection = sections.find(section => section.sectionKey === nowSectionKey);
-  const currentItem = currentSection?.layoutValues.find(item => item.id === itemKey);
+  const sections = useSelector(
+    (state: RootState) => state.layouts.layoutDatas.sectionValues
+  );
+  const currentSection = sections.find(
+    (section) => section.sectionKey === nowSectionKey
+  );
+  const currentItem = currentSection?.layoutValues.find(
+    (item) => item.id === itemKey
+  );
 
   const dispatch = useDispatch();
 
   const actualShapeType = currentItem?.layoutName || shapeType;
-  const shapeStyleValues = getShapeStyleValues(actualShapeType, 'dynamic');
+  const shapeStyleValues = getShapeStyleValues(actualShapeType, "dynamic");
 
   const onChangeKey = (key: string) => {
     dispatch(changeNowItemKey(key));
   };
 
   const onDeleteLayout = () => {
-    dispatch(deleteLayoutItem({ sectionId: nowSectionKey, itemId: nowItemKey }));
-    dispatch(changeNowItemKey(''));
+    dispatch(
+      deleteLayoutItem({ sectionId: nowSectionKey, itemId: nowItemKey })
+    );
+    dispatch(changeNowItemKey(""));
   };
 
   return (
