@@ -97,8 +97,10 @@ class ApiHandler {
   }
 
   // Mail APIs
-  async sendJoinMail(data: MailSendRequest): Promise<ApiResponse<void>> {
-    const response = await this.client.get<ApiResponse<void>>(
+  async sendJoinMail(
+    data: MailSendRequest
+  ): Promise<ApiResponse<TokenResponse>> {
+    const response = await this.client.get<ApiResponse<TokenResponse>>(
       `/account/mail/join?email=${encodeURIComponent(data.email)}`
     );
     return response.data;

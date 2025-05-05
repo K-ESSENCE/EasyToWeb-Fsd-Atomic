@@ -7,6 +7,8 @@ import SocialButton from "../molecules/SocialButton";
 import { useForm } from "../../hooks/useForm";
 import apiHandler from "../../shared/api/axios";
 import { useRouter } from "next/navigation";
+import { ApiResponse } from "../../shared/api/types";
+import { TokenResponse } from "../../shared/api/types";
 
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -22,12 +24,17 @@ const Form = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await apiHandler.login({
+      const response: ApiResponse<TokenResponse> = await apiHandler.login({
         email: formData.email,
         password: formData.password,
       });
 
-      router.push("/editor");
+      if (response?.data?.accessToken) {
+        localStorage.setItem("accessToken", response.data.accessToken);
+        router.push("/editor");
+      } else {
+        throw new Error("No access token received");
+      }
     } catch (error) {
       alert("로그인 중 오류가 발생했습니다.");
       console.error("Login error:", error);
@@ -44,11 +51,17 @@ const Form = () => {
 
     setVerificationLoading(true);
     try {
-      const response = await apiHandler.sendJoinMail({
-        email: formData.email,
-      });
+      const response: ApiResponse<TokenResponse> =
+        await apiHandler.sendJoinMail({
+          email: formData.email,
+        });
 
-      setShowVerification(true);
+      if (response?.data?.accessToken) {
+        localStorage.setItem("accessToken", response.data.accessToken);
+        setShowVerification(true);
+      } else {
+        throw new Error("No access token received");
+      }
     } catch (error) {
       alert("인증번호 발송 중 오류가 발생했습니다.");
       console.error("Verification error:", error);
