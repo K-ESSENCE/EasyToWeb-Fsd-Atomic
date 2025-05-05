@@ -271,7 +271,7 @@ const Form = () => {
   );
 
   return (
-    <div className="mt-10 bg-white p-8 rounded-lg shadow-sm">
+    <div className="mt-10 text-black bg-white p-8 rounded-lg shadow-sm">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           {isSignUp ? "회원가입" : "시작하기"}

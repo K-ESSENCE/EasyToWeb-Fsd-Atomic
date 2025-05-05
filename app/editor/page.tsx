@@ -591,7 +591,7 @@ const App: React.FC = () => {
                 }}
               >
                 {awareness && (
-                  <div className="fixed top-4 right-4 z-10 bg-white p-4 rounded-lg shadow-lg">
+                  <div className="fixed top-12 right-4 z-10 bg-white p-4 rounded-lg shadow-lg">
                     <ActiveUsers
                       awareness={awareness}
                       layoutDatas={layoutDatas}

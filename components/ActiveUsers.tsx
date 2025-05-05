@@ -50,7 +50,7 @@ function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
   };
 
   return (
-    <div className="active-users">
+    <div className="active-users text-black">
       <h3 className="text-lg font-semibold mb-2">현재 활성 사용자</h3>
       <ul className="space-y-2">
         {activeUsers.map(({ user, selection }) => (

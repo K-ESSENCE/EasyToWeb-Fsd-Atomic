@@ -1,4 +1,4 @@
-import Text from '../atoms/Text';
+import Link from "next/link";
 
 interface NavItemProps {
   href: string;
@@ -6,7 +6,11 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ href, label }) => {
-  return <Text href={href} variant="nav">{label}</Text>;
+  return (
+    <Link href={href} className="text-gray-700 hover:text-gray-900">
+      {label}
+    </Link>
+  );
 };
 
 export default NavItem;
