@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 const App: React.FC = () => {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "date" | "status">("date");
   const [filterStatus, setFilterStatus] = useState<
     "all" | "draft" | "published"
   >("all");
+  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
 
   const projects = [
     {
@@ -56,15 +58,38 @@ const App: React.FC = () => {
     },
   ];
 
+  const handleDropdownToggle = (projectId: number) => {
+    setActiveDropdownId(activeDropdownId === projectId ? null : projectId);
+  };
+
+  const handleDeleteClick = (projectId: number) => {
+    setProjectToDelete(projectId);
+    setShowDeleteModal(true);
+    setActiveDropdownId(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    // Handle delete logic here
+    setShowDeleteModal(false);
+    setProjectToDelete(null);
+  };
+
+  const handleClickOutside = () => {
+    setActiveDropdownId(null);
+  };
+
+  const router = useRouter();
+
   return (
-    <div className=" text-black min-h-screen bg-gray-50">
+    <div
+      className="min-h-screen text-black bg-gray-50"
+      onClick={handleClickOutside}
+    >
       <div className="max-w-[1440px] mx-auto px-8 py-12">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">내 프로젝트</h1>
           <button
-            onClick={() => {
-              router.push("/editor");
-            }}
+            onClick={() => router.push("/editor")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-button flex items-center space-x-2 cursor-pointer whitespace-nowrap"
           >
             <i className="fas fa-plus"></i>
@@ -140,10 +165,41 @@ const App: React.FC = () => {
                     <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
                       {project.name}
                     </h3>
-                    <div className="flex items-center">
-                      <button className="text-gray-400 hover:text-gray-600 p-1 !rounded-button">
+                    <div className="relative">
+                      <button
+                        className="text-gray-400 hover:text-gray-600 p-1 !rounded-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDropdownToggle(project.id);
+                        }}
+                      >
                         <i className="fas fa-ellipsis-h"></i>
                       </button>
+                      {activeDropdownId === project.id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                          <div className="py-1">
+                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
+                              <i className="fas fa-edit w-4 mr-2"></i>
+                              편집하기
+                            </button>
+                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
+                              <i className="fas fa-copy w-4 mr-2"></i>
+                              복제하기
+                            </button>
+                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
+                              <i className="fas fa-share w-4 mr-2"></i>
+                              공유하기
+                            </button>
+                            <button
+                              className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center"
+                              onClick={() => handleDeleteClick(project.id)}
+                            >
+                              <i className="fas fa-trash-alt w-4 mr-2"></i>
+                              삭제하기
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-500">
@@ -173,6 +229,36 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              정말로 이 프로젝트를 삭제하시겠습니까?
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                취소
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-button"
+                onClick={handleDeleteConfirm}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

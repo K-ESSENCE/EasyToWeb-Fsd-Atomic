@@ -11,9 +11,21 @@ export const createYjsDocument = ({ roomName, accessToken }: YjsConfig) => {
   const doc = new Y.Doc();
 
   // Create WebSocket provider with the specified configuration
+  // const provider = new WebsocketProvider(
+  //   "wss://dev-api.easytoweb.store/layout-modal-room",
+  //   roomName,
+  //   doc,
+  //   {
+  //     params: {
+  //       roomName: roomName,
+  //     },
+  //     protocols: [`Authorization_${accessToken}`],
+  //   }
+  // );
+
   const provider = new WebsocketProvider(
-    "wss://dev-api.easytoweb.store/layout-modal-room",
-    roomName,
+    "wss://dev-api.easytoweb.store",
+    "layout-modal-room",
     doc,
     {
       params: {
@@ -95,5 +107,6 @@ export const updateUserSelection = (
 };
 
 export const cleanupYjsProvider = (provider: WebsocketProvider) => {
+  provider.awareness.setLocalState(null);
   provider.destroy();
 };

@@ -17,6 +17,8 @@ import {
 } from "../../utils/yjs";
 import ActiveUsers from "../../components/ActiveUsers";
 import { Awareness } from "y-protocols/awareness";
+import apiHandler from "../../shared/api/axios";
+import { IndexeddbPersistence } from "y-indexeddb";
 
 // import { useSelector } from 'react-redux';
 // import { useCallback, useState, useEffect, useRef } from 'react';
@@ -293,7 +295,19 @@ const App: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Simulate API call
+      let dataToSave = layoutDatas;
+      if (yjsDoc) {
+        const sharedLayoutMap = yjsDoc.getMap("layoutDatas");
+        const yjsSections = sharedLayoutMap.get("sections") as
+          | SectionData[]
+          | undefined;
+        if (yjsSections) {
+          dataToSave = yjsSections;
+        }
+      }
+      // dataToSave를 저장 API에 전달 (아래는 예시)
+      // await apiHandler.saveProject(dataToSave);
+      console.log("Saving data:", dataToSave);
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -314,25 +328,52 @@ const App: React.FC = () => {
 
   // YJS 동기화 관련 변수
   // const isLocalUpdateRef = useRef(false);
-  const lastReceivedHashRef = useRef("");
 
   useEffect(() => {
-    const roomName = "layout-modal-room";
-    const accessToken = "eyJhbGciOiJIUzI1NiJ9..."; // Replace with actual access token from your auth system
+    const roomName = "46e41fc4-0b00-47ce-b853-360be50954fd";
+    const accessToken = localStorage.getItem("accessToken") || "";
 
     const { doc, provider, awareness } = createYjsDocument({
       roomName,
       accessToken,
     });
 
+    // IndexedDB persistence 추가
+    const persistence = new IndexeddbPersistence(roomName, doc);
+    persistence.on("synced", () => {
+      // IndexedDB에서 불러온 후 Redux에 반영
+      const sharedLayoutMap = doc.getMap("layoutDatas");
+      const yjsSections = sharedLayoutMap.get("sections") as
+        | SectionData[]
+        | undefined;
+      if (yjsSections && yjsSections.length > 0) {
+        dispatch(
+          setLayoutData({
+            layoutId: "default",
+            sectionValues: yjsSections,
+          })
+        );
+      }
+    });
+
     setYjsDoc(doc);
     setAwareness(awareness);
 
-    // layoutDatas를 위한 공유 맵 생성
     const sharedLayoutMap = doc.getMap("layoutDatas");
 
-    // 초기 상태 설정
-    if (sharedLayoutMap.size === 0 && layoutDatas.length > 0) {
+    // sharedMap에 sections가 있으면 Redux에 반영
+    const yjsSections = sharedLayoutMap.get("sections") as
+      | SectionData[]
+      | undefined;
+    if (yjsSections && yjsSections.length > 0) {
+      dispatch(
+        setLayoutData({
+          layoutId: "default",
+          sectionValues: yjsSections,
+        })
+      );
+    } else if (layoutDatas.length > 0) {
+      // sharedMap이 비어있고, 로컬에 데이터가 있으면 sharedMap에 넣음
       sharedLayoutMap.set("sections", layoutDatas);
     }
 
@@ -343,25 +384,15 @@ const App: React.FC = () => {
       ) as SectionData[];
       if (!remoteLayoutDatas) return;
 
-      // 해시 비교를 통한 중복 업데이트 방지
-      const currentHash = JSON.stringify(remoteLayoutDatas);
-      if (currentHash === lastReceivedHashRef.current) {
-        return; // 동일한 데이터면 무시
-      }
-
       // 진짜 데이터 비교 (구조와 값이 정확히 같은지)
-      if (JSON.stringify(remoteLayoutDatas) !== JSON.stringify(layoutDatas)) {
-        console.log("Remote change detected:", remoteLayoutDatas);
-        lastReceivedHashRef.current = currentHash;
 
-        // Redux 업데이트
-        dispatch(
-          setLayoutData({
-            layoutId: "default",
-            sectionValues: remoteLayoutDatas,
-          })
-        );
-      }
+      // Redux 업데이트
+      dispatch(
+        setLayoutData({
+          layoutId: "default",
+          sectionValues: remoteLayoutDatas,
+        })
+      );
     });
 
     return () => {
@@ -382,24 +413,15 @@ const App: React.FC = () => {
     if (yjsDoc) {
       // 로컬 변경을 YJS에 반영
       const sharedLayoutMap = yjsDoc.getMap("layoutDatas");
-
-      // 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
       const currentSections = sharedLayoutMap.get("sections") as
         | SectionData[]
         | undefined;
-
+      // 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
       if (
         !currentSections ||
         JSON.stringify(currentSections) !== JSON.stringify(layoutDatas)
       ) {
-        console.log("Local change synced:", layoutDatas);
-
-        // 로컬 업데이트 플래그 설정 (원격 변경 감지 중지)
-
-        // YJS 데이터 업데이트
         sharedLayoutMap.set("sections", layoutDatas);
-
-        // 플래그 초기화 (지연시켜 비동기 처리 완료 보장)
       }
     }
   }, [layoutDatas, yjsDoc]);
@@ -457,7 +479,15 @@ const App: React.FC = () => {
           <button className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap">
             <i className="fas fa-eye mr-2"></i>미리보기
           </button>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap">
+          <button
+            onClick={async () => {
+              const response = await apiHandler.publishProject(
+                "4be03e15-f58e-4ae3-b978-b3cb06e4ecc1"
+              );
+              console.log(response);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
+          >
             <i className="fas fa-rocket mr-2"></i>배포
           </button>
           <button

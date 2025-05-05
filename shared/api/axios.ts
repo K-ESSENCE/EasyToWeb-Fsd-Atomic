@@ -16,6 +16,17 @@ import {
   TokenResponse,
   RefreshTokenRequest,
   ApiError,
+  Project,
+  ProjectUpdateRequest,
+  ProjectCreateRequest,
+  ProjectHistory,
+  ProjectHistoryList,
+  ProjectInviteRequest,
+  ProjectInviteAcceptRequest,
+  ProjectMemberKickRequest,
+  ProjectMemberPermissionUpdateRequest,
+  ProjectPublishResponse,
+  ProjectPublishContent,
 } from "./types";
 
 class ApiHandler {
@@ -144,6 +155,146 @@ class ApiHandler {
       await this.client.post<ApiResponse<void>>("/account/logout");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    return response.data;
+  }
+
+  // Project APIs
+  async getProject(projectId: string): Promise<ApiResponse<Project>> {
+    const response = await this.client.get<ApiResponse<Project>>(
+      `/project?projectId=${projectId}`
+    );
+    return response.data;
+  }
+
+  async updateProject(data: ProjectUpdateRequest): Promise<ApiResponse<void>> {
+    const response = await this.client.put<ApiResponse<void>>("/project", data);
+    return response.data;
+  }
+
+  async createProject(
+    data: ProjectCreateRequest
+  ): Promise<ApiResponse<{ projectId: string }>> {
+    const response = await this.client.post<ApiResponse<{ projectId: string }>>(
+      "/project",
+      data
+    );
+    return response.data;
+  }
+
+  async deleteProject(projectId: string): Promise<ApiResponse<void>> {
+    const response = await this.client.delete<ApiResponse<void>>(
+      `/project?projectId=${projectId}`
+    );
+    return response.data;
+  }
+
+  async exitProject(projectId: string): Promise<ApiResponse<void>> {
+    const response = await this.client.delete<ApiResponse<void>>(
+      `/project/exit?projectId=${projectId}`
+    );
+    return response.data;
+  }
+
+  async getProjectHistory(
+    projectId: string,
+    historyId: number
+  ): Promise<ApiResponse<ProjectHistory>> {
+    const response = await this.client.get<ApiResponse<ProjectHistory>>(
+      `/project/history?projectId=${projectId}&historyId=${historyId}`
+    );
+    return response.data;
+  }
+
+  async getProjectHistoryList(
+    projectId: string,
+    page: number,
+    size: number,
+    sort: string[]
+  ): Promise<ApiResponse<ProjectHistoryList>> {
+    const response = await this.client.get<ApiResponse<ProjectHistoryList>>(
+      `/project/history/list?projectId=${projectId}&page=${page}&size=${size}&sort=${sort.join(",")}`
+    );
+    return response.data;
+  }
+
+  async inviteProject(data: ProjectInviteRequest): Promise<ApiResponse<void>> {
+    const response = await this.client.post<ApiResponse<void>>(
+      "/project/invite",
+      data
+    );
+    return response.data;
+  }
+
+  async acceptProjectInvite(
+    projectId: string,
+    data: ProjectInviteAcceptRequest
+  ): Promise<ApiResponse<{ id: string }>> {
+    const response = await this.client.post<ApiResponse<{ id: string }>>(
+      `/project/invite/${projectId}`,
+      data
+    );
+    return response.data;
+  }
+
+  async getProjectList(): Promise<
+    ApiResponse<{ projectInfos: Record<string, Project[]> }>
+  > {
+    const response =
+      await this.client.get<
+        ApiResponse<{ projectInfos: Record<string, Project[]> }>
+      >("/project/list");
+    return response.data;
+  }
+
+  async kickProjectMember(
+    data: ProjectMemberKickRequest
+  ): Promise<ApiResponse<void>> {
+    const response = await this.client.delete<ApiResponse<void>>(
+      "/project/member",
+      { data }
+    );
+    return response.data;
+  }
+
+  async updateProjectMemberPermission(
+    data: ProjectMemberPermissionUpdateRequest
+  ): Promise<ApiResponse<void>> {
+    const response = await this.client.put<ApiResponse<void>>(
+      "/project/member/permission",
+      data
+    );
+    return response.data;
+  }
+
+  async publishProject(
+    projectId: string
+  ): Promise<ApiResponse<ProjectPublishResponse>> {
+    const response = await this.client.post<
+      ApiResponse<ProjectPublishResponse>
+    >("/project/publish", { projectId });
+    return response.data;
+  }
+
+  async unpublishProject(projectId: string): Promise<ApiResponse<void>> {
+    const response = await this.client.delete<ApiResponse<void>>(
+      `/project/publish?projectId=${projectId}`
+    );
+    return response.data;
+  }
+
+  async getPublishedProject(
+    url: string
+  ): Promise<ApiResponse<ProjectPublishContent>> {
+    const response = await this.client.get<ApiResponse<ProjectPublishContent>>(
+      `/project/publish/${url}`
+    );
+    return response.data;
+  }
+
+  async refreshPublishedProject(projectId: string): Promise<ApiResponse<void>> {
+    const response = await this.client.post<ApiResponse<void>>(
+      `/project/publish/refresh?projectId=${projectId}`
+    );
     return response.data;
   }
 }
