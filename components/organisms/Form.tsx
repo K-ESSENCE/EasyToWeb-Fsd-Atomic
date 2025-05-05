@@ -32,8 +32,6 @@ const Form = () => {
       if (response?.data?.accessToken) {
         localStorage.setItem("accessToken", response.data.accessToken);
         router.push("/editor");
-      } else {
-        throw new Error("No access token received");
       }
     } catch (error) {
       alert("로그인 중 오류가 발생했습니다.");
@@ -51,17 +49,11 @@ const Form = () => {
 
     setVerificationLoading(true);
     try {
-      const response: ApiResponse<TokenResponse> =
-        await apiHandler.sendJoinMail({
-          email: formData.email,
-        });
+      await apiHandler.sendJoinMail({
+        email: formData.email,
+      });
 
-      if (response?.data?.accessToken) {
-        localStorage.setItem("accessToken", response.data.accessToken);
-        setShowVerification(true);
-      } else {
-        throw new Error("No access token received");
-      }
+      setShowVerification(true);
     } catch (error) {
       alert("인증번호 발송 중 오류가 발생했습니다.");
       console.error("Verification error:", error);
