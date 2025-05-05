@@ -31,7 +31,7 @@ const Form = () => {
 
       if (response?.data?.accessToken) {
         localStorage.setItem("accessToken", response.data.accessToken);
-        router.push("/editor");
+        router.push("/list");
       }
     } catch (error) {
       alert("로그인 중 오류가 발생했습니다.");
