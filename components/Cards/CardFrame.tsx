@@ -17,8 +17,8 @@ interface DefaultProps {
 
 const CardFrame = ({
   shapeType,
-  titleStyle,
-  describe,
+  // titleStyle,
+  // describe,
   itemKey,
   selctedItemkey,
 }: DefaultProps) => {
@@ -55,8 +55,8 @@ const CardFrame = ({
       <EditableCard
         shapeStyleValues={shapeStyleValues}
         itemKey={itemKey}
-        titleStyle={titleStyle}
-        describe={describe}
+        // titleStyle={titleStyle}
+        // describe={describe}
       />
     </SelectableFrame>
   );
