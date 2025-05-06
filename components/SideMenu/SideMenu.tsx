@@ -1,8 +1,10 @@
 // import { useState, useEffect } from "react";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { SideMenuProps } from "./types";
 import { RootState } from "../../store/configureStore";
+import { deleteLayoutItem, deleteSection } from "../../store/slices/layouts";
+import { changeNowItemKey, changeNowSectionKey } from "../../store/slices/keys";
 // import {
 //   updateSectionTitle,
 //   addImageToSection,
@@ -32,7 +34,7 @@ import { RootState } from "../../store/configureStore";
 // };
 
 const SideMenu = ({ isFullscreen }: SideMenuProps) => {
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const nowSectionKey = useSelector(
     (state: RootState) => state.keys.nowSectionKey
@@ -196,6 +198,24 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
   //   </>
   // );
 
+  const handleDelete = () => {
+    if (nowSectionKey && selectedItemKey) {
+      dispatch(
+        deleteLayoutItem({ sectionId: nowSectionKey, itemId: selectedItemKey })
+      );
+      dispatch(changeNowItemKey(""));
+    }
+  };
+
+  const handleDeleteSection = () => {
+    if (nowSectionKey) {
+      dispatch(deleteSection({ id: nowSectionKey }));
+    }
+    // nowSectionKey 초기화
+    dispatch(changeNowSectionKey(""));
+    dispatch(changeNowItemKey(""));
+  };
+
   return (
     // <div className={`w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed ${isOpen ? 'right-0' : '-right-[280px]'} top-0 transition-all duration-300`}>
     //   <MenuHeader title="편집" onClose={()=>onClose(false)} />
@@ -206,7 +226,26 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
     <aside
       className={`w-72 bg-white border-l border-gray-200 overflow-y-auto transition-all duration-300 ${isFullscreen ? "hidden" : ""}`}
     >
-      {selectedItemKey ? (
+      {nowSectionKey && (
+        //여기에다가 추가  <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDeleteSection}
+            className="px-3 py-1 bg-red-200 text-red-700 rounded hover:bg-red-300 text-xs"
+          >
+            섹션 삭제
+          </button>
+          {selectedItemKey && (
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+            >
+              아이템 삭제
+            </button>
+          )}
+        </div>
+      )}
+      {selectedItemKey && (
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-800">
@@ -412,7 +451,8 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+      {!nowSectionKey && !selectedItemKey && (
         <div className="h-full flex items-center justify-center p-6">
           <div className="text-center">
             <div className="text-gray-400 mb-3">
