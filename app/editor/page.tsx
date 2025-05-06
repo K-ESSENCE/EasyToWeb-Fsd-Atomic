@@ -708,6 +708,7 @@ const App: React.FC = () => {
                         <ActiveUsers
                           awareness={awareness}
                           layoutDatas={layoutDatas}
+                          uploadStatus={uploadStatus}
                         />
                       </div>
                     )}
