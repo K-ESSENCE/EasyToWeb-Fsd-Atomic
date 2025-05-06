@@ -271,6 +271,8 @@ const App: React.FC = () => {
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [projectName, setProjectName] = useState("새 프로젝트");
   const [showProjectNameInput, setShowProjectNameInput] = useState(false);
+  const [showUsersPopover, setShowUsersPopover] = useState(false);
+  const usersPopoverRef = useRef<HTMLDivElement>(null);
 
   const addToHistory = (components: ComponentItem[]) => {
     const newHistory = history.slice(0, currentHistoryIndex + 1);
@@ -333,9 +335,17 @@ const App: React.FC = () => {
     const roomName = "46e41fc4-0b00-47ce-b853-360be50954fd";
     const accessToken = localStorage.getItem("accessToken") || "";
 
+    // 유저 정보 준비 (실제 로그인 정보로 대체 가능)
+    const user = {
+      id: localStorage.getItem("userId") || "guest",
+      name: localStorage.getItem("userName") || "게스트",
+      color: "#3b82f6", // 파란색(blue-500), 필요시 랜덤/프로필색
+    };
+
     const { doc, provider, awareness } = createYjsDocument({
       roomName,
       accessToken,
+      user,
     });
 
     // IndexedDB persistence 추가
@@ -425,6 +435,7 @@ const App: React.FC = () => {
       }
     }
   }, [layoutDatas, yjsDoc]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* 상단 헤더 영역 */}
@@ -620,12 +631,44 @@ const App: React.FC = () => {
                   }
                 }}
               >
+                {/* Floating ActiveUsers Button & Popover */}
                 {awareness && (
-                  <div className="fixed top-12 right-4 z-10 bg-white p-4 rounded-lg shadow-lg">
-                    <ActiveUsers
-                      awareness={awareness}
-                      layoutDatas={layoutDatas}
-                    />
+                  <div className="fixed top-12 right-4 z-20 flex flex-col items-end">
+                    {/* Round Button */}
+                    <button
+                      className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center shadow-lg hover:bg-blue-600 transition mb-2 focus:outline-none"
+                      onClick={() => setShowUsersPopover((prev) => !prev)}
+                      aria-label="Show active users"
+                      type="button"
+                    >
+                      {/* User group icon (Heroicons/FontAwesome or SVG) */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 010 7.75"
+                        />
+                      </svg>
+                    </button>
+                    {/* Popover */}
+                    {showUsersPopover && (
+                      <div
+                        ref={usersPopoverRef}
+                        className="mt-2 bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px] max-w-xs"
+                      >
+                        <ActiveUsers
+                          awareness={awareness}
+                          layoutDatas={layoutDatas}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 <MainContent

@@ -5,9 +5,18 @@ import { Awareness } from "y-protocols/awareness";
 interface YjsConfig {
   roomName: string;
   accessToken: string;
+  user: {
+    id: string;
+    name: string;
+    color: string;
+  };
 }
 
-export const createYjsDocument = ({ roomName, accessToken }: YjsConfig) => {
+export const createYjsDocument = ({
+  roomName,
+  accessToken,
+  user,
+}: YjsConfig) => {
   const doc = new Y.Doc();
 
   const provider = new WebsocketProvider(
@@ -63,9 +72,9 @@ export const createYjsDocument = ({ roomName, accessToken }: YjsConfig) => {
   const awareness = provider.awareness;
   awareness.setLocalState({
     user: {
-      name: `사용자${Math.floor(Math.random() * 1000)}`,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      id: Math.random().toString(36).substr(2, 9),
+      id: user.id,
+      name: user.name,
+      color: user.color,
     },
     selection: {
       sectionKey: null,

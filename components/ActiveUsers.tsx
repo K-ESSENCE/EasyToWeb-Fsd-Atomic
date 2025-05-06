@@ -28,10 +28,17 @@ function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
 
   useEffect(() => {
     // awareness 변경사항 감지
+
+    setActiveUsers(
+      Array.from(awareness.getStates().values()) as AwarenessState[]
+    );
+
     const handleChange = () => {
       const states = Array.from(
         awareness.getStates().values()
       ) as AwarenessState[];
+
+      console.log(states, "states");
       setActiveUsers(states);
     };
 
@@ -49,6 +56,7 @@ function ActiveUsers({ awareness, layoutDatas }: ActiveUsersProps) {
       : `${sectionName} 선택`;
   };
 
+  console.log(activeUsers, "activeUsers");
   return (
     <div className="active-users text-black">
       <h3 className="text-lg font-semibold mb-2">현재 활성 사용자</h3>
