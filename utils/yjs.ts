@@ -31,6 +31,9 @@ export const createYjsDocument = ({
     }
   );
 
+  // Yjs uploadStatus 맵 생성
+  const uploadStatusMap = doc.getMap("uploadStatus");
+
   // Handle WebSocket errors
   provider.on("connection-error", (event: Event) => {
     console.error("WebSocket connection error:", event);
@@ -82,7 +85,7 @@ export const createYjsDocument = ({
     },
   });
 
-  return { doc, provider, awareness };
+  return { doc, provider, awareness, uploadStatusMap };
 };
 
 export const updateUserSelection = (

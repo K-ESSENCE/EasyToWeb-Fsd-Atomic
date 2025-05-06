@@ -7,8 +7,15 @@ import {
 import { MAX_LAYOUT_VALUE } from "../../utils/constants";
 import { saveEditorState } from "../../utils/localStorage";
 
+interface UploadStatus {
+  uploading: boolean;
+  progress: number;
+  error: string | null;
+}
+
 interface InitialInterface {
   layoutDatas: LayoutData;
+  uploadStatus: { [itemKey: string]: UploadStatus };
 }
 
 interface AddSectionPayloadI {
@@ -55,6 +62,7 @@ const initialState: InitialInterface = {
     layoutId: "initial-layout",
     sectionValues: [],
   },
+  uploadStatus: {},
 };
 
 const layoutSlice = createSlice({
@@ -181,6 +189,28 @@ const layoutSlice = createSlice({
       state.layoutDatas = action.payload;
       saveEditorState(state.layoutDatas);
     },
+    setImageUploadStatus: (
+      state,
+      action: PayloadAction<{ itemKey: string; status: Partial<UploadStatus> }>
+    ) => {
+      const { itemKey, status } = action.payload;
+      state.uploadStatus[itemKey] = {
+        ...state.uploadStatus[itemKey],
+        ...status,
+      };
+    },
+    resetImageUploadStatus: (
+      state,
+      action: PayloadAction<{ itemKey: string }>
+    ) => {
+      delete state.uploadStatus[action.payload.itemKey];
+    },
+    setAllImageUploadStatus: (
+      state,
+      action: PayloadAction<{ [itemKey: string]: UploadStatus }>
+    ) => {
+      state.uploadStatus = action.payload;
+    },
   },
 });
 
@@ -195,4 +225,7 @@ export const {
   updateImageUrl,
   updateTextContent,
   setLayoutData,
+  setImageUploadStatus,
+  resetImageUploadStatus,
+  setAllImageUploadStatus,
 } = layoutSlice.actions;

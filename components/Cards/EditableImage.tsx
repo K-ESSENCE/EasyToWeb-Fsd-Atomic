@@ -1,6 +1,10 @@
 import React, { ChangeEvent } from "react";
 import Image from "next/image";
 import { CardStyleI } from "./../../utils/constants";
+import apiHandler from "../../shared/api/axios";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../store/configureStore";
+import { setImageUploadStatus } from "../../store/slices/layouts";
 
 interface EditableImageProps {
   imageUrl: string | null | undefined;
@@ -15,11 +19,69 @@ const EditableImage: React.FC<EditableImageProps> = ({
   shapeStyleValues,
   itemKey,
 }) => {
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const dispatch = useDispatch();
+  const uploadStatus = useSelector(
+    (state: RootState) =>
+      state.layouts.uploadStatus[itemKey] || {
+        uploading: false,
+        progress: 0,
+        error: null,
+      }
+  );
+
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = (e.target.files as FileList)[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      onImageChange(file, url);
+      dispatch(
+        setImageUploadStatus({
+          itemKey,
+          status: { uploading: true, progress: 0, error: null },
+        })
+      );
+      // info 객체 예시 (실제 값으로 대체)
+      const info = {
+        id: itemKey,
+        chunkNumber: 1,
+        totalChunks: 1,
+        fileName: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+      };
+      try {
+        const res = await apiHandler.uploadFile({
+          file,
+          info,
+          onUploadProgress: (event) => {
+            if (event.total) {
+              dispatch(
+                setImageUploadStatus({
+                  itemKey,
+                  status: {
+                    progress: Math.round((event.loaded / event.total) * 100),
+                  },
+                })
+              );
+            }
+          },
+        });
+        dispatch(
+          setImageUploadStatus({
+            itemKey,
+            status: { uploading: false, progress: 100 },
+          })
+        );
+        onImageChange(
+          file,
+          (res as { url?: string }).url || URL.createObjectURL(file)
+        );
+      } catch {
+        dispatch(
+          setImageUploadStatus({
+            itemKey,
+            status: { uploading: false, error: "업로드 실패" },
+          })
+        );
+      }
     }
   };
 
@@ -31,12 +93,10 @@ const EditableImage: React.FC<EditableImageProps> = ({
         id={itemKey}
         type="file"
         accept="image/*"
+        disabled={uploadStatus.uploading}
       />
       <label
-        className={`
-          cursor-pointer flex items-center justify-center
-          bg-gray-50 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors
-        `}
+        className={`relative ${uploadStatus.uploading ? "pointer-events-none opacity-60" : ""} cursor-pointer flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors`}
         htmlFor={itemKey}
         style={{
           width: shapeStyleValues?.width,
@@ -44,7 +104,20 @@ const EditableImage: React.FC<EditableImageProps> = ({
           borderRadius: `${shapeStyleValues.borderRadius}%`,
         }}
       >
-        {imageUrl ? (
+        {uploadStatus.uploading && (
+          <div className="absolute inset-0 bg-white/60 flex flex-col items-center justify-center z-10">
+            <span className="text-blue-500 mb-2">
+              업로드 중... {uploadStatus.progress}%
+            </span>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full"
+                style={{ width: `${uploadStatus.progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+        {!uploadStatus.uploading && imageUrl ? (
           <Image
             width={parseInt(shapeStyleValues.width)}
             height={parseInt(shapeStyleValues.height)}
@@ -55,11 +128,15 @@ const EditableImage: React.FC<EditableImageProps> = ({
               borderRadius: `${shapeStyleValues.borderRadius}%`,
             }}
           />
-        ) : (
+        ) : null}
+        {!uploadStatus.uploading && !imageUrl && (
           <div className="flex flex-col items-center justify-center text-gray-500">
             <i className="fas fa-plus text-2xl mb-2"></i>
             <span className="text-sm">이미지 추가하기</span>
           </div>
+        )}
+        {uploadStatus.error && (
+          <div className="text-red-500 text-xs mt-2">{uploadStatus.error}</div>
         )}
       </label>
     </>

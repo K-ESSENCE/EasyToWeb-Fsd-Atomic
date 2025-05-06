@@ -5,7 +5,11 @@ import SectionList from "../../components/SideMenu/SectionList";
 import SideMenu from "../../components/SideMenu/SideMenu";
 import SettingDialog from "../../components/settingDialog";
 import { SectionData } from "../../components/types/common/layoutStyle";
-import { addSection, setLayoutData } from "../../store/slices/layouts";
+import {
+  addSection,
+  setLayoutData,
+  setAllImageUploadStatus,
+} from "../../store/slices/layouts";
 import { useDispatch, useSelector } from "react-redux";
 import MainContent from "../../components/organisms/MainContent";
 import { RootState } from "../../store/configureStore";
@@ -237,6 +241,9 @@ const App: React.FC = () => {
 
   const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
+  const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<unknown> | null>(
+    null
+  );
 
   const generateUUID = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -331,18 +338,38 @@ const App: React.FC = () => {
   // YJS 동기화 관련 변수
   // const isLocalUpdateRef = useRef(false);
 
+  const uploadStatus = useSelector(
+    (state: RootState) => state.layouts.uploadStatus
+  );
+  const uploadStatusRef = useRef(uploadStatus);
+  useEffect(() => {
+    uploadStatusRef.current = uploadStatus;
+  }, [uploadStatus]);
+
+  useEffect(() => {
+    if (!uploadStatusMap) return;
+    const current = uploadStatusRef.current;
+    Object.entries(current).forEach(([itemKey, status]) => {
+      const yjsStatus = uploadStatusMap.get(itemKey);
+      if (!yjsStatus || JSON.stringify(yjsStatus) !== JSON.stringify(status)) {
+        uploadStatusMap.set(itemKey, status);
+      }
+    });
+    // 삭제된 키 동기화
+    uploadStatusMap.forEach((_, key) => {
+      if (!current[key]) uploadStatusMap.delete(key);
+    });
+  }, [uploadStatus, uploadStatusMap]);
+
   useEffect(() => {
     const roomName = "46e41fc4-0b00-47ce-b853-360be50954fd";
     const accessToken = localStorage.getItem("accessToken") || "";
-
-    // 유저 정보 준비 (실제 로그인 정보로 대체 가능)
     const user = {
       id: localStorage.getItem("userId") || "guest",
       name: localStorage.getItem("userName") || "게스트",
-      color: "#3b82f6", // 파란색(blue-500), 필요시 랜덤/프로필색
+      color: "#3b82f6",
     };
-
-    const { doc, provider, awareness } = createYjsDocument({
+    const { doc, provider, awareness, uploadStatusMap } = createYjsDocument({
       roomName,
       accessToken,
       user,
@@ -368,6 +395,7 @@ const App: React.FC = () => {
 
     setYjsDoc(doc);
     setAwareness(awareness);
+    setUploadStatusMap(uploadStatusMap);
 
     const sharedLayoutMap = doc.getMap("layoutDatas");
 
@@ -405,10 +433,24 @@ const App: React.FC = () => {
       );
     });
 
+    // --- Yjs <-> Redux uploadStatus 동기화 ---
+    const handleUploadStatusChange = () => {
+      const yjsUploadStatus = uploadStatusMap.toJSON();
+      if (
+        JSON.stringify(yjsUploadStatus) !==
+        JSON.stringify(uploadStatusRef.current)
+      ) {
+        dispatch(setAllImageUploadStatus(yjsUploadStatus));
+      }
+    };
+    uploadStatusMap.observe(handleUploadStatusChange);
+    // ---
+
     return () => {
       if (provider) {
         cleanupYjsProvider(provider);
       }
+      uploadStatusMap.unobserve(handleUploadStatusChange);
     };
   }, []);
 

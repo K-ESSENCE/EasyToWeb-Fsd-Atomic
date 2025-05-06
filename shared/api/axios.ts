@@ -4,6 +4,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
   AxiosHeaders,
+  AxiosProgressEvent,
 } from "axios";
 import {
   ApiResponse,
@@ -295,6 +296,37 @@ class ApiHandler {
     const response = await this.client.post<ApiResponse<void>>(
       `/project/publish/refresh?projectId=${projectId}`
     );
+    return response.data;
+  }
+
+  async uploadFile({
+    file,
+    info,
+    onUploadProgress,
+  }: {
+    file: File;
+    info: {
+      id: string;
+      chunkNumber: number;
+      totalChunks: number;
+      fileName: string;
+      contentType: string;
+      fileSize: number;
+    };
+    onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
+  }): Promise<unknown> {
+    const formData = new FormData();
+    formData.append("info", JSON.stringify(info));
+    formData.append("file", file, info.fileName);
+    formData.append("fileSize", info.fileSize.toString());
+
+    const response = await this.client.post("/file/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        accept: "*/*",
+      },
+      onUploadProgress,
+    });
     return response.data;
   }
 }
