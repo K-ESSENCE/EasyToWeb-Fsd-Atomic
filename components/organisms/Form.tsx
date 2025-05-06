@@ -70,7 +70,7 @@ const Form = () => {
 
     setCertifyLoading(true);
     try {
-      const response = await apiHandler.certifyMail({
+      await apiHandler.certifyMail({
         email: formData.email,
         certificationCode: formData.verificationCode,
         type: "VERIFIED_EMAIL",
@@ -100,7 +100,7 @@ const Form = () => {
 
     setJoinLoading(true);
     try {
-      const response = await apiHandler.join({
+      await apiHandler.join({
         email: formData.email,
         password: formData.password,
         certificationCode: formData.verificationCode,
