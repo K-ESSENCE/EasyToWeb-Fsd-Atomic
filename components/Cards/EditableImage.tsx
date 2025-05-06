@@ -136,7 +136,11 @@ const EditableImage: React.FC<EditableImageProps> = ({
           </div>
         )}
         {uploadStatus.error && (
-          <div className="text-red-500 text-xs mt-2">{uploadStatus.error}</div>
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <div className="bg-white/90 text-red-500 font-bold text-xs px-4 py-2 rounded shadow">
+              {uploadStatus.error}
+            </div>
+          </div>
         )}
       </label>
     </>
