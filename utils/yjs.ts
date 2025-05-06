@@ -33,6 +33,10 @@ export const createYjsDocument = ({
 
   // Yjs uploadStatus 맵 생성
   const uploadStatusMap = doc.getMap("uploadStatus");
+  // Yjs textEditStatus 맵 생성
+  const textEditStatusMap = doc.getMap("textEditStatus");
+  // Yjs imageStyles 맵 생성
+  const imageStylesMap = doc.getMap("imageStyles");
 
   // Handle WebSocket errors
   provider.on("connection-error", (event: Event) => {
@@ -85,7 +89,14 @@ export const createYjsDocument = ({
     },
   });
 
-  return { doc, provider, awareness, uploadStatusMap };
+  return {
+    doc,
+    provider,
+    awareness,
+    uploadStatusMap,
+    textEditStatusMap,
+    imageStylesMap,
+  };
 };
 
 export const updateUserSelection = (

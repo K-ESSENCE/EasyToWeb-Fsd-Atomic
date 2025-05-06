@@ -13,9 +13,24 @@ interface UploadStatus {
   error: string | null;
 }
 
+interface TextEditStatus {
+  editing: boolean;
+  text: string;
+}
+
+interface ImageStyle {
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderStyle: string;
+  borderRadius: number;
+}
+
 interface InitialInterface {
   layoutDatas: LayoutData;
   uploadStatus: { [itemKey: string]: UploadStatus };
+  textEditStatus: { [itemKey: string]: TextEditStatus };
+  imageStyles: { [itemKey: string]: ImageStyle };
 }
 
 interface AddSectionPayloadI {
@@ -63,6 +78,8 @@ const initialState: InitialInterface = {
     sectionValues: [],
   },
   uploadStatus: {},
+  textEditStatus: {},
+  imageStyles: {},
 };
 
 const layoutSlice = createSlice({
@@ -211,6 +228,22 @@ const layoutSlice = createSlice({
     ) => {
       state.uploadStatus = action.payload;
     },
+    setImageStyle: (
+      state,
+      action: PayloadAction<{ itemKey: string; style: Partial<ImageStyle> }>
+    ) => {
+      const { itemKey, style } = action.payload;
+      state.imageStyles[itemKey] = {
+        ...state.imageStyles[itemKey],
+        ...style,
+      };
+    },
+    setAllImageStyles: (
+      state,
+      action: PayloadAction<{ [itemKey: string]: ImageStyle }>
+    ) => {
+      state.imageStyles = action.payload;
+    },
   },
 });
 
@@ -228,4 +261,6 @@ export const {
   setImageUploadStatus,
   resetImageUploadStatus,
   setAllImageUploadStatus,
+  setImageStyle,
+  setAllImageStyles,
 } = layoutSlice.actions;

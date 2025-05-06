@@ -9,6 +9,7 @@ import {
   addSection,
   setLayoutData,
   setAllImageUploadStatus,
+  setAllImageStyles,
 } from "../../store/slices/layouts";
 import { useDispatch, useSelector } from "react-redux";
 import MainContent from "../../components/organisms/MainContent";
@@ -244,6 +245,9 @@ const App: React.FC = () => {
   const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<unknown> | null>(
     null
   );
+  const [imageStylesMap, setImageStylesMap] = useState<Y.Map<unknown> | null>(
+    null
+  );
 
   const generateUUID = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -361,6 +365,29 @@ const App: React.FC = () => {
     });
   }, [uploadStatus, uploadStatusMap]);
 
+  const imageStyles = useSelector(
+    (state: RootState) => state.layouts.imageStyles
+  );
+  const imageStylesRef = useRef(imageStyles);
+  useEffect(() => {
+    imageStylesRef.current = imageStyles;
+  }, [imageStyles]);
+
+  useEffect(() => {
+    if (!imageStylesMap) return;
+    const current = imageStylesRef.current;
+    Object.entries(current).forEach(([itemKey, style]) => {
+      const yjsStyle = imageStylesMap.get(itemKey);
+      if (!yjsStyle || JSON.stringify(yjsStyle) !== JSON.stringify(style)) {
+        imageStylesMap.set(itemKey, style);
+      }
+    });
+    // 삭제된 키 동기화
+    imageStylesMap.forEach((_, key) => {
+      if (!current[key]) imageStylesMap.delete(key);
+    });
+  }, [imageStyles, imageStylesMap]);
+
   useEffect(() => {
     const roomName = "46e41fc4-0b00-47ce-b853-360be50954fd";
     const accessToken = localStorage.getItem("accessToken") || "";
@@ -369,11 +396,12 @@ const App: React.FC = () => {
       name: localStorage.getItem("userName") || "게스트",
       color: "#3b82f6",
     };
-    const { doc, provider, awareness, uploadStatusMap } = createYjsDocument({
-      roomName,
-      accessToken,
-      user,
-    });
+    const { doc, provider, awareness, uploadStatusMap, imageStylesMap } =
+      createYjsDocument({
+        roomName,
+        accessToken,
+        user,
+      });
 
     // IndexedDB persistence 추가
     const persistence = new IndexeddbPersistence(roomName, doc);
@@ -396,6 +424,7 @@ const App: React.FC = () => {
     setYjsDoc(doc);
     setAwareness(awareness);
     setUploadStatusMap(uploadStatusMap);
+    setImageStylesMap(imageStylesMap);
 
     const sharedLayoutMap = doc.getMap("layoutDatas");
 
@@ -446,11 +475,25 @@ const App: React.FC = () => {
     uploadStatusMap.observe(handleUploadStatusChange);
     // ---
 
+    // --- Yjs <-> Redux imageStyles 동기화 ---
+    const handleImageStylesChange = () => {
+      const yjsImageStyles = imageStylesMap.toJSON();
+      if (
+        JSON.stringify(yjsImageStyles) !==
+        JSON.stringify(imageStylesRef.current)
+      ) {
+        dispatch(setAllImageStyles(yjsImageStyles));
+      }
+    };
+    imageStylesMap.observe(handleImageStylesChange);
+    // ---
+
     return () => {
       if (provider) {
         cleanupYjsProvider(provider);
       }
       uploadStatusMap.unobserve(handleUploadStatusChange);
+      imageStylesMap.unobserve(handleImageStylesChange);
     };
   }, []);
 

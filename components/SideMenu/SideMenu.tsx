@@ -3,8 +3,13 @@
 import { useSelector, useDispatch } from "react-redux";
 import { SideMenuProps } from "./types";
 import { RootState } from "../../store/configureStore";
-import { deleteLayoutItem, deleteSection } from "../../store/slices/layouts";
+import {
+  deleteLayoutItem,
+  deleteSection,
+  setImageStyle,
+} from "../../store/slices/layouts";
 import { changeNowItemKey, changeNowSectionKey } from "../../store/slices/keys";
+import { LayoutItemValues } from "../types/common/layoutStyle";
 // import {
 //   updateSectionTitle,
 //   addImageToSection,
@@ -14,7 +19,6 @@ import { changeNowItemKey, changeNowSectionKey } from "../../store/slices/keys";
 // import { SectionItem } from "./components/SectionItem";
 // import { FONTS, BACKGROUND_COLORS, ELEMENTS } from "./constants";
 // import { MenuType, SideMenuProps } from "./types";
-// import { LayoutItemValues } from "../types/common/layoutStyle";
 
 // const useKeyboardShortcut = (
 //   isOpen: boolean,
@@ -53,6 +57,22 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
   const nowItem = nowSection?.layoutValues.find(
     (item) => item.id === selectedItemKey
   );
+
+  const imageStyle = useSelector(
+    (state: RootState) => state.layouts.imageStyles[selectedItemKey] || {}
+  );
+  const selectedItemType = useSelector((state: RootState) => {
+    // Find the type of the selected item
+    const layoutDatas = state.layouts.layoutDatas.sectionValues;
+    for (const section of layoutDatas) {
+      for (const item of section.layoutValues as LayoutItemValues[]) {
+        if (item.id === selectedItemKey) {
+          return item.layoutName;
+        }
+      }
+    }
+    return null;
+  });
 
   console.log(nowItem);
 
@@ -246,7 +266,7 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
         </div>
       )}
       {selectedItemKey && (
-        <div className="p-4">
+        <div className="p-4 text-black">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-800">
               {nowItem?.layoutName} 속성
@@ -256,7 +276,7 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
             </button>
           </div>
           <div className="space-y-5">
-            <div>
+            {/* <div>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -328,126 +348,201 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                스타일
-              </h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    배경색
-                  </label>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-l-lg border border-gray-300 bg-white"></div>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 border-l-0 rounded-r-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="#FFFFFF"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    테두리
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1">
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option>없음</option>
-                        <option>실선</option>
-                        <option>점선</option>
-                        <option>대시</option>
-                      </select>
+              {selectedItemType === "img" && (
+                <>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    스타일
+                  </h4>
+                  <div className=" space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          배경색
+                        </label>
+                        <div className="flex items-center">
+                          <input
+                            className="w-8 h-8 p-0 border rounded"
+                            type="color"
+                            value={imageStyle.backgroundColor || "#ffffff"}
+                            onChange={(e) =>
+                              dispatch(
+                                setImageStyle({
+                                  itemKey: selectedItemKey,
+                                  style: {
+                                    ...imageStyle,
+                                    backgroundColor: e.target.value,
+                                  },
+                                })
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            테두리 색
+                          </label>
+                          <input
+                            type="color"
+                            value={imageStyle.borderColor || "#000000"}
+                            onChange={(e) =>
+                              dispatch(
+                                setImageStyle({
+                                  itemKey: selectedItemKey,
+                                  style: {
+                                    ...imageStyle,
+                                    borderColor: e.target.value,
+                                  },
+                                })
+                              )
+                            }
+                            className="w-8 h-8 p-0 border rounded"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      className="w-16 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="1"
-                    />
-                    <div className="w-8 h-8 rounded-lg border border-gray-300 bg-black"></div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          테두리
+                        </label>
+                        <div className="flex-1">
+                          <select
+                            value={imageStyle.borderStyle || "solid"}
+                            onChange={(e) =>
+                              dispatch(
+                                setImageStyle({
+                                  itemKey: selectedItemKey,
+                                  style: {
+                                    ...imageStyle,
+                                    borderStyle: e.target.value,
+                                  },
+                                })
+                              )
+                            }
+                            className="w-full border rounded px-2 py-1"
+                          >
+                            <option value="solid">실선</option>
+                            <option value="dashed">점선</option>
+                            <option value="dotted">점점선</option>
+                            <option value="double">이중선</option>
+                            <option value="none">없음</option>
+                          </select>
+                        </div>
+                        <input
+                          type="number"
+                          min={0}
+                          max={20}
+                          value={imageStyle.borderWidth || 0}
+                          onChange={(e) =>
+                            dispatch(
+                              setImageStyle({
+                                itemKey: selectedItemKey,
+                                style: {
+                                  ...imageStyle,
+                                  borderWidth: Number(e.target.value),
+                                },
+                              })
+                            )
+                          }
+                          className="w-16 border rounded px-2 py-1"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        모서리 반경
+                      </label>
+                      <input
+                        type="range"
+                        className="w-full"
+                        min={0}
+                        max={50}
+                        value={imageStyle.borderRadius || 0}
+                        onChange={(e) =>
+                          dispatch(
+                            setImageStyle({
+                              itemKey: selectedItemKey,
+                              style: {
+                                ...imageStyle,
+                                borderRadius: Number(e.target.value),
+                              },
+                            })
+                          )
+                        }
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0px</span>
+                        <span>10px</span>
+                        <span>20px</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    모서리 반경
-                  </label>
+                </>
+              )}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              인터랙션
+            </h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">
+                  클릭 가능
+                </label>
+                <div className="relative inline-block w-10 mr-2 align-middle select-none">
                   <input
-                    type="range"
-                    className="w-full"
-                    min="0"
-                    max="20"
-                    step="1"
+                    type="checkbox"
+                    name="toggle"
+                    id="toggle"
+                    className="checked:bg-blue-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 cursor-pointer"
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0px</span>
-                    <span>10px</span>
-                    <span>20px</span>
-                  </div>
+                  <label
+                    htmlFor="toggle"
+                    className="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+                  ></label>
                 </div>
               </div>
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                인터랙션
-              </h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">
-                    클릭 가능
-                  </label>
-                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                    <input
-                      type="checkbox"
-                      name="toggle"
-                      id="toggle"
-                      className="checked:bg-blue-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 cursor-pointer"
-                    />
-                    <label
-                      htmlFor="toggle"
-                      className="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
-                    ></label>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    클릭 액션
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>없음</option>
-                    <option>링크 열기</option>
-                    <option>팝업 표시</option>
-                    <option>스크롤 이동</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    호버 효과
-                  </label>
-                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>없음</option>
-                    <option>색상 변경</option>
-                    <option>크기 확대</option>
-                    <option>그림자 추가</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                고급 설정
-              </h4>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CSS 커스터마이징
+                  클릭 액션
                 </label>
-                <textarea
-                  className="w-full h-24 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder=".element {
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option>없음</option>
+                  <option>링크 열기</option>
+                  <option>팝업 표시</option>
+                  <option>스크롤 이동</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  호버 효과
+                </label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option>없음</option>
+                  <option>색상 변경</option>
+                  <option>크기 확대</option>
+                  <option>그림자 추가</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              고급 설정
+            </h4>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                CSS 커스터마이징
+              </label>
+              <textarea
+                className="w-full h-24 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder=".element {
 /* 여기에 CSS 작성 */
 }"
-                ></textarea>
-              </div>
+              ></textarea>
             </div>
           </div>
         </div>

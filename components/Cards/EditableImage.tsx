@@ -28,6 +28,9 @@ const EditableImage: React.FC<EditableImageProps> = ({
         error: null,
       }
   );
+  const imageStyle = useSelector(
+    (state: RootState) => state.layouts.imageStyles[itemKey] || {}
+  );
 
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = (e.target.files as FileList)[0];
@@ -85,6 +88,12 @@ const EditableImage: React.FC<EditableImageProps> = ({
     }
   };
 
+  // 스타일 병합
+  const borderRadius =
+    imageStyle.borderRadius !== undefined
+      ? imageStyle.borderRadius
+      : shapeStyleValues.borderRadius;
+
   return (
     <>
       <input
@@ -101,7 +110,11 @@ const EditableImage: React.FC<EditableImageProps> = ({
         style={{
           width: shapeStyleValues?.width,
           height: shapeStyleValues?.height,
-          borderRadius: `${shapeStyleValues.borderRadius}%`,
+          backgroundColor: imageStyle.backgroundColor,
+          borderColor: imageStyle.borderColor,
+          borderWidth: imageStyle.borderWidth,
+          borderStyle: imageStyle.borderStyle,
+          borderRadius: `${borderRadius}%`,
         }}
       >
         {uploadStatus.uploading && (
@@ -125,7 +138,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
             className="object-cover w-full h-full"
             alt={`${itemKey} image`}
             style={{
-              borderRadius: `${shapeStyleValues.borderRadius}%`,
+              borderRadius: `${borderRadius}%`,
             }}
           />
         ) : null}
