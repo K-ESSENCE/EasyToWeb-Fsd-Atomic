@@ -17,6 +17,16 @@ https://dev.easytoweb.store/
 요소별 핸들
 
 
+# 라이브러리 
+
+y-indexedDb
+브라우저에 영구적으로 룸 관련된 내용들 저장 
+for yjs 
+
+yjs 동시편집 / 소켓 
+
+
+
 # Trouble shooting
 
 ## 순환 업데이트의 발생 메커니즘
