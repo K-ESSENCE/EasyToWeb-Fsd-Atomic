@@ -51,7 +51,8 @@ const EditableImage: React.FC<EditableImageProps> = ({
         fileSize: file.size,
       };
       try {
-        const res = await apiHandler.uploadFile({
+        type UploadResponse = { data?: { fileUrl?: string } };
+        const res = (await apiHandler.uploadFile({
           file,
           info,
           onUploadProgress: (event) => {
@@ -66,17 +67,16 @@ const EditableImage: React.FC<EditableImageProps> = ({
               );
             }
           },
-        });
+        })) as UploadResponse;
         dispatch(
           setImageUploadStatus({
             itemKey,
             status: { uploading: false, progress: 100 },
           })
         );
-        onImageChange(
-          file,
-          (res as { url?: string }).url || URL.createObjectURL(file)
-        );
+        // fileUrl을 응답에서 꺼내서 사용
+        const fileUrl = res?.data?.fileUrl || URL.createObjectURL(file);
+        onImageChange(file, fileUrl);
       } catch {
         dispatch(
           setImageUploadStatus({
