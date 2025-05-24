@@ -10,6 +10,7 @@ import {
   setLayoutData,
   setAllImageUploadStatus,
   setAllImageStyles,
+  setAllImageUrls,
 } from "../../store/slices/layouts";
 import { useDispatch, useSelector } from "react-redux";
 import MainContent from "../../components/organisms/MainContent";
@@ -248,6 +249,7 @@ const App: React.FC = () => {
   const [imageStylesMap, setImageStylesMap] = useState<Y.Map<unknown> | null>(
     null
   );
+  const [imageUrlsMap, setImageUrlsMap] = useState<Y.Map<unknown> | null>(null);
 
   const generateUUID = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -388,6 +390,27 @@ const App: React.FC = () => {
     });
   }, [imageStyles, imageStylesMap]);
 
+  const imageUrls = useSelector((state: RootState) => state.layouts.imageUrls);
+  const imageUrlsRef = useRef(imageUrls);
+  useEffect(() => {
+    imageUrlsRef.current = imageUrls;
+  }, [imageUrls]);
+
+  useEffect(() => {
+    if (!imageUrlsMap) return;
+    const current = imageUrlsRef.current;
+    Object.entries(current).forEach(([itemKey, url]) => {
+      const yjsUrl = imageUrlsMap.get(itemKey);
+      if (!yjsUrl || yjsUrl !== url) {
+        imageUrlsMap.set(itemKey, url);
+      }
+    });
+    // 삭제된 키 동기화
+    imageUrlsMap.forEach((_, key) => {
+      if (!current[key]) imageUrlsMap.delete(key);
+    });
+  }, [imageUrls, imageUrlsMap]);
+
   useEffect(() => {
     const roomName = "46e41fc4-0b00-47ce-b853-360be50954fd";
     const accessToken = localStorage.getItem("accessToken") || "";
@@ -396,12 +419,18 @@ const App: React.FC = () => {
       name: localStorage.getItem("userName") || "게스트",
       color: "#3b82f6",
     };
-    const { doc, provider, awareness, uploadStatusMap, imageStylesMap } =
-      createYjsDocument({
-        roomName,
-        accessToken,
-        user,
-      });
+    const {
+      doc,
+      provider,
+      awareness,
+      uploadStatusMap,
+      imageStylesMap,
+      imageUrlsMap,
+    } = createYjsDocument({
+      roomName,
+      accessToken,
+      user,
+    });
 
     // IndexedDB persistence 추가
     const persistence = new IndexeddbPersistence(roomName, doc);
@@ -425,6 +454,7 @@ const App: React.FC = () => {
     setAwareness(awareness);
     setUploadStatusMap(uploadStatusMap);
     setImageStylesMap(imageStylesMap);
+    setImageUrlsMap(imageUrlsMap);
 
     const sharedLayoutMap = doc.getMap("layoutDatas");
 
@@ -488,12 +518,25 @@ const App: React.FC = () => {
     imageStylesMap.observe(handleImageStylesChange);
     // ---
 
+    // --- Yjs <-> Redux imageUrls 동기화 ---
+    const handleImageUrlsChange = () => {
+      const yjsImageUrls = imageUrlsMap.toJSON();
+      if (
+        JSON.stringify(yjsImageUrls) !== JSON.stringify(imageUrlsRef.current)
+      ) {
+        dispatch(setAllImageUrls(yjsImageUrls));
+      }
+    };
+    imageUrlsMap.observe(handleImageUrlsChange);
+    // ---
+
     return () => {
       if (provider) {
         cleanupYjsProvider(provider);
       }
       uploadStatusMap.unobserve(handleUploadStatusChange);
       imageStylesMap.unobserve(handleImageStylesChange);
+      imageUrlsMap.unobserve(handleImageUrlsChange);
     };
   }, []);
 
@@ -761,6 +804,7 @@ const App: React.FC = () => {
                   layoutDatas={layoutDatas}
                   selectedItemKey={selectedItemKey}
                   nowSectionKey={nowSectionKey}
+                  imageUrlsMap={imageUrlsMap}
                 />
                 {/* {droppedComponents.map((component) => (
                   <div

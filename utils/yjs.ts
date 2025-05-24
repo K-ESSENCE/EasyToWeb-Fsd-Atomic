@@ -37,6 +37,8 @@ export const createYjsDocument = ({
   const textEditStatusMap = doc.getMap("textEditStatus");
   // Yjs imageStyles 맵 생성
   const imageStylesMap = doc.getMap("imageStyles");
+  // Yjs imageUrls 맵 생성
+  const imageUrlsMap = doc.getMap("imageUrls");
 
   // Handle WebSocket errors
   provider.on("connection-error", (event: Event) => {
@@ -96,6 +98,7 @@ export const createYjsDocument = ({
     uploadStatusMap,
     textEditStatusMap,
     imageStylesMap,
+    imageUrlsMap,
   };
 };
 

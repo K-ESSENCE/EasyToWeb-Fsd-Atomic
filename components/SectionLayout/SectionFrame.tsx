@@ -14,6 +14,7 @@ interface DefaultProps {
   selctedItemkey: string | null;
   sectionData: SectionData;
   isEmpty: boolean;
+  imageUrlsMap?: any; // Y.Map<any> 타입
 }
 
 const SectionFrame = ({
@@ -24,6 +25,7 @@ const SectionFrame = ({
   isEmpty,
   selctedItemkey,
   sectionData,
+  imageUrlsMap,
 }: DefaultProps) => {
   // const shapeStyleValues = getShapeStyleValues(shapeType, "dynamic");
   const dispatch = useDispatch();
@@ -60,6 +62,7 @@ const SectionFrame = ({
       <EditableSection
         sectionData={sectionData}
         selctedItemkey={selctedItemkey}
+        imageUrlsMap={imageUrlsMap}
       ></EditableSection>
     </SelectableFrame>
   );

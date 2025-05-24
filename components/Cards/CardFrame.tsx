@@ -13,6 +13,7 @@ interface DefaultProps {
 
   titleStyle?: TextStyleI;
   describe?: TextStyleI;
+  imageUrlsMap?: any; // Y.Map<any> 타입
 }
 
 const CardFrame = ({
@@ -21,6 +22,7 @@ const CardFrame = ({
   // describe,
   itemKey,
   selctedItemkey,
+  imageUrlsMap,
 }: DefaultProps) => {
   const nowSectionKey = useSelector(
     (state: RootState) => state.keys.nowSectionKey
@@ -55,6 +57,7 @@ const CardFrame = ({
       <EditableCard
         shapeStyleValues={shapeStyleValues}
         itemKey={itemKey}
+        imageUrlsMap={imageUrlsMap}
         // titleStyle={titleStyle}
         // describe={describe}
       />

@@ -5,12 +5,14 @@ interface DefaultProps {
   // isResponsive: boolean;
   sectionData: SectionData;
   selctedItemkey: string | null;
+  imageUrlsMap?: any; // Y.Map<any> 타입
 }
 
 const EditableSection = ({
   // isResponsive,
   sectionData,
   selctedItemkey,
+  imageUrlsMap,
 }: DefaultProps) => {
   return (
     <section
@@ -27,6 +29,7 @@ w-full      `}
               key={layout.id}
               titleStyle={{ text: "임시" }}
               shapeType={layout.layoutName}
+              imageUrlsMap={imageUrlsMap}
             ></CardFrame>
           );
         })}

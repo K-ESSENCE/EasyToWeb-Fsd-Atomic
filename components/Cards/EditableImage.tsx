@@ -10,6 +10,7 @@ interface EditableImageProps {
   onImageChange: (file: File, imageUrl: string) => void;
   shapeStyleValues: CardStyleI;
   itemKey: string;
+  imageUrlsMap?: any; // Y.Map<any> 타입
 }
 
 const EditableImage: React.FC<EditableImageProps> = ({
@@ -17,6 +18,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
   onImageChange,
   shapeStyleValues,
   itemKey,
+  imageUrlsMap,
 }) => {
   const dispatch = useDispatch();
   const uploadStatus = useSelector(
@@ -95,7 +97,10 @@ const EditableImage: React.FC<EditableImageProps> = ({
           status: { uploading: false, progress: 100, error: null },
         })
       );
-      if (lastFileUrl) onImageChange(file, lastFileUrl);
+      if (lastFileUrl) {
+        if (imageUrlsMap) imageUrlsMap.set(itemKey, lastFileUrl);
+        onImageChange(file, lastFileUrl);
+      }
     } catch (error) {
       console.error("이미지 업로드 실패:", error);
       dispatch(

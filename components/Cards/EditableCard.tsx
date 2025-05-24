@@ -10,9 +10,14 @@ import EditableImage from "./EditableImage";
 interface DefaultProps {
   shapeStyleValues: CardStyleI;
   itemKey: string;
+  imageUrlsMap?: any; // Y.Map<any> 타입
 }
 
-const EditableCard = ({ shapeStyleValues, itemKey }: DefaultProps) => {
+const EditableCard = ({
+  shapeStyleValues,
+  itemKey,
+  imageUrlsMap,
+}: DefaultProps) => {
   const [selectedImageData, setSelectedImageData] = useState<string | null>(
     null
   );
@@ -74,6 +79,7 @@ const EditableCard = ({ shapeStyleValues, itemKey }: DefaultProps) => {
         onImageChange={handleImageChange}
         shapeStyleValues={shapeStyleValues}
         itemKey={itemKey}
+        imageUrlsMap={imageUrlsMap}
       />
     );
   }

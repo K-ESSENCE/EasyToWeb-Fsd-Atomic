@@ -31,6 +31,7 @@ interface InitialInterface {
   uploadStatus: { [itemKey: string]: UploadStatus };
   textEditStatus: { [itemKey: string]: TextEditStatus };
   imageStyles: { [itemKey: string]: ImageStyle };
+  imageUrls: { [itemKey: string]: string };
 }
 
 interface AddSectionPayloadI {
@@ -80,6 +81,7 @@ const initialState: InitialInterface = {
   uploadStatus: {},
   textEditStatus: {},
   imageStyles: {},
+  imageUrls: {},
 };
 
 const layoutSlice = createSlice({
@@ -244,6 +246,19 @@ const layoutSlice = createSlice({
     ) => {
       state.imageStyles = action.payload;
     },
+    setImageUrl: (
+      state,
+      action: PayloadAction<{ itemKey: string; url: string }>
+    ) => {
+      const { itemKey, url } = action.payload;
+      state.imageUrls[itemKey] = url;
+    },
+    setAllImageUrls: (
+      state,
+      action: PayloadAction<{ [itemKey: string]: string }>
+    ) => {
+      state.imageUrls = action.payload;
+    },
   },
 });
 
@@ -263,4 +278,6 @@ export const {
   setAllImageUploadStatus,
   setImageStyle,
   setAllImageStyles,
+  setImageUrl,
+  setAllImageUrls,
 } = layoutSlice.actions;
