@@ -911,7 +911,10 @@ const App: React.FC = () => {
         {/* Setting Dialog */}
 
         {showSettings && (
-          <SettingDialog setShowSettings={setShowSettings}></SettingDialog>
+          <SettingDialog
+            setShowSettings={setShowSettings}
+            projectId={projectId}
+          />
         )}
 
         {/* Toast Notification */}
