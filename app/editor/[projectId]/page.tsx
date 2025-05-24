@@ -967,7 +967,7 @@ const App: React.FC = () => {
                 <i className="fas fa-rocket mr-2"></i>
                 배포 완료! URL:{" "}
                 <a
-                  href={`https://dev.easytoweb.store/${publishStatus.url}`}
+                  href={`https://dev.easytoweb.store/publish/${publishStatus.url}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline ml-1"
