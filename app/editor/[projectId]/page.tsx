@@ -1,30 +1,31 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import SectionList from "../../components/SideMenu/SectionList";
-import SideMenu from "../../components/SideMenu/SideMenu";
-import SettingDialog from "../../components/settingDialog";
-import { SectionData } from "../../components/types/common/layoutStyle";
+import SectionList from "../../../components/SideMenu/SectionList";
+import SideMenu from "../../../components/SideMenu/SideMenu";
+import SettingDialog from "../../../components/settingDialog";
+import { SectionData } from "../../../components/types/common/layoutStyle";
 import {
   addSection,
   setLayoutData,
   setAllImageUploadStatus,
   setAllImageStyles,
   setAllImageUrls,
-} from "../../store/slices/layouts";
+} from "../../../store/slices/layouts";
 import { useDispatch, useSelector } from "react-redux";
-import MainContent from "../../components/organisms/MainContent";
-import { RootState } from "../../store/configureStore";
+import MainContent from "../../../components/organisms/MainContent";
+import { RootState } from "../../../store/configureStore";
 import * as Y from "yjs";
 import {
   cleanupYjsProvider,
   createYjsDocument,
   updateUserSelection,
-} from "../../utils/yjs";
-import ActiveUsers from "../../components/ActiveUsers";
+} from "../../../utils/yjs";
+import ActiveUsers from "../../../components/ActiveUsers";
 import { Awareness } from "y-protocols/awareness";
-import apiHandler from "../../shared/api/axios";
+import apiHandler from "../../../shared/api/axios";
 import { IndexeddbPersistence } from "y-indexeddb";
+import { useParams } from "next/navigation";
 
 // import { useSelector } from 'react-redux';
 // import { useCallback, useState, useEffect, useRef } from 'react';
@@ -240,6 +241,8 @@ const App: React.FC = () => {
   // );
 
   const dispatch = useDispatch();
+  const params = useParams();
+  const projectId = params.projectId as string;
 
   const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
@@ -412,7 +415,7 @@ const App: React.FC = () => {
   }, [imageUrls, imageUrlsMap]);
 
   useEffect(() => {
-    const roomName = "46e41fc4-0b00-47ce-b853-360be50954fd";
+    const roomName = projectId;
     const accessToken = localStorage.getItem("accessToken") || "";
     const user = {
       id: localStorage.getItem("userId") || "guest",

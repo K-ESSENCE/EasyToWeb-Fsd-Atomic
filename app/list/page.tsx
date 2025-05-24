@@ -3,7 +3,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import apiHandler from "../../shared/api/axios";
+import { Project } from "../../shared/api/types";
+
+interface ProjectInfos {
+  READ_ONLY: Project[];
+  EDIT: Project[];
+  ADMIN: Project[];
+  OWNER: Project[];
+}
 
 const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,59 +20,65 @@ const App: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<
     "all" | "draft" | "published"
   >("all");
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
 
-  const projects = [
-    {
-      id: 1,
-      name: "새 프로젝트",
-      thumbnail:
-        "https://readdy.ai/api/search-image?query=modern%20minimalist%20website%20interface%20design%20with%20clean%20layout%20and%20soft%20color%20palette%2C%20featuring%20organized%20content%20blocks%20and%20intuitive%20navigation%20elements%20on%20light%20background&width=400&height=300&seq=1&orientation=landscape",
-      status: "draft",
-      lastModified: "2025-05-04",
-      author: "김철수",
-      collaborators: 3,
-    },
-    {
-      id: 2,
-      name: "회사 소개 페이지",
-      thumbnail:
-        "https://readdy.ai/api/search-image?query=professional%20business%20website%20design%20with%20modern%20corporate%20aesthetic%2C%20showcasing%20company%20information%20and%20services%20in%20an%20elegant%20layout%20with%20subtle%20animations&width=400&height=300&seq=2&orientation=landscape",
-      status: "published",
-      lastModified: "2025-05-03",
-      author: "이영희",
-      collaborators: 5,
-    },
-    {
-      id: 3,
-      name: "제품 소개 페이지",
-      thumbnail:
-        "https://readdy.ai/api/search-image?query=product%20showcase%20website%20with%20high%20quality%20product%20photography%2C%20detailed%20specifications%2C%20and%20interactive%20features%20on%20clean%20white%20background%20with%20minimal%20design%20elements&width=400&height=300&seq=3&orientation=landscape",
-      status: "draft",
-      lastModified: "2025-05-02",
-      author: "박지민",
-      collaborators: 2,
-    },
-    {
-      id: 4,
-      name: "이벤트 랜딩 페이지",
-      thumbnail:
-        "https://readdy.ai/api/search-image?query=vibrant%20landing%20page%20design%20for%20special%20event%20promotion%20with%20eye%20catching%20graphics%2C%20countdown%20timer%2C%20and%20call%20to%20action%20buttons%20on%20modern%20gradient%20background&width=400&height=300&seq=4&orientation=landscape",
-      status: "published",
-      lastModified: "2025-05-01",
-      author: "최민수",
-      collaborators: 4,
-    },
+  // 실제 프로젝트 목록 상태
+  const [projectInfos, setProjectInfos] = useState<ProjectInfos>({
+    READ_ONLY: [],
+    EDIT: [],
+    ADMIN: [],
+    OWNER: [],
+  });
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const res = await apiHandler.getProjectList();
+      const infos = res.data?.projectInfos ?? {};
+      setProjectInfos({
+        READ_ONLY: infos.READ_ONLY ?? [],
+        EDIT: infos.EDIT ?? [],
+        ADMIN: infos.ADMIN ?? [],
+        OWNER: infos.OWNER ?? [],
+      });
+    };
+    fetchProjects();
+  }, []);
+
+  // 모든 프로젝트를 하나의 배열로 합치기
+  const allProjects = [
+    ...projectInfos.READ_ONLY,
+    ...projectInfos.EDIT,
+    ...projectInfos.ADMIN,
+    ...projectInfos.OWNER,
   ];
 
-  const handleDropdownToggle = (projectId: number) => {
+  // 검색/필터/정렬 적용
+  const filteredProjects = allProjects
+    .filter((project) =>
+      project.title.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((project) => {
+      if (filterStatus === "all") return true;
+      if (filterStatus === "draft") return project.status !== "OPEN";
+      if (filterStatus === "published") return project.status === "OPEN";
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.title.localeCompare(b.title);
+      if (sortBy === "date")
+        return (
+          new Date(b.createDate).getTime() - new Date(a.createDate).getTime()
+        );
+      if (sortBy === "status") return a.status.localeCompare(b.status);
+      return 0;
+    });
+
+  const handleDropdownToggle = (projectId: string) => {
     setActiveDropdownId(activeDropdownId === projectId ? null : projectId);
   };
 
-  const handleDeleteClick = (projectId: number) => {
-    setProjectToDelete(projectId);
+  const handleDeleteClick = () => {
     setShowDeleteModal(true);
     setActiveDropdownId(null);
   };
@@ -71,7 +86,6 @@ const App: React.FC = () => {
   const handleDeleteConfirm = () => {
     // Handle delete logic here
     setShowDeleteModal(false);
-    setProjectToDelete(null);
   };
 
   const handleClickOutside = () => {
@@ -97,7 +111,7 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex-1 min-w-[280px] max-w-md relative">
@@ -148,22 +162,24 @@ const App: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <div
                 key={project.id}
-                className="group relative bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                className="group relative bg-white rounded-lg border border-gray-200 overflow-visible hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                onClick={() => router.push(`/editor/${project.id}`)}
               >
                 <div className="aspect-[4/3] overflow-hidden">
+                  {/* 썸네일이 있으면 표시, 없으면 기본 이미지 */}
                   <img
-                    src={project.thumbnail}
-                    alt={project.name}
+                    src={"/default-thumbnail.png"}
+                    alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
-                      {project.name}
+                      {project.title}
                     </h3>
                     <div className="relative">
                       <button
@@ -192,7 +208,7 @@ const App: React.FC = () => {
                             </button>
                             <button
                               className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center"
-                              onClick={() => handleDeleteClick(project.id)}
+                              onClick={handleDeleteClick}
                             >
                               <i className="fas fa-trash-alt w-4 mr-2"></i>
                               삭제하기
@@ -206,22 +222,26 @@ const App: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <span
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          project.status === "published"
+                          project.status === "OPEN"
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {project.status === "published" ? "배포됨" : "임시저장"}
+                        {project.status === "OPEN" ? "배포됨" : "임시저장"}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <i className="fas fa-users text-gray-400"></i>
-                      <span>{project.collaborators}</span>
+                      <span>{project.members?.length ?? 1}</span>
                     </div>
                   </div>
                   <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-sm">
-                    <div className="text-gray-500">{project.lastModified}</div>
-                    <div className="text-gray-500">{project.author}</div>
+                    <div className="text-gray-500">
+                      {project.createDate?.slice(0, 10)}
+                    </div>
+                    <div className="text-gray-500">
+                      {project.members?.[0]?.nickname ?? ""}
+                    </div>
                   </div>
                 </div>
               </div>
