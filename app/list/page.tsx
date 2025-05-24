@@ -22,6 +22,10 @@ const App: React.FC = () => {
   >("all");
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [creating, setCreating] = useState(false);
 
   // 실제 프로젝트 목록 상태
   const [projectInfos, setProjectInfos] = useState<ProjectInfos>({
@@ -92,6 +96,25 @@ const App: React.FC = () => {
     setActiveDropdownId(null);
   };
 
+  const handleCreateProject = async () => {
+    setCreating(true);
+    try {
+      const res = await apiHandler.createProject({
+        title: newTitle,
+        description: newDesc,
+      });
+      const projectId = res.data?.projectId;
+      if (projectId) {
+        setShowCreateModal(false);
+        setNewTitle("");
+        setNewDesc("");
+        router.push(`/editor/${projectId}`);
+      }
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const router = useRouter();
 
   return (
@@ -103,7 +126,7 @@ const App: React.FC = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">내 프로젝트</h1>
           <button
-            onClick={() => router.push("/editor")}
+            onClick={() => setShowCreateModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-button flex items-center space-x-2 cursor-pointer whitespace-nowrap"
           >
             <i className="fas fa-plus"></i>
@@ -274,6 +297,46 @@ const App: React.FC = () => {
                 onClick={handleDeleteConfirm}
               >
                 삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              새 프로젝트 만들기
+            </h3>
+            <input
+              className="w-full mb-3 px-3 py-2 border rounded"
+              placeholder="프로젝트 이름"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+            <textarea
+              className="w-full mb-3 px-3 py-2 border rounded"
+              placeholder="설명"
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+                onClick={() => setShowCreateModal(false)}
+              >
+                취소
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
+                onClick={handleCreateProject}
+                disabled={creating || !newTitle}
+              >
+                {creating ? "생성 중..." : "생성"}
               </button>
             </div>
           </div>
