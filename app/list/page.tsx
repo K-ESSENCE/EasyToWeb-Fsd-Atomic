@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [creating, setCreating] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // 실제 프로젝트 목록 상태
   const [projectInfos, setProjectInfos] = useState<ProjectInfos>({
@@ -82,14 +83,26 @@ const App: React.FC = () => {
     setActiveDropdownId(activeDropdownId === projectId ? null : projectId);
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (projectId: string) => {
+    setDeleteTargetId(projectId);
     setShowDeleteModal(true);
     setActiveDropdownId(null);
   };
 
-  const handleDeleteConfirm = () => {
-    // Handle delete logic here
+  const handleDeleteConfirm = async () => {
+    if (!deleteTargetId) return;
+    await apiHandler.deleteProject(deleteTargetId);
     setShowDeleteModal(false);
+    setDeleteTargetId(null);
+    // 삭제 후 목록 새로고침
+    const res = await apiHandler.getProjectList();
+    const infos = res.data?.projectInfos ?? {};
+    setProjectInfos({
+      READ_ONLY: infos.READ_ONLY ?? [],
+      EDIT: infos.EDIT ?? [],
+      ADMIN: infos.ADMIN ?? [],
+      OWNER: infos.OWNER ?? [],
+    });
   };
 
   const handleClickOutside = () => {
@@ -231,7 +244,10 @@ const App: React.FC = () => {
                             </button>
                             <button
                               className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center"
-                              onClick={handleDeleteClick}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(project.id);
+                              }}
                             >
                               <i className="fas fa-trash-alt w-4 mr-2"></i>
                               삭제하기
