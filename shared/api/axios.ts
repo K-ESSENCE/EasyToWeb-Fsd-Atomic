@@ -329,6 +329,18 @@ class ApiHandler {
     });
     return response.data;
   }
+
+  async uploadFileFormData(
+    formData: FormData
+  ): Promise<{ data?: { fileUrl?: string } }> {
+    const response = await this.client.post("/file/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        accept: "*/*",
+      },
+    });
+    return response.data;
+  }
 }
 
 export const apiHandler = new ApiHandler();

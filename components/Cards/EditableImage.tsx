@@ -1,5 +1,4 @@
 import React, { ChangeEvent } from "react";
-import Image from "next/image";
 import { CardStyleI } from "./../../utils/constants";
 import apiHandler from "../../shared/api/axios";
 import { useSelector, useDispatch } from "react-redux";
@@ -32,59 +31,79 @@ const EditableImage: React.FC<EditableImageProps> = ({
     (state: RootState) => state.layouts.imageStyles[itemKey] || {}
   );
 
+  const CHUNK_SIZE = 1024 * 1024 * 5; // 5MB
+
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = (e.target.files as FileList)[0];
-    if (file) {
-      dispatch(
-        setImageUploadStatus({
-          itemKey,
-          status: { uploading: true, progress: 0, error: null },
-        })
-      );
-      // info 객체 예시 (실제 값으로 대체)
-      const info = {
-        id: itemKey,
-        chunkNumber: 1,
-        totalChunks: 1,
-        fileName: file.name,
-        contentType: file.type,
-        fileSize: file.size,
-      };
-      try {
-        type UploadResponse = { data?: { fileUrl?: string } };
-        const res = (await apiHandler.uploadFile({
-          file,
-          info,
-          onUploadProgress: (event) => {
-            if (event.total) {
-              dispatch(
-                setImageUploadStatus({
-                  itemKey,
-                  status: {
-                    progress: Math.round((event.loaded / event.total) * 100),
-                  },
-                })
-              );
-            }
-          },
-        })) as UploadResponse;
-        dispatch(
-          setImageUploadStatus({
-            itemKey,
-            status: { uploading: false, progress: 100 },
-          })
+    if (!file) return;
+
+    dispatch(
+      setImageUploadStatus({
+        itemKey,
+        status: { uploading: true, progress: 0, error: null },
+      })
+    );
+
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const tempId = crypto.randomUUID();
+    let lastFileUrl: string | undefined = undefined;
+
+    try {
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const blob = file.slice(start, end);
+
+        const info = {
+          id: tempId,
+          chunkNumber: chunkIndex,
+          totalChunks: totalChunks,
+          fileName: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+        };
+
+        const formData = new FormData();
+        formData.append(
+          "info",
+          new Blob([JSON.stringify(info)], { type: "application/json" })
         );
-        // fileUrl을 응답에서 꺼내서 사용
-        const fileUrl = res?.data?.fileUrl || URL.createObjectURL(file);
-        onImageChange(file, fileUrl);
-      } catch {
+        formData.append("file", blob, file.name);
+
+        const response = await apiHandler.uploadFileFormData(formData);
+        const fileUrl = response?.data?.fileUrl;
+        if (fileUrl) {
+          lastFileUrl = fileUrl;
+          onImageChange(file, fileUrl);
+        }
+
         dispatch(
           setImageUploadStatus({
             itemKey,
-            status: { uploading: false, error: "업로드 실패" },
+            status: {
+              uploading: true,
+              progress: Math.round(((chunkIndex + 1) / totalChunks) * 100),
+              error: null,
+            },
           })
         );
       }
+
+      dispatch(
+        setImageUploadStatus({
+          itemKey,
+          status: { uploading: false, progress: 100, error: null },
+        })
+      );
+      if (lastFileUrl) onImageChange(file, lastFileUrl);
+    } catch (error) {
+      console.error("이미지 업로드 실패:", error);
+      dispatch(
+        setImageUploadStatus({
+          itemKey,
+          status: { uploading: false, progress: 0, error: "업로드 실패" },
+        })
+      );
     }
   };
 
@@ -131,12 +150,12 @@ const EditableImage: React.FC<EditableImageProps> = ({
           </div>
         )}
         {!uploadStatus.uploading && imageUrl ? (
-          <Image
+          <img
+            alt={`${itemKey} image`}
             width={parseInt(shapeStyleValues.width)}
             height={parseInt(shapeStyleValues.height)}
-            src={imageUrl}
+            src={`https://dev-api.easytoweb.store${imageUrl}`}
             className="object-cover w-full h-full"
-            alt={`${itemKey} image`}
             style={{
               borderRadius: `${borderRadius}%`,
             }}
