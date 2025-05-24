@@ -289,6 +289,9 @@ const App: React.FC = () => {
   const [showProjectNameInput, setShowProjectNameInput] = useState(false);
   const [showUsersPopover, setShowUsersPopover] = useState(false);
   const usersPopoverRef = useRef<HTMLDivElement>(null);
+  const [publishStatus, setPublishStatus] = useState<
+    { type: "success"; url: string } | { type: "error"; message: string } | null
+  >(null);
 
   const addToHistory = (components: ComponentItem[]) => {
     const newHistory = history.slice(0, currentHistoryIndex + 1);
@@ -623,10 +626,38 @@ const App: React.FC = () => {
           </button>
           <button
             onClick={async () => {
-              const response = await apiHandler.publishProject(
-                "4be03e15-f58e-4ae3-b978-b3cb06e4ecc1"
-              );
-              console.log(response);
+              setPublishStatus(null);
+              try {
+                const response = await apiHandler.publishProject(projectId);
+                if (response.data?.url) {
+                  setPublishStatus({ type: "success", url: response.data.url });
+                } else {
+                  setPublishStatus({
+                    type: "error",
+                    message: "배포 결과를 알 수 없습니다.",
+                  });
+                }
+              } catch (err) {
+                let msg = "배포에 실패했습니다. 다시 시도해 주세요.";
+                if (
+                  typeof err === "object" &&
+                  err !== null &&
+                  "response" in err
+                ) {
+                  // @ts-expect-error: axios error type has response property
+                  const responseData = err.response?.data;
+                  const errorDesc =
+                    responseData &&
+                    responseData.errors &&
+                    responseData.errors.errorDescription;
+                  if (errorDesc) msg = errorDesc;
+                  // @ts-expect-error: axios error type has message property
+                  else if (err.message) msg = err.message;
+                } else if (err instanceof Error) {
+                  msg = err.message;
+                }
+                setPublishStatus({ type: "error", message: msg });
+              }
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
           >
@@ -926,6 +957,32 @@ const App: React.FC = () => {
           <i className="fas fa-check-circle mr-2"></i>
           프로젝트가 성공적으로 저장되었습니다
         </div>
+        {publishStatus && (
+          <div
+            className={`fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50
+              ${publishStatus.type === "success" ? "bg-blue-600 text-white" : "bg-red-500 text-white"}`}
+          >
+            {publishStatus.type === "success" ? (
+              <>
+                <i className="fas fa-rocket mr-2"></i>
+                배포 완료! URL:{" "}
+                <a
+                  href={`https://dev.easytoweb.store/${publishStatus.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline ml-1"
+                >
+                  {publishStatus.url}
+                </a>
+              </>
+            ) : (
+              <>
+                <i className="fas fa-exclamation-circle mr-2"></i>
+                {publishStatus.message}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
