@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import apiHandler from "../../../shared/api/axios";
+import React from "react";
 
 function isAxiosErrorWithResponse(err: unknown): err is {
   response: { data?: { errors?: { errorDescription?: string } } };
@@ -10,11 +11,16 @@ function isAxiosErrorWithResponse(err: unknown): err is {
   return typeof err === "object" && err !== null && "response" in err;
 }
 
-export default function ProjectPage({ params }: { params: { url: string } }) {
-  const { url } = params;
+export default function ProjectPage({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}) {
+  const { url } = React.use(params);
   const [content, setContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  console.log("url", url);
 
   useEffect(() => {
     setLoading(true);
