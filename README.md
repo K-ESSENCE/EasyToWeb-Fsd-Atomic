@@ -49,5 +49,14 @@ YJS는 변경 이벤트를 비동기적으로 처리
 Redux 상태 업데이트와 YJS 업데이트 사이에 타이밍 차이가 있어 동일한 변경이 여러 번 감지될 수 있음
 
 
+## 최신 Next js 
+React.usㄷ
+Next.js 14+의 app 디렉토리에서만 등장하는 새로운 패턴
+서버 컴포넌트/클라이언트 컴포넌트 경계에서,
+비동기 데이터(Promise)를 컴포넌트에서 바로 사용할 수 있게 함 
+React.use(promise)는 Promise가 resolve될 때까지 컴포넌트 렌더링을 일시 중단(suspend)하고,
+resolve된 값을 반환
+
+
 ## ws=> wss 
  HTTPS 페이지에서 HTTP(WebSocket: ws://) 연결을 시도하면 보안상 차단됨
