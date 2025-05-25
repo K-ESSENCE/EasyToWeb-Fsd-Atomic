@@ -25,7 +25,7 @@ import ActiveUsers from "../../../components/ActiveUsers";
 import { Awareness } from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
 import { IndexeddbPersistence } from "y-indexeddb";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 // import { useSelector } from 'react-redux';
 // import { useCallback, useState, useEffect, useRef } from 'react';
@@ -243,6 +243,7 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const params = useParams();
   const projectId = params.projectId as string;
+  const router = useRouter();
 
   const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
   const [awareness, setAwareness] = useState<Awareness | null>(null);
@@ -700,6 +701,38 @@ const App: React.FC = () => {
             className="p-2 text-gray-500 hover:text-gray-700 cursor-pointer whitespace-nowrap"
           >
             <i className="fas fa-cog text-lg"></i>
+          </button>
+          <button
+            onClick={async () => {
+              setPublishStatus(null);
+              try {
+                await apiHandler.exitProject(projectId);
+                router.push("/list");
+              } catch (err) {
+                let msg = "프로젝트 탈퇴에 실패했습니다. 다시 시도해 주세요.";
+                if (
+                  typeof err === "object" &&
+                  err !== null &&
+                  "response" in err
+                ) {
+                  // @ts-expect-error: axios error type has response property
+                  const responseData = err.response?.data;
+                  const errorDesc =
+                    responseData &&
+                    responseData.errors &&
+                    responseData.errors.errorDescription;
+                  if (errorDesc) msg = errorDesc;
+                  // @ts-expect-error: axios error type has message property
+                  else if (err.message) msg = err.message;
+                } else if (err instanceof Error) {
+                  msg = err.message;
+                }
+                setPublishStatus({ type: "error", message: msg });
+              }
+            }}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
+          >
+            <i className="fas fa-sign-out-alt mr-2"></i>프로젝트 탈퇴
           </button>
         </div>
       </header>
