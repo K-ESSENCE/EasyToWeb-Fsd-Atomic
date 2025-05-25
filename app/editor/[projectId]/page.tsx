@@ -664,6 +664,38 @@ const App: React.FC = () => {
             <i className="fas fa-rocket mr-2"></i>배포
           </button>
           <button
+            onClick={async () => {
+              setPublishStatus(null);
+              try {
+                await apiHandler.unpublishProject(projectId);
+                setPublishStatus({ type: "success", url: "" });
+              } catch (err) {
+                let msg = "게시 취소에 실패했습니다. 다시 시도해 주세요.";
+                if (
+                  typeof err === "object" &&
+                  err !== null &&
+                  "response" in err
+                ) {
+                  // @ts-expect-error: axios error type has response property
+                  const responseData = err.response?.data;
+                  const errorDesc =
+                    responseData &&
+                    responseData.errors &&
+                    responseData.errors.errorDescription;
+                  if (errorDesc) msg = errorDesc;
+                  // @ts-expect-error: axios error type has message property
+                  else if (err.message) msg = err.message;
+                } else if (err instanceof Error) {
+                  msg = err.message;
+                }
+                setPublishStatus({ type: "error", message: msg });
+              }
+            }}
+            className="bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
+          >
+            <i className="fas fa-ban mr-2"></i>게시취소
+          </button>
+          <button
             onClick={() => setShowSettings(true)}
             className="p-2 text-gray-500 hover:text-gray-700 cursor-pointer whitespace-nowrap"
           >
@@ -964,16 +996,21 @@ const App: React.FC = () => {
           >
             {publishStatus.type === "success" ? (
               <>
-                <i className="fas fa-rocket mr-2"></i>
-                배포 완료! URL:{" "}
-                <a
-                  href={`https://dev.easytoweb.store/publish/${publishStatus.url}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline ml-1"
-                >
-                  {publishStatus.url}
-                </a>
+                {publishStatus.url ? (
+                  <>
+                    배포 완료! URL:{" "}
+                    <a
+                      href={`https://dev.easytoweb.store/publish/${publishStatus.url}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline ml-1"
+                    >
+                      {publishStatus.url}
+                    </a>
+                  </>
+                ) : (
+                  "게시가 취소되었습니다."
+                )}
               </>
             ) : (
               <>
