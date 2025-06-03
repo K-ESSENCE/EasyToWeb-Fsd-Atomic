@@ -25,7 +25,7 @@ import {
 import ActiveUsers from "../../../components/ActiveUsers";
 import { Awareness } from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
-import { IndexeddbPersistence } from "y-indexeddb";
+// import { IndexeddbPersistence } from "y-indexeddb";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 // import { useSelector } from 'react-redux';
@@ -444,23 +444,23 @@ const App: React.FC = () => {
       user,
     });
 
-    // IndexedDB persistence 추가
-    const persistence = new IndexeddbPersistence(roomName, doc);
-    persistence.on("synced", () => {
-      // IndexedDB에서 불러온 후 Redux에 반영
-      const sharedLayoutMap = doc.getMap("layoutDatas");
-      const yjsSections = sharedLayoutMap.get("sections") as
-        | SectionData[]
-        | undefined;
-      if (yjsSections && yjsSections.length > 0) {
-        dispatch(
-          setLayoutData({
-            layoutId: "default",
-            sectionValues: yjsSections,
-          })
-        );
-      }
-    });
+    // // IndexedDB persistence 추가
+    // const persistence = new IndexeddbPersistence(roomName, doc);
+    // persistence.on("synced", () => {
+    //   // IndexedDB에서 불러온 후 Redux에 반영
+    //   const sharedLayoutMap = doc.getMap("layoutDatas");
+    //   const yjsSections = sharedLayoutMap.get("sections") as
+    //     | SectionData[]
+    //     | undefined;
+    //   if (yjsSections && yjsSections.length > 0) {
+    //     dispatch(
+    //       setLayoutData({
+    //         layoutId: "default",
+    //         sectionValues: yjsSections,
+    //       })
+    //     );
+    //   }
+    // });
 
     setYjsDoc(doc);
     setAwareness(awareness);
@@ -546,7 +546,7 @@ const App: React.FC = () => {
       if (provider) {
         dispatch(resetLayoutState());
         cleanupYjsProvider(provider);
-        persistence.destroy();
+        // persistence.destroy();
       }
       uploadStatusMap.unobserve(handleUploadStatusChange);
       imageStylesMap.unobserve(handleImageStylesChange);
