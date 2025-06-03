@@ -269,7 +269,6 @@ const App: React.FC = () => {
   );
   const [showSettings, setShowSettings] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   interface HistoryState {
     droppedComponents: ComponentItem[];
@@ -285,7 +284,7 @@ const App: React.FC = () => {
   );
   const [isDragging, setIsDragging] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [showToast, setShowToast] = useState(false);
+  // const [showToast, setShowToast] = useState(false);
   const [history, setHistory] = useState<HistoryState[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [projectName, setProjectName] = useState("새 프로젝트");
@@ -316,29 +315,29 @@ const App: React.FC = () => {
       setCurrentHistoryIndex(currentHistoryIndex + 1);
     }
   };
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      let dataToSave = layoutDatas;
-      if (yjsDoc) {
-        const sharedLayoutMap = yjsDoc.getMap("layoutDatas");
-        const yjsSections = sharedLayoutMap.get("sections") as
-          | SectionData[]
-          | undefined;
-        if (yjsSections) {
-          dataToSave = yjsSections;
-        }
-      }
-      // dataToSave를 저장 API에 전달 (아래는 예시)
-      // await apiHandler.saveProject(dataToSave);
-      console.log("Saving data:", dataToSave);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  // const handleSave = async () => {
+  //   setIsSaving(true);
+  //   try {
+  //     let dataToSave = layoutDatas;
+  //     if (yjsDoc) {
+  //       const sharedLayoutMap = yjsDoc.getMap("layoutDatas");
+  //       const yjsSections = sharedLayoutMap.get("sections") as
+  //         | SectionData[]
+  //         | undefined;
+  //       if (yjsSections) {
+  //         dataToSave = yjsSections;
+  //       }
+  //     }
+  //     // dataToSave를 저장 API에 전달 (아래는 예시)
+  //     // await apiHandler.saveProject(dataToSave);
+  //     console.log("Saving data:", dataToSave);
+  //     await new Promise((resolve) => setTimeout(resolve, 1500));
+  //     setShowToast(true);
+  //     setTimeout(() => setShowToast(false), 3000);
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
   const handleProjectNameChange = (newName: string) => {
     setProjectName(newName);
     setShowProjectNameInput(false);
@@ -609,7 +608,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <button
+          {/* <button
             onClick={handleSave}
             disabled={isSaving}
             className={`${
@@ -629,7 +628,7 @@ const App: React.FC = () => {
                 저장
               </>
             )}
-          </button>
+          </button> */}
           <button className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap">
             <i className="fas fa-eye mr-2"></i>미리보기
           </button>
