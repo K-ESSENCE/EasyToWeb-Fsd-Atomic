@@ -48,6 +48,9 @@ export interface MailCertificationRequest {
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
+  account: {
+    name: string;
+  };
 }
 
 export interface RefreshTokenRequest {
