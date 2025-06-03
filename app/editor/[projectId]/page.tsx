@@ -1021,14 +1021,14 @@ const App: React.FC = () => {
         )}
 
         {/* Toast Notification */}
-        <div
+        {/* <div
           className={`fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center ${
             showToast ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
           }`}
         >
           <i className="fas fa-check-circle mr-2"></i>
           프로젝트가 성공적으로 저장되었습니다
-        </div>
+        </div> */}
         {publishStatus && (
           <div
             className={`fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50
