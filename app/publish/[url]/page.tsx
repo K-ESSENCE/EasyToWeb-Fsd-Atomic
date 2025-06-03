@@ -88,7 +88,7 @@ export default function ProjectPage({
                     <img
                       className="w-full h-full object-cover"
                       alt={`image-${item.id}`}
-                      src={`https://dev-api.easytoweb.store${item.imgValue}`}
+                      src={`https://dev-api.easytoweb.store${item.imgValue}?format=WEBP`}
                     />
                   </div>
                 );
