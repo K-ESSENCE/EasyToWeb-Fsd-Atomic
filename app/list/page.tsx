@@ -271,7 +271,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <i className="fas fa-users text-gray-400"></i>
-                      <span>{project.members?.length ?? 1}</span>
+                      <span>{project.memberCount ?? 1}</span>
                     </div>
                   </div>
                   <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-sm">

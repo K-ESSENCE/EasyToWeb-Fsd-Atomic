@@ -68,6 +68,7 @@ export interface Project {
   status: "CLOSED" | "OPEN";
   createDate: string;
   members: ProjectMember[];
+  memberCount: number;
 }
 
 export interface ProjectMember {
