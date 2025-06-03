@@ -29,7 +29,7 @@ y-indexedDb
 for yjs 
 
 yjs 동시편집 / 소켓 
-puppeteer (next js  server side screenCapture)
+puppeteer (next js  server side screenCapture Thumbnail생성)
 
 
 
