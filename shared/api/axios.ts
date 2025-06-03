@@ -268,11 +268,12 @@ class ApiHandler {
   }
 
   async publishProject(
-    projectId: string
+    projectId: string,
+    content: string
   ): Promise<ApiResponse<ProjectPublishResponse>> {
     const response = await this.client.post<
       ApiResponse<ProjectPublishResponse>
-    >("/project/publish", { projectId });
+    >("/project/publish", { projectId, content });
     return response.data;
   }
 

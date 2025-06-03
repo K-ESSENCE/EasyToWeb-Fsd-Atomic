@@ -634,9 +634,13 @@ const App: React.FC = () => {
           </button>
           <button
             onClick={async () => {
+              const sharedLayoutMap = yjsDoc?.getMap("layoutDatas");
               setPublishStatus(null);
               try {
-                const response = await apiHandler.publishProject(projectId);
+                const response = await apiHandler.publishProject(
+                  projectId,
+                  JSON.stringify(sharedLayoutMap?.toJSON()?.sections)
+                );
                 if (response.data?.url) {
                   setPublishStatus({ type: "success", url: response.data.url });
                 } else {

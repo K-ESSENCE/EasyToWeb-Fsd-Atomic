@@ -10,7 +10,7 @@ interface EditableImageProps {
   onImageChange: (file: File, imageUrl: string) => void;
   shapeStyleValues: CardStyleI;
   itemKey: string;
-  imageUrlsMap?: any; // Y.Map<any> 타입
+  imageUrlsMap: Map<string, string>;
 }
 
 const EditableImage: React.FC<EditableImageProps> = ({
