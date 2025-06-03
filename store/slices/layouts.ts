@@ -259,6 +259,10 @@ const layoutSlice = createSlice({
     ) => {
       state.imageUrls = action.payload;
     },
+    resetLayoutState: (state) => {
+      Object.assign(state, initialState);
+      saveEditorState(initialState.layoutDatas);
+    },
   },
 });
 
@@ -280,4 +284,5 @@ export const {
   setAllImageStyles,
   setImageUrl,
   setAllImageUrls,
+  resetLayoutState,
 } = layoutSlice.actions;

@@ -11,6 +11,7 @@ import {
   setAllImageUploadStatus,
   setAllImageStyles,
   setAllImageUrls,
+  resetLayoutState,
 } from "../../../store/slices/layouts";
 import { useDispatch, useSelector } from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
@@ -25,7 +26,7 @@ import ActiveUsers from "../../../components/ActiveUsers";
 import { Awareness } from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
 import { IndexeddbPersistence } from "y-indexeddb";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 // import { useSelector } from 'react-redux';
 // import { useCallback, useState, useEffect, useRef } from 'react';
@@ -242,6 +243,7 @@ const App: React.FC = () => {
 
   const dispatch = useDispatch();
   const params = useParams();
+  const query = useSearchParams().get("clear");
   const projectId = params.projectId as string;
   const router = useRouter();
 
@@ -419,6 +421,10 @@ const App: React.FC = () => {
   }, [imageUrls, imageUrlsMap]);
 
   useEffect(() => {
+    if (query === "true") {
+      return;
+    }
+
     const roomName = projectId;
     const accessToken = localStorage.getItem("accessToken") || "";
     const user = {
@@ -539,7 +545,9 @@ const App: React.FC = () => {
 
     return () => {
       if (provider) {
+        dispatch(resetLayoutState());
         cleanupYjsProvider(provider);
+        persistence.destroy();
       }
       uploadStatusMap.unobserve(handleUploadStatusChange);
       imageStylesMap.unobserve(handleImageStylesChange);

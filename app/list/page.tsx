@@ -121,7 +121,7 @@ const App: React.FC = () => {
         setShowCreateModal(false);
         setNewTitle("");
         setNewDesc("");
-        router.push(`/editor/${projectId}`);
+        router.push(`/editor/${projectId}?clear=true`);
       }
     } finally {
       setCreating(false);
