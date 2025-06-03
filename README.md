@@ -1,7 +1,6 @@
 
 # Domain
 
-
 https://dev.easytoweb.store/
 
 # 기능 
@@ -30,6 +29,7 @@ y-indexedDb
 for yjs 
 
 yjs 동시편집 / 소켓 
+puppeteer (next js  server side screenCapture)
 
 
 
