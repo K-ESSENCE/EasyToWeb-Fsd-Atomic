@@ -96,14 +96,12 @@ const layoutSlice = createSlice({
         ...newSection,
         title: `섹션 ${state.layoutDatas.sectionValues.length + 1}`, // 기본 제목 추가
       });
-      saveEditorState(state.layoutDatas);
     },
     deleteSection: (state, { payload }: { payload: IdPayloadI }) => {
       const updatedState = state.layoutDatas.sectionValues.filter(
         (section) => section.sectionKey !== payload.id
       );
       state.layoutDatas.sectionValues = updatedState;
-      saveEditorState(state.layoutDatas);
     },
     updateSectionTitle: (
       state,
@@ -114,7 +112,6 @@ const layoutSlice = createSlice({
       );
       if (section) {
         section.title = payload.title;
-        saveEditorState(state.layoutDatas);
       }
     },
     addLayoutItem: (state, { payload }: PayLoadI) => {
@@ -133,7 +130,6 @@ const layoutSlice = createSlice({
       state.layoutDatas.sectionValues[sectionIndex].layoutValues.push(
         payload.newLayoutItemValue
       );
-      saveEditorState(state.layoutDatas);
     },
     addImageToSection: (state, { payload }: { payload: AddImagePayloadI }) => {
       const section = state.layoutDatas.sectionValues.find(
@@ -155,7 +151,6 @@ const layoutSlice = createSlice({
         layoutName: "img",
         imgValue: "",
       });
-      saveEditorState(state.layoutDatas);
     },
     deleteLayoutItem: (
       state,
@@ -171,7 +166,6 @@ const layoutSlice = createSlice({
         state.layoutDatas.sectionValues[sectionIndex].layoutValues.filter(
           (item) => item.id !== payload.itemId
         );
-      saveEditorState(state.layoutDatas);
     },
     updateImageUrl(state, { payload }: { payload: UpdateImageUrlPayloadI }) {
       const section = state.layoutDatas.sectionValues.find(
@@ -183,30 +177,48 @@ const layoutSlice = createSlice({
         );
         if (item) {
           item.imgValue = payload.imageUrl;
-          saveEditorState(state.layoutDatas);
         }
       }
     },
+    // updateTextContent(
+    //   state,
+    //   { payload }: { payload: UpdateTextContentPayloadI }
+    // ) {
+    //   const section = state.layoutDatas.sectionValues.find(
+    //     (section) => section.sectionKey === payload.sectionKey
+    //   );
+    //   if (section) {
+    //     const item = section.layoutValues.find(
+    //       (item) => item.id === payload.itemId
+    //     );
+    //     if (item) {
+    //       item.textValue = payload.textContent;
+    //     }
+    //   }
+    // },
     updateTextContent(
-      state,
-      { payload }: { payload: UpdateTextContentPayloadI }
+        state,
+        { payload }: { payload: UpdateTextContentPayloadI }
     ) {
-      const section = state.layoutDatas.sectionValues.find(
-        (section) => section.sectionKey === payload.sectionKey
-      );
-      if (section) {
-        const item = section.layoutValues.find(
-          (item) => item.id === payload.itemId
-        );
-        if (item) {
-          item.textValue = payload.textContent;
-          saveEditorState(state.layoutDatas);
-        }
-      }
+      const updatedSections = state.layoutDatas.sectionValues.map(section => {
+        if (section.sectionKey !== payload.sectionKey) return section;
+
+        return {
+          ...section,
+          layoutValues: section.layoutValues.map(item => {
+            if (item.id !== payload.itemId) return item;
+            return {
+              ...item,
+              textValue: payload.textContent,
+            };
+          }),
+        };
+      });
+
+      state.layoutDatas.sectionValues = updatedSections;
     },
     setLayoutData(state, action: PayloadAction<LayoutData>) {
       state.layoutDatas = action.payload;
-      saveEditorState(state.layoutDatas);
     },
     setImageUploadStatus: (
       state,

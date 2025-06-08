@@ -31,6 +31,7 @@ const Form = () => {
 
       if (response?.data?.accessToken) {
         localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("name", response.data?.account?.name ?? "");
         router.push("/list");
       }
     } catch (error) {

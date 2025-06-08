@@ -18,11 +18,12 @@ const EditableCard = ({
   itemKey,
   imageUrlsMap,
 }: DefaultProps) => {
+  const TEXT_PLACEHOLDER = "여기에 텍스트를 입력하세요.";
+
   const [selectedImageData, setSelectedImageData] = useState<string | null>(
     null
   );
-  const [textContent, setTextContent] =
-    useState<string>("여기에 텍스트를 입력하세요.");
+  const [textContent, setTextContent] = useState<string>(TEXT_PLACEHOLDER);
   const nowSectionKey = useSelector(
     (state: RootState) => state.keys.nowSectionKey
   );
@@ -38,8 +39,10 @@ const EditableCard = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (currentItem?.textValue) {
-      setTextContent(currentItem.textValue);
+    if (currentItem?.textValue || currentItem?.textValue === "") {
+      setTextContent(currentItem.textValue!);
+    } else {
+      setTextContent(TEXT_PLACEHOLDER);
     }
   }, [currentItem?.textValue]);
 

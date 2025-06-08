@@ -20,6 +20,7 @@ export const createYjsDocument = ({
   const doc = new Y.Doc();
 
   const provider = new WebsocketProvider(
+    // "ws://localhost:8080",
     "wss://dev-api.easytoweb.store",
     "layout-modal-room",
     doc,
@@ -39,6 +40,8 @@ export const createYjsDocument = ({
   const imageStylesMap = doc.getMap("imageStyles");
   // Yjs imageUrls 맵 생성
   const imageUrlsMap = doc.getMap("imageUrls");
+  //  Yjs layout 맵 생성
+  const sharedLayoutMap = doc.getMap("layoutDatas");
 
   // Handle WebSocket errors
   provider.on("connection-error", (event: Event) => {
@@ -99,6 +102,7 @@ export const createYjsDocument = ({
     textEditStatusMap,
     imageStylesMap,
     imageUrlsMap,
+    sharedLayoutMap,
   };
 };
 

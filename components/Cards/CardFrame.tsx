@@ -3,7 +3,7 @@ import SelectableFrame from "../SelectableFrame";
 import { useDispatch, useSelector } from "react-redux";
 import { Shapes, TextStyleI } from "../types/common/layoutStyle";
 import { getShapeStyleValues } from "../../utils/utils";
-import { changeNowItemKey } from "../../store/slices/keys";
+import { changeNowItemKey, changeNowSectionKey } from "../../store/slices/keys";
 import { RootState } from "../../store/configureStore";
 
 interface DefaultProps {
@@ -43,8 +43,20 @@ const CardFrame = ({
   const actualShapeType = currentItem?.layoutName || shapeType;
   const shapeStyleValues = getShapeStyleValues(actualShapeType, "dynamic");
 
-  const onChangeKey = (key: string) => {
-    dispatch(changeNowItemKey(key));
+  const onChangeKey = (itemKey: string) => {
+    const sectionKey = findItemSection(itemKey);
+    if (sectionKey) {
+      dispatch(changeNowSectionKey(sectionKey));
+      dispatch(changeNowItemKey(itemKey));
+    }
+  };
+
+  const findItemSection = (itemKey: string) => {
+    const foundSection = sections.find((section) =>
+      section.layoutValues.some((item) => item.id === itemKey)
+    );
+
+    return foundSection ? foundSection.sectionKey : null;
   };
 
   return (
