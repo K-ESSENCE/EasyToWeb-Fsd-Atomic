@@ -49,7 +49,9 @@ export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
   account: {
+    id: string;
     name: string;
+    email: string;
   };
 }
 

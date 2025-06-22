@@ -1,14 +1,14 @@
 "use client";
 
- import React, {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Button from "../atoms/Button";
 // import FormField from "../molecules/FormField";
 import SocialButton from "../molecules/SocialButton";
-import { useForm } from "../../hooks/useForm";
+import {useForm} from "../../hooks/useForm";
 import apiHandler from "../../shared/api/axios";
-import { useRouter } from "next/navigation";
-import {ApiResponse, PromiseError} from "../../shared/api/types";
-import { TokenResponse } from "../../shared/api/types";
+import {useRouter} from "next/navigation";
+import {ApiResponse, PromiseError, TokenResponse} from "../../shared/api/types";
+import {isLogin, saveSessionToLocal} from "../../utils/session";
 
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -21,11 +21,10 @@ const Form = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    if (token) {
+    if (isLogin()) {
       router.replace("/list");
     }
+
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,8 +37,9 @@ const Form = () => {
       });
 
       if (response?.data?.accessToken) {
-        localStorage.setItem("accessToken", response.data.accessToken);
-        localStorage.setItem("name", response.data?.account?.name ?? "");
+        const accessToken =response.data.accessToken
+        const account  = response.data.account;
+        saveSessionToLocal(accessToken, account);
         router.push("/list");
       }
     } catch (error) {

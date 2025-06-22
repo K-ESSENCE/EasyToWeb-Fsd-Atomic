@@ -1,11 +1,10 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
   LayoutData,
   LayoutItemValues,
   SectionData,
 } from "../../components/types/common/layoutStyle";
-import { MAX_LAYOUT_VALUE } from "../../utils/constants";
-import { saveEditorState } from "../../utils/localStorage";
+import {MAX_LAYOUT_VALUE} from "../../utils/constants";
 
 interface UploadStatus {
   uploading: boolean;
@@ -273,7 +272,7 @@ const layoutSlice = createSlice({
     },
     resetLayoutState: (state) => {
       Object.assign(state, initialState);
-      saveEditorState(initialState.layoutDatas);
+      // saveEditorState(initialState.layoutDatas);
     },
   },
 });

@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {isLogin} from "../utils/session";
 
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
+    if (!isLogin()) {
       router.replace("/");
+
     } else {
       setLoading(false);
+
     }
+
   }, []);
 
   if (loading) return <div>로딩 중...</div>;

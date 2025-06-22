@@ -28,6 +28,11 @@ import {
   ProjectPublishResponse,
   ProjectPublishContent,
 } from "./types";
+import {
+  clearSessionInLocal,
+  getAccessTokenFromLocal,
+  saveSessionToLocal
+} from "../../utils/session";
 
 class ApiHandler {
   private client: AxiosInstance;
@@ -38,8 +43,8 @@ class ApiHandler {
   private requestQueue: ((token: string) => void)[] = [];
 
   constructor() {
-    // this.baseURL = "https://dev-api.easytoweb.store/api";
-    this.baseURL = "http://localhost:8080/api";
+    this.baseURL = "https://dev-api.easytoweb.store/api";
+    // this.baseURL = "http://localhost:8080/api";
     this.client = axios.create({
       baseURL: this.baseURL,
       timeout: 10000,
@@ -58,7 +63,7 @@ class ApiHandler {
     // Request interceptor for JWT token
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem("accessToken");
+        const token = getAccessTokenFromLocal();
         if (token) {
           if (!config.headers) {
             config.headers = new AxiosHeaders();
@@ -93,19 +98,23 @@ class ApiHandler {
 
       try {
         const { data } = await this.refreshToken();
-        const newAccessToken = data?.accessToken ?? "";
+        if (data?.accessToken){
+          const newAccessToken = data.accessToken;
+          saveSessionToLocal(data.accessToken, data.account);
 
-        this.requestQueue.forEach((cb) => cb(newAccessToken));
-        this.requestQueue = [];
-        this.isRefreshing = false;
+          this.requestQueue.forEach((cb) => cb(newAccessToken));
+          this.requestQueue = [];
+          this.isRefreshing = false;
 
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+
         return this.client(originalRequest);
 
       } catch (err) {
         this.isRefreshing = false;
         this.requestQueue = [];
-        localStorage.removeItem("accessToken");
+        clearSessionInLocal();
         window.location.href = "/"
 
         return Promise.reject(err);
@@ -140,9 +149,6 @@ class ApiHandler {
       "/account/login",
       data
     );
-    if (response.data.success && response.data.data) {
-      localStorage.setItem("accessToken", response.data.data.accessToken);
-    }
     return response.data;
   }
 
@@ -187,9 +193,7 @@ class ApiHandler {
   // Token APIs
   async refreshToken(): Promise<ApiResponse<TokenResponse>> {
     const response = await this.client.post<ApiResponse<TokenResponse>>("/account/reissue");
-    if (response.data.data) {
-      localStorage.setItem("accessToken", response.data.data.accessToken);
-    }
+
     return response.data;
   }
 

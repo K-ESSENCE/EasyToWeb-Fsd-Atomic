@@ -22,6 +22,11 @@ import {Awareness} from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
 import {useParams, useRouter} from "next/navigation";
 import * as Y from 'yjs';
+import {
+	getAccessTokenFromLocal,
+	getUserIdFromLocal,
+	getUserNameFromLocal
+} from "../../../utils/session";
 
 
 interface ComponentItem {
@@ -130,12 +135,15 @@ const App = () => {
 	useEffect(() => {
 		if (!projectId) return;
 
+		const getRandomColor = () =>
+				`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`;
+
 		const roomName = projectId;
-		const accessToken = localStorage.getItem("accessToken") || "";
+		const accessToken = getAccessTokenFromLocal() || "";
 		const user = {
-			id: localStorage.getItem("userId") || "guest",
-			name: localStorage.getItem("userName") || "게스트",
-			color: "#3b82f6",
+			id: getUserIdFromLocal() || "guest",
+			name: getUserNameFromLocal() || "게스트",
+			color: getRandomColor(),
 		};
 
 		const {
