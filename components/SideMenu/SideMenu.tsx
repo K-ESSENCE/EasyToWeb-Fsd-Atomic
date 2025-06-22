@@ -74,8 +74,6 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
     return null;
   });
 
-  console.log(nowItem);
-
   // const sections = useSelector(
   //   (state: RootState) => state.layouts.layoutDatas.sectionValues
   // );

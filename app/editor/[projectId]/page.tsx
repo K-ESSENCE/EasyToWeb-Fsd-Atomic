@@ -12,6 +12,7 @@ import {
 	setAllImageUploadStatus,
 	setAllImageUrls,
 	setLayoutData,
+	setProjectPermission,
 } from "../../../store/slices/layouts";
 import {useDispatch, useSelector} from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
@@ -77,6 +78,10 @@ const App = () => {
 			(state: RootState) => state.layouts.imageStyles
 	);
 
+	const projectPermission = useSelector(
+			(state: RootState) => state.layouts.projectPermission
+	)
+
 	/**
 	 * state
 	 */
@@ -87,10 +92,12 @@ const App = () => {
 	const [imageUrlsMap, setImageUrlsMap] = useState<Y.Map<unknown> | null>(null);
 	const [sharedLayoutMap, setSharedLayoutMap] = useState<Y.Map<unknown> | null>(null);
 
-	const [isSynced, setIsSynced] = useState<boolean>(false);
+	const [syncInfo, setSyncInfo] = useState<{isSync:boolean, lastSyncDate:Date | null}>(
+			{isSync:false, lastSyncDate: null}
+	)
 	const [showSettings, setShowSettings] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [isFullscreen, setIsFullscreen] = useState(true);
 	const [isDragging, setIsDragging] = useState(false);
 	// const [showToast, setShowToast] = useState(false);
 
@@ -102,6 +109,7 @@ const App = () => {
 	const [showProjectNameInput, setShowProjectNameInput] = useState(false);
 	const [showUsersPopover, setShowUsersPopover] = useState(false);
 	const [publishStatus, setPublishStatus] = useState<PublishStatus>(null);
+	const [offlineMessage, setOfflineMessage] = useState("");
 
 	/**
 	 * ref
@@ -166,9 +174,16 @@ const App = () => {
 
 		const handleSync = (isSynced: boolean) => {
 			console.log("Yjs synced with server:", isSynced);
-			setIsSynced(isSynced);
-		};
+
+			if (isSynced) {
+				setSyncInfo({ isSync: true, lastSyncDate: new Date() });
+			} else {
+				setSyncInfo((info) => ({ ...info, isSync: false }));
+			}
+		}
+
 		provider.on("sync", handleSync);
+
 
 		return () => {
 			dispatch(resetLayoutState());
@@ -195,7 +210,7 @@ const App = () => {
 		return () => {
 			sharedLayoutMap.unobserveDeep(handleSharedLayoutChange);
 		};
-	}, [sharedLayoutMap, isSynced]);
+	}, [sharedLayoutMap, syncInfo]);
 
 	useEffect(() => {
 		if (!uploadStatusMap) return;
@@ -259,18 +274,49 @@ const App = () => {
 	}, [awareness, nowSectionKey, selectedItemKey]);
 
 	useEffect(() => {
-		if (yjsDoc && sharedLayoutMap) {
-			// 로컬 변경을 YJS에 반영
-			const currentSections = sharedLayoutMap.get("sections") as
-					| SectionData[]
-					| undefined;
-			// 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
-			const synced = JSON.stringify(currentSections) === JSON.stringify(layoutDatas);
-			if (!currentSections || !synced) {
+		if (!yjsDoc || !sharedLayoutMap) return;
+		if (projectPermission === "READ_ONLY") return;
+
+		const { isSync, lastSyncDate } = syncInfo;
+
+		// 로컬 변경을 YJS에 반영
+		// 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
+		const currentSections = sharedLayoutMap.get("sections") as SectionData[] | undefined;
+		const isSame = JSON.stringify(currentSections) === JSON.stringify(layoutDatas);
+
+		// [1] 최초 sync 전 → 수정 차단
+		if (!lastSyncDate) return;
+
+		const now = Date.now();
+		const lastSyncTime = new Date(lastSyncDate).getTime();
+		const elapsed = now - lastSyncTime;
+
+		// [2] sync 중이면 정상 반영
+		if (isSync) {
+			if (!isSame) {
 				sharedLayoutMap.set("sections", layoutDatas);
 			}
+			return;
 		}
-	}, [layoutDatas]);
+
+		// [3] 오프라인 상태: 60초 이내 수정 가능
+		if (elapsed <= 60_000) {
+			if (!isSame) {
+				sharedLayoutMap.set("sections", layoutDatas);
+			}
+			return;
+		}
+
+		// [4] 60초 넘은 경우 수정 불가
+		if (elapsed > 60_000) {
+			console.warn("🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않을 수 있습니다.");
+			/*if (!isSame) {
+				sharedLayoutMap.set("sections", layoutDatas);
+			}*/
+		}
+
+
+	}, [layoutDatas, syncInfo, projectPermission]);
 
 
 	useEffect(() => {
@@ -320,6 +366,35 @@ const App = () => {
 		});
 	}, [imageUrls, imageUrlsMap]);
 
+	useEffect(() => {
+		const {lastSyncDate} = syncInfo;
+		if (!lastSyncDate) return;
+
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const last = new Date(lastSyncDate).getTime();
+			const diff = now - last;
+
+			if (!syncInfo.isSync) {
+				if (diff > 60_000) {
+					setOfflineMessage("🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않습니다.");
+				} else {
+					setOfflineMessage("📡 현재 오프라인입니다. 네트워크를 확인해주세요.");
+				}
+			} else {
+				setOfflineMessage("");
+			}
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [syncInfo]);
+
+
+
+	useEffect(() => {
+		getPermission();
+
+	}, []);
 
 	/**
 	 * page func
@@ -360,6 +435,28 @@ const App = () => {
 		setProjectName(newName);
 		setShowProjectNameInput(false);
 	};
+
+
+	const handleFullScreen = () => {
+		setIsFullscreen(prev => {
+			return !prev
+		});
+	}
+
+
+	const getPermission = async () => {
+		try {
+			const result = await apiHandler.getProject(projectId);
+			const members = result.data?.members ?? [];
+			const myAccountEmail = getUserIdFromLocal();
+			const per = members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
+			dispatch(setProjectPermission({projectPermission: per}));
+			setIsFullscreen(per === "READ_ONLY")
+
+		} finally {
+
+		}
+	}
 
 	return (
 			<div className="flex flex-col h-screen bg-gray-50">
@@ -541,9 +638,8 @@ const App = () => {
 							isFullscreen={isFullscreen}
 					/>
 					{/* 중앙 메인 작업 영역 */}
-					<main className="flex-1 w-screen bg-gray-100 overflow-hidden flex flex-col">
-						<div
-								className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
+					<main className={`flex-1 w-screen bg-gray-100 overflow-hidden flex flex-col`}>
+						<div className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
 							{/* <div className="flex items-center space-x-2">
               <button
                 className={`p-2 rounded-button cursor-pointer whitespace-nowrap ${viewMode === "desktop" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-100"}`}
@@ -589,8 +685,9 @@ const App = () => {
 								</button>
 								<button
 										id="fullscreen-toggle"
-										onClick={() => setIsFullscreen(!isFullscreen)}
-										className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap"
+										onClick={handleFullScreen}
+										disabled={projectPermission === "READ_ONLY"}
+										className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap disabled:text-gray-300 disabled:cursor-not-allowed disabled:bg-transparent"
 								>
 									<i
 											className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"}`}
@@ -600,7 +697,7 @@ const App = () => {
 						</div>
 						<div className="flex-1 overflow-y-auto p-8 flex justify-center">
 							<div
-									className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl`}
+									className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl relative`}
 
 									// ${
 									//   viewMode === "desktop"
@@ -610,6 +707,11 @@ const App = () => {
 									//       : "w-[375px]"
 									// }
 							>
+
+								{projectPermission === "READ_ONLY" && (
+										<div className="absolute inset-0 z-50 bg-transparent cursor-not-allowed" />
+								)}
+
 								<div
 										ref={canvasRef}
 										className={`min-h-screen p-6 relative border-2 ${isDragging ? "border-blue-400 bg-blue-50" : "bg-white border-dashed border-gray-300"} rounded-lg transition-colors duration-200`}
@@ -850,6 +952,12 @@ const App = () => {
 											{publishStatus.message}
 										</>
 								)}
+							</div>
+					)}
+
+					{offlineMessage && (
+							<div className="fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50 bg-red-500 text-white">
+								{offlineMessage}
 							</div>
 					)}
 				</div>

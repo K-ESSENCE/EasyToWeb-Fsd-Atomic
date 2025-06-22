@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-interface initialInerface {
+interface initialInterface {
   nowSectionKey: string;
   nowItemKey: string;
   isItemSelected: boolean;
@@ -8,7 +8,7 @@ interface initialInerface {
   nonSelected: boolean;
 }
 
-const initialState: initialInerface = {
+const initialState: initialInterface = {
   nowSectionKey: '',
   nowItemKey: '',
   isItemSelected: false,
@@ -16,7 +16,7 @@ const initialState: initialInerface = {
   nonSelected: true,
 };
 
-const setNowSelectedState = (state: initialInerface) => {
+const setNowSelectedState = (state: initialInterface) => {
   state.isItemSelected = !!state.nowItemKey && !!state.nowSectionKey;
   state.onlySelectedLayout = !state.nowItemKey && !!state.nowSectionKey;
   state.nonSelected = !state.nowItemKey && !state.nowSectionKey;

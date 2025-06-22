@@ -2,7 +2,8 @@ import {useEffect, useState} from "react";
 import apiHandler from "../shared/api/axios";
 import {Permission, PERMISSION_ORDER, ProjectMember, PromiseError} from "../shared/api/types";
 import {getUserIdFromLocal} from "../utils/session";
-import {compare} from "lib0/testing";
+import {useDispatch} from "react-redux";
+import {setProjectPermission} from "../store/slices/layouts";
 
 const SettingDialog = ({
 	                       setShowSettings,
@@ -11,6 +12,8 @@ const SettingDialog = ({
 	setShowSettings: (arg: boolean) => void;
 	projectId: string;
 }) => {
+	const dispatch = useDispatch();
+
 	const [showInviteModal, setShowInviteModal] = useState(false);
 	const [showRoleModal, setShowRoleModal] = useState(false);
 
@@ -35,8 +38,11 @@ const SettingDialog = ({
 			const sort = members.sort((a, b) => PERMISSION_ORDER[b.permission] - PERMISSION_ORDER[a.permission]);
 			setMembers(sort);
 
+			const per = members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
+			dispatch(setProjectPermission({projectPermission: per}));
+
 		} finally {
-			setInviting(false);
+
 		}
 	}
 

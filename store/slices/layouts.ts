@@ -5,6 +5,7 @@ import {
   SectionData,
 } from "../../components/types/common/layoutStyle";
 import {MAX_LAYOUT_VALUE} from "../../utils/constants";
+import {Permission} from "../../shared/api/types";
 
 interface UploadStatus {
   uploading: boolean;
@@ -31,6 +32,7 @@ interface InitialInterface {
   textEditStatus: { [itemKey: string]: TextEditStatus };
   imageStyles: { [itemKey: string]: ImageStyle };
   imageUrls: { [itemKey: string]: string };
+  projectPermission: Permission
 }
 
 interface AddSectionPayloadI {
@@ -81,6 +83,7 @@ const initialState: InitialInterface = {
   textEditStatus: {},
   imageStyles: {},
   imageUrls: {},
+  projectPermission: "READ_ONLY"
 };
 
 const layoutSlice = createSlice({
@@ -274,6 +277,13 @@ const layoutSlice = createSlice({
       Object.assign(state, initialState);
       // saveEditorState(initialState.layoutDatas);
     },
+    setProjectPermission: (
+        state,
+        action: PayloadAction<{ projectPermission: Permission }>
+    ) => {
+      const { projectPermission } = action.payload;
+      state.projectPermission = projectPermission
+    },
   },
 });
 
@@ -296,4 +306,5 @@ export const {
   setImageUrl,
   setAllImageUrls,
   resetLayoutState,
+  setProjectPermission,
 } = layoutSlice.actions;

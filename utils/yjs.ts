@@ -75,12 +75,15 @@ export const createYjsDocument = ({
 			case 4401:
 				console.error("Access token expired");
 				break;
+			case 1006:
+				console.error("network connecting close");
+				break;
 			default:
 				console.error("Unknown error:", error);
 		}
 
-		closeEvent();
-		alert(error.reason);
+		if (error.code !== 1006) closeEvent();
+		if (error.reason) alert(error.reason);
 	})
 
 	// Handle WebSocket errors
