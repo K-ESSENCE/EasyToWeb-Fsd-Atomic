@@ -145,6 +145,7 @@ const App = () => {
 			name: getUserNameFromLocal() || "게스트",
 			color: getRandomColor(),
 		};
+		const closeEvent = () => router.back();
 
 		const {
 			doc,
@@ -154,7 +155,7 @@ const App = () => {
 			imageStylesMap,
 			imageUrlsMap,
 			sharedLayoutMap,
-		} = createYjsDocument({ roomName, accessToken, user });
+		} = createYjsDocument({ roomName, accessToken, user, closeEvent });
 
 		setYjsDoc(doc);
 		setAwareness(awareness);
