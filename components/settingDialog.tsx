@@ -1,67 +1,134 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import apiHandler from "../shared/api/axios";
+import {Permission, PERMISSION_ORDER, ProjectMember, PromiseError} from "../shared/api/types";
+import {getUserIdFromLocal} from "../utils/session";
+import {compare} from "lib0/testing";
 
 const SettingDialog = ({
-  setShowSettings,
-  projectId,
-}: {
-  setShowSettings: (arg: boolean) => void;
-  projectId: string;
+	                       setShowSettings,
+	                       projectId,
+                       }: {
+	setShowSettings: (arg: boolean) => void;
+	projectId: string;
 }) => {
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviting, setInviting] = useState(false);
-  const [inviteSuccess, setInviteSuccess] = useState(false);
-  const [inviteError, setInviteError] = useState("");
+	const [showInviteModal, setShowInviteModal] = useState(false);
+	const [showRoleModal, setShowRoleModal] = useState(false);
 
-  const handleInvite = async () => {
-    setInviting(true);
-    setInviteError("");
-    try {
-      await apiHandler.inviteProject({ projectId, email: inviteEmail });
-      setInviteSuccess(true);
-      setInviteEmail("");
-      setTimeout(() => {
-        setShowInviteModal(false);
-        setInviteSuccess(false);
-      }, 1500);
-    } catch (err) {
-      if (typeof err === "object" && err !== null && "response" in err) {
-        setInviteError(
-          // @ts-expect-error: axios error type has response property
-          err.response?.data?.message ||
-            // @ts-expect-error: axios error type has message property
-            err.message ||
-            "초대에 실패했습니다. 다시 시도해 주세요."
-        );
-      } else if (err instanceof Error) {
-        setInviteError(err.message);
-      } else {
-        setInviteError("초대에 실패했습니다. 다시 시도해 주세요.");
-      }
-    } finally {
-      setInviting(false);
-    }
-  };
+	const [inviteEmail, setInviteEmail] = useState("");
+	const [inviting, setInviting] = useState(false);
+	const [inviteSuccess, setInviteSuccess] = useState(false);
+	const [inviteError, setInviteError] = useState("");
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-scroll">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-800">설정</h2>
-            <button
-              onClick={() => setShowSettings(false)}
-              className="text-gray-400 hover:text-gray-600 !rounded-button"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
+	const [members, setMembers] = useState<ProjectMember[]>([]);
 
-        <div className="p-6">
-          <div className="space-y-6">
-            {/* <div>
+
+	useEffect(() => {
+		getMemberList()
+
+	}, []);
+
+
+	const getMemberList = async () => {
+		try {
+			const result = await apiHandler.getProject(projectId);
+			const members = result.data?.members ?? [];
+			const sort = members.sort((a, b) => PERMISSION_ORDER[b.permission] - PERMISSION_ORDER[a.permission]);
+			setMembers(sort);
+
+		} finally {
+			setInviting(false);
+		}
+	}
+
+	const myAccountEmail = getUserIdFromLocal();
+	const myPermission =
+			members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
+
+
+	const handleInvite = async () => {
+		setInviting(true);
+		setInviteError("");
+		try {
+			await apiHandler.inviteProject({projectId, email: inviteEmail});
+			setInviteSuccess(true);
+			setInviteEmail("");
+			setTimeout(() => {
+				setShowInviteModal(false);
+				setInviteSuccess(false);
+			}, 1500);
+		} catch (err) {
+			if (typeof err === "object" && err !== null && "response" in err) {
+				setInviteError(
+						// @ts-expect-error: axios error type has response property
+						err.response?.data?.message ||
+						// @ts-expect-error: axios error type has message property
+						err.message ||
+						"초대에 실패했습니다. 다시 시도해 주세요."
+				);
+			} else if (err instanceof Error) {
+				setInviteError(err.message);
+			} else {
+				setInviteError("초대에 실패했습니다. 다시 시도해 주세요.");
+			}
+		} finally {
+			setInviting(false);
+		}
+	};
+
+	const handleRoleSave = async (accountId: string, permission: Permission) => {
+		try {
+			const data = {
+				accountId,
+				permission,
+				projectId,
+			};
+
+			await apiHandler.updateProjectMemberPermission(data);
+
+			setMembers((members) =>
+					members.map((member) =>
+							member.accountId === accountId
+									? { ...member, permission }
+									: member
+					)
+			);
+
+			alert("권한이 변경되었습니다.");
+		} catch (err) {
+			alert((err as PromiseError)?.error ?? "권한 변경에 실패했습니다.")
+		}
+	};
+
+	const handleKickMember = async (accountId:string) => {
+		if (confirm("방출하겠습니까?").valueOf()){
+			try {
+				await apiHandler.kickProjectMember({projectId, accountId});
+				getMemberList();
+				alert("방출되었습니다.");
+			} catch (err) {
+				alert((err as PromiseError)?.error ?? "방출에 실패했습니다.")
+			}
+		}
+	}
+
+	return (
+			<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+				<div className="bg-white rounded-xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-scroll">
+					<div className="p-6 border-b border-gray-200">
+						<div className="flex items-center justify-between">
+							<h2 className="text-xl font-semibold text-gray-800">설정</h2>
+							<button
+									onClick={() => setShowSettings(false)}
+									className="text-gray-400 hover:text-gray-600 !rounded-button"
+							>
+								<i className="fas fa-times"></i>
+							</button>
+						</div>
+					</div>
+
+					<div className="p-6">
+						<div className="space-y-6">
+							{/* <div>
               <h3 className="text-sm font-medium text-gray-500 mb-4">
                 프로젝트 설정
               </h3>
@@ -87,7 +154,7 @@ const SettingDialog = ({
               </div>
             </div> */}
 
-            {/* <div>
+							{/* <div>
               <h3 className="text-sm font-medium text-gray-500 mb-4">
                 계정 설정
               </h3>
@@ -113,34 +180,47 @@ const SettingDialog = ({
               </div>
             </div> */}
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-4">협업</h3>
-              <div className="space-y-3">
-                <button
-                  className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button"
-                  onClick={() => setShowInviteModal(true)}
-                >
-                  <i className="fas fa-users text-indigo-500 text-lg w-8"></i>
-                  <div>
-                    <div className="text-gray-800 font-medium">팀 관리</div>
-                    <div className="text-sm text-gray-500">
-                      팀원을 초대하고 권한을 설정합니다
-                    </div>
-                  </div>
-                </button>
-                <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button">
-                  <i className="fas fa-share-alt text-pink-500 text-lg w-8"></i>
-                  <div>
-                    <div className="text-gray-800 font-medium">공유 설정</div>
-                    <div className="text-sm text-gray-500">
-                      프로젝트 공유 옵션을 설정합니다
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
+							<div>
+								<h3 className="text-sm font-medium text-gray-500 mb-4">협업</h3>
+								<div className="space-y-3">
+									<button
+											className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button"
+											onClick={() => setShowInviteModal(true)}
+									>
+										<i className="fas fa-users text-indigo-500 text-lg w-8"></i>
+										<div>
+											<div className="text-gray-800 font-medium">팀 관리</div>
+											<div className="text-sm text-gray-500">
+												팀원을 초대합니다
+											</div>
+										</div>
+									</button>
+									<button
+											className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button"
+											onClick={() => setShowRoleModal(true)}
+									>
+										<i className="fas fa-user-cog text-yellow-600 text-lg w-8"></i>
+										<div>
+											<div className="text-gray-800 font-medium">팀 관리</div>
+											<div className="text-sm text-gray-500">
+												팀원 권한을 설정합니다
+											</div>
+										</div>
+									</button>
+									<button
+											className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button">
+										<i className="fas fa-share-alt text-pink-500 text-lg w-8"></i>
+										<div>
+											<div className="text-gray-800 font-medium">공유 설정</div>
+											<div className="text-sm text-gray-500">
+												프로젝트 공유 옵션을 설정합니다
+											</div>
+										</div>
+									</button>
+								</div>
+							</div>
 
-            {/* <div>
+							{/* <div>
               <h3 className="text-sm font-medium text-gray-500 mb-4">
                 내보내기
               </h3>
@@ -169,54 +249,128 @@ const SettingDialog = ({
                 </button>
               </div>
             </div> */}
-          </div>
-        </div>
-      </div>
+						</div>
+					</div>
+				</div>
 
-      {showInviteModal && (
-        <div className="fixed inset-0 text-black bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              팀원 초대
-            </h3>
-            <input
-              className="w-full mb-3 px-3 py-2 border rounded"
-              placeholder="이메일 입력"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              type="email"
-            />
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
-                onClick={() => setShowInviteModal(false)}
-              >
-                취소
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
-                onClick={handleInvite}
-                disabled={inviting || !inviteEmail}
-              >
-                {inviting ? "초대 중..." : "초대"}
-              </button>
-            </div>
-            {inviteSuccess && (
-              <div className="text-green-600 text-sm mt-3">
-                초대가 완료되었습니다!
-              </div>
-            )}
-            {inviteError && (
-              <div className="text-red-600 text-sm mt-3">{inviteError}</div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+				{showInviteModal && (
+						<div
+								className="fixed inset-0 text-black bg-black bg-opacity-50 flex items-center justify-center z-50">
+							<div
+									className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+									onClick={(e) => e.stopPropagation()}
+							>
+								<h3 className="text-lg font-medium text-gray-900 mb-4">
+									팀원 초대
+								</h3>
+								<input
+										className="w-full mb-3 px-3 py-2 border rounded"
+										placeholder="이메일 입력"
+										value={inviteEmail}
+										onChange={(e) => setInviteEmail(e.target.value)}
+										type="email"
+								/>
+								<div className="flex justify-end space-x-3">
+									<button
+											className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+											onClick={() => setShowInviteModal(false)}
+									>
+										취소
+									</button>
+									<button
+											className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
+											onClick={handleInvite}
+											disabled={inviting || !inviteEmail}
+									>
+										{inviting ? "초대 중..." : "초대"}
+									</button>
+								</div>
+								{inviteSuccess && (
+										<div className="text-green-600 text-sm mt-3">
+											초대가 완료되었습니다!
+										</div>
+								)}
+								{inviteError && (
+										<div className="text-red-600 text-sm mt-3">{inviteError}</div>
+								)}
+							</div>
+						</div>
+				)}
+
+				{showRoleModal && (
+						<div
+								className="fixed inset-0 text-black bg-black bg-opacity-50 flex items-center justify-center z-50">
+							<div
+									className="bg-white rounded-lg p-6 max-w-lg w-full mx-4"
+									onClick={(e) => e.stopPropagation()}
+							>
+								<h3 className="text-lg font-medium text-gray-900 mb-4">권한 설정</h3>
+
+								<ul className="mb-4 max-h-64 overflow-y-auto divide-y">
+									{members.map((member) => {
+										const isSelf = member.email === myAccountEmail;
+										const myLevel = PERMISSION_ORDER[myPermission as Permission];
+										const targetLevel = PERMISSION_ORDER[member.permission as Permission];
+										const canEdit = !isSelf && myLevel > targetLevel;
+										const canKick =
+												!isSelf &&
+												myLevel > targetLevel &&
+												(myPermission === "OWNER" || myPermission === "ADMIN");
+
+										return (
+												<li key={member.accountId} className="py-2 mx-1">
+													<div className="flex items-center justify-between">
+														<div>
+															<div className="font-medium text-gray-800">
+																{member.nickname}{" "}
+																{isSelf && <span className="text-blue-500">(본인)</span>}
+															</div>
+															<div className="text-sm text-gray-500">{member.email}</div>
+														</div>
+
+														<div className="flex items-center space-x-2">
+															{canKick && (
+																	<button
+																			onClick={() => handleKickMember(member.accountId)}
+																			className="text-sm text-red-500 border border-red-500 rounded px-2 py-1 hover:bg-red-50"
+																	>
+																		방출
+																	</button>
+															)}
+
+															<select
+																	value={member.permission}
+																	disabled={!canEdit}
+																	onChange={(e) =>
+																			handleRoleSave(member.accountId, e.target.value as Permission)
+																	}
+																	className="border rounded px-2 py-1 text-sm w-40 disabled:bg-gray-100 disabled:text-gray-400"
+															>
+																<option value="OWNER">OWNER</option>
+																<option value="ADMIN">ADMIN</option>
+																<option value="EDIT">EDIT</option>
+																<option value="READ_ONLY">READ-ONLY</option>
+															</select>
+														</div>
+													</div>
+												</li>
+										);
+									})}
+								</ul>
+
+								<div className="flex justify-end space-x-3">
+									<button
+											className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+											onClick={() => setShowRoleModal(false)}
+									>
+										닫기
+									</button>
+								</div>
+							</div>
+						</div>
+				)}
+			</div>
+	);
 };
 
 export default SettingDialog;

@@ -11,6 +11,12 @@ export const saveSessionToLocal = (
 	localStorage.setItem("userId", account.email);
 }
 
+export const updateTokenToLocal = (
+		accessToken: string,
+) => {
+	localStorage.setItem("accessToken", accessToken);
+}
+
 export const getAccessTokenFromLocal = () => {
 	return localStorage.getItem("accessToken");
 }

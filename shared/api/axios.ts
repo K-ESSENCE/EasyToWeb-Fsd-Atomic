@@ -1,37 +1,37 @@
 import axios, {
-  AxiosInstance,
-  AxiosResponse,
   AxiosError,
-  InternalAxiosRequestConfig,
   AxiosHeaders,
+  AxiosInstance,
   AxiosProgressEvent,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
 } from "axios";
 import {
-  ApiResponse,
   Account,
   AccountJoinRequest,
   AccountLoginRequest,
   AccountPasswordChangeRequest,
-  MailSendRequest,
-  MailCertificationRequest,
-  TokenResponse,
   ApiError,
+  ApiResponse,
+  MailCertificationRequest,
+  MailSendRequest,
   Project,
-  ProjectUpdateRequest,
   ProjectCreateRequest,
   ProjectHistory,
   ProjectHistoryList,
-  ProjectInviteRequest,
   ProjectInviteAcceptRequest,
+  ProjectInviteRequest,
   ProjectMemberKickRequest,
   ProjectMemberPermissionUpdateRequest,
-  ProjectPublishResponse,
   ProjectPublishContent,
+  ProjectPublishResponse,
+  ProjectUpdateRequest,
+  TokenResponse,
 } from "./types";
 import {
   clearSessionInLocal,
   getAccessTokenFromLocal,
-  saveSessionToLocal
+  updateTokenToLocal
 } from "../../utils/session";
 
 class ApiHandler {
@@ -100,7 +100,7 @@ class ApiHandler {
         const { data } = await this.refreshToken();
         if (data?.accessToken){
           const newAccessToken = data.accessToken;
-          saveSessionToLocal(data.accessToken, data.account);
+          updateTokenToLocal(data.accessToken);
 
           this.requestQueue.forEach((cb) => cb(newAccessToken));
           this.requestQueue = [];
@@ -193,14 +193,13 @@ class ApiHandler {
   // Token APIs
   async refreshToken(): Promise<ApiResponse<TokenResponse>> {
     const response = await this.client.post<ApiResponse<TokenResponse>>("/account/reissue");
-
     return response.data;
   }
 
   async logout(): Promise<ApiResponse<void>> {
     const response =
       await this.client.post<ApiResponse<void>>("/account/logout");
-    localStorage.removeItem("accessToken");
+    clearSessionInLocal();
     return response.data;
   }
 

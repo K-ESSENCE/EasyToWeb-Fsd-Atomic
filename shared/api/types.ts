@@ -83,8 +83,17 @@ export interface ProjectMember {
   email: string;
   nickname: string;
   profileUrl: string;
-  permission: "READ_ONLY" | "EDIT" | "ADMIN" | "OWNER";
+  permission: Permission;
 }
+
+export const PERMISSION_ORDER = {
+  OWNER: 3,
+  ADMIN: 2,
+  EDIT: 1,
+  READ_ONLY: 0,
+} as const;
+
+export type Permission = keyof typeof PERMISSION_ORDER;
 
 export interface ProjectCreateRequest {
   title: string;
@@ -110,7 +119,7 @@ export interface ProjectInviteAcceptRequest {
 export interface ProjectMemberPermissionUpdateRequest {
   projectId: string;
   accountId: string;
-  permission: "READ_ONLY" | "EDIT" | "ADMIN" | "OWNER";
+  permission: Permission;
 }
 
 export interface ProjectMemberKickRequest {
