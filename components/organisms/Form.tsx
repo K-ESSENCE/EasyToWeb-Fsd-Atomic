@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+ import React, {useEffect, useState} from "react";
 import Button from "../atoms/Button";
 // import FormField from "../molecules/FormField";
 import SocialButton from "../molecules/SocialButton";
 import { useForm } from "../../hooks/useForm";
 import apiHandler from "../../shared/api/axios";
 import { useRouter } from "next/navigation";
-import { ApiResponse } from "../../shared/api/types";
+import {ApiResponse, PromiseError} from "../../shared/api/types";
 import { TokenResponse } from "../../shared/api/types";
 
 const Form = () => {
@@ -19,6 +19,14 @@ const Form = () => {
   const [joinLoading, setJoinLoading] = useState(false);
   const { formData, errors, handleChange, resetForm } = useForm();
   const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (token) {
+      router.replace("/list");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +43,7 @@ const Form = () => {
         router.push("/list");
       }
     } catch (error) {
-      alert("로그인 중 오류가 발생했습니다.");
-      console.error("Login error:", error);
+      alert((error as PromiseError)?.error ?? "로그인 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }

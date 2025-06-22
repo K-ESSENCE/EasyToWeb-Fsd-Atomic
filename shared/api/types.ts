@@ -1,8 +1,8 @@
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;
-  data?: T;
-  error?: string;
+  data: T | null;
+  errors: ApiError | null;
 }
 
 // Account Types
@@ -53,14 +53,16 @@ export interface TokenResponse {
   };
 }
 
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
 
 // Error Types
 export interface ApiError {
-  code: string;
-  message: string;
+  errorCode: string;
+  errorDescription: string;
+}
+
+export interface PromiseError {
+  success: boolean,
+  error: string
 }
 
 // Project Types

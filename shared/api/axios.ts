@@ -15,7 +15,6 @@ import {
   MailSendRequest,
   MailCertificationRequest,
   TokenResponse,
-  RefreshTokenRequest,
   ApiError,
   Project,
   ProjectUpdateRequest,
@@ -34,20 +33,26 @@ class ApiHandler {
   private client: AxiosInstance;
   private readonly baseURL: string;
 
+  private showAlertIn3Sec = false;
+  private isRefreshing = false;
+  private requestQueue: ((token: string) => void)[] = [];
+
   constructor() {
-    this.baseURL = "https://dev-api.easytoweb.store/api";
+    // this.baseURL = "https://dev-api.easytoweb.store/api";
+    this.baseURL = "http://localhost:8080/api";
     this.client = axios.create({
       baseURL: this.baseURL,
       timeout: 10000,
       headers: {
         "Content-Type": "application/json",
       },
+      withCredentials: true
     });
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
       (response: AxiosResponse) => response,
-      (error: AxiosError<ApiError>) => this.handleError(error)
+      (error: AxiosError<ApiResponse<ApiError>>) => this.handleError(error)
     );
 
     // Request interceptor for JWT token
@@ -68,14 +73,58 @@ class ApiHandler {
     );
   }
 
-  private handleError(error: AxiosError<ApiError>): Promise<never> {
-    const errorMessage =
-      error.response?.data?.message || "An unexpected error occurred";
-    return Promise.reject({
-      success: false,
-      error: errorMessage,
-    });
+  private async handleError(error: AxiosError<ApiResponse<ApiError>>): Promise<never> {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const isReissueUrl = error.config?.url?.includes("/account/reissue");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isReissueUrl) {
+      originalRequest._retry = true;
+
+      if (this.isRefreshing) {
+        return new Promise((resolve) => {
+          this.requestQueue.push((newToken) => {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            resolve(this.client(originalRequest));
+          });
+        });
+      }
+
+      this.isRefreshing = true;
+
+      try {
+        const { data } = await this.refreshToken();
+        const newAccessToken = data?.accessToken ?? "";
+
+        this.requestQueue.forEach((cb) => cb(newAccessToken));
+        this.requestQueue = [];
+        this.isRefreshing = false;
+
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return this.client(originalRequest);
+
+      } catch (err) {
+        this.isRefreshing = false;
+        this.requestQueue = [];
+        localStorage.removeItem("accessToken");
+        window.location.href = "/"
+
+        return Promise.reject(err);
+      }
+    }
+
+    const errorMessage = error.response?.data?.errors?.errorDescription || "An unexpected error occurred";
+
+    if (!isReissueUrl && !this.showAlertIn3Sec) {
+      alert(errorMessage);
+      this.showAlertIn3Sec = true;
+      setTimeout(() => {
+        this.showAlertIn3Sec = false;
+      }, 3000);
+    }
+
+    return Promise.reject(error);
   }
+
 
   // Account APIs
   async join(data: AccountJoinRequest): Promise<ApiResponse<Account>> {
@@ -93,7 +142,6 @@ class ApiHandler {
     );
     if (response.data.success && response.data.data) {
       localStorage.setItem("accessToken", response.data.data.accessToken);
-      localStorage.setItem("refreshToken", response.data.data.refreshToken);
     }
     return response.data;
   }
@@ -137,16 +185,10 @@ class ApiHandler {
   }
 
   // Token APIs
-  async refreshToken(
-    data: RefreshTokenRequest
-  ): Promise<ApiResponse<TokenResponse>> {
-    const response = await this.client.post<ApiResponse<TokenResponse>>(
-      "/token/refresh",
-      data
-    );
-    if (response.data.success && response.data.data) {
+  async refreshToken(): Promise<ApiResponse<TokenResponse>> {
+    const response = await this.client.post<ApiResponse<TokenResponse>>("/account/reissue");
+    if (response.data.data) {
       localStorage.setItem("accessToken", response.data.data.accessToken);
-      localStorage.setItem("refreshToken", response.data.data.refreshToken);
     }
     return response.data;
   }
@@ -155,7 +197,6 @@ class ApiHandler {
     const response =
       await this.client.post<ApiResponse<void>>("/account/logout");
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
     return response.data;
   }
 
