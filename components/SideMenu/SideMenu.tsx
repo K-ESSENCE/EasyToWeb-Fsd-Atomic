@@ -245,23 +245,24 @@ const SideMenu = ({ isFullscreen }: SideMenuProps) => {
       className={`w-72 bg-white border-l border-gray-200 overflow-y-auto transition-all duration-300 ${isFullscreen ? "hidden" : ""}`}
     >
       {nowSectionKey && (
-        //여기에다가 추가  <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleDeleteSection}
-            className="px-3 py-1 bg-red-200 text-red-700 rounded hover:bg-red-300 text-xs"
-          >
-            섹션 삭제
-          </button>
-          {selectedItemKey && (
-            <button
-              onClick={handleDelete}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
-            >
-              아이템 삭제
-            </button>
-          )}
-        </div>
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <button
+                  onClick={handleDeleteSection}
+                  className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs"
+              >
+                섹션 삭제
+              </button>
+              {selectedItemKey && (
+                  <button
+                      onClick={handleDelete}
+                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                  >
+                    아이템 삭제
+                  </button>
+              )}
+            </div>
+          </div>
       )}
       {selectedItemKey && (
         <div className="p-4 text-black">

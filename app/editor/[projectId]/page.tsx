@@ -30,6 +30,8 @@ import {
 } from "../../../utils/session";
 import {useModal} from "../../../hooks/useModal";
 import HistoryPanel from "../../../components/HistoryPanel";
+import PageLoader from "../../../components/PageLoader";
+import LayoutViewerModal from "../../../components/LayoutViewerModal";
 
 
 interface ComponentItem {
@@ -102,7 +104,9 @@ const App = () => {
 	const [isFullscreen, setIsFullscreen] = useState(true);
 	const [isDragging, setIsDragging] = useState(false);
 	// const [showToast, setShowToast] = useState(false);
+
 	const historyModal = useModal();
+	const previewModal = useModal();
 
 	const [droppedComponents, setDroppedComponents] = useState<ComponentItem[]>([]);
 
@@ -381,7 +385,7 @@ const App = () => {
 			if (!syncInfo.isSync) {
 				if (diff > 60_000) {
 					setOfflineMessage("🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않습니다.");
-				} else {
+				} else if (diff > 6_000) {
 					setOfflineMessage("📡 현재 오프라인입니다. 네트워크를 확인해주세요.");
 				}
 			} else {
@@ -513,10 +517,12 @@ const App = () => {
               </>
             )}
           </button> */}
-						<button
-								className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap">
+						<button className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
+						        onClick={()=>previewModal.open()}
+						>
 							<i className="fas fa-eye mr-2"></i>미리보기
 						</button>
+
 						<button
 								onClick={async () => {
 									const sharedLayoutMap = yjsDoc?.getMap("layoutDatas");
@@ -707,8 +713,7 @@ const App = () => {
 							</div>
 						</div>
 						<div className="flex-1 overflow-y-auto p-8 flex justify-center">
-							<div
-									className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl relative`}
+							<div className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl relative`}
 
 									// ${
 									//   viewMode === "desktop"
@@ -719,13 +724,9 @@ const App = () => {
 									// }
 							>
 
-								{projectPermission === "READ_ONLY" && (
-										<div className="absolute inset-0 z-50 bg-transparent cursor-not-allowed" />
-								)}
-
 								<div
 										ref={canvasRef}
-										className={`min-h-screen p-6 relative border-2 ${isDragging ? "border-blue-400 bg-blue-50" : "bg-white border-dashed border-gray-300"} rounded-lg transition-colors duration-200`}
+										className={`min-h-screen p-6 relative border-2 ${isDragging ? "border-blue-400 bg-blue-50" : "bg-white border-dashed border-gray-300"} rounded-lg transition-colors duration-200 ${(projectPermission === "READ_ONLY") ? "cursor-not-allowed pointer-events-none" : ""}`}
 										onDragOver={(e) => {
 											e.preventDefault();
 										}}
@@ -907,6 +908,13 @@ const App = () => {
 							</div>
 						</div>
 					</main>
+
+					{
+							!syncInfo.lastSyncDate && (
+									<PageLoader message={"불러오는 중입니다..."}/>
+							)
+					}
+
 					{/* 우측 사이드바 (속성 패널) */}
 					<SideMenu
 							// isOpen={isSideMenuOpen}
@@ -917,20 +925,32 @@ const App = () => {
 					/>
 
 					{/* Setting Dialog */}
-
-					{showSettings && (
+					{
+						showSettings && (
 							<SettingDialog
 									setShowSettings={setShowSettings}
 									projectId={projectId}
 							/>
-					)}
+						)
+					}
 
-					{historyModal.show && (
+
+					{
+						historyModal.show && (
 							<HistoryPanel
 									modal={historyModal}
 									projectId={projectId}
 							/>
-					)}
+						)
+					}
+
+					{
+						previewModal.show && (
+								<LayoutViewerModal modal={previewModal}
+								                   sectionValues={layoutDatas}
+								                   imageStyles={imageStyles}/>
+							)
+					}
 
 					{/* Toast Notification */}
 					{/* <div

@@ -26,13 +26,18 @@ interface ImageStyle {
   borderRadius: number;
 }
 
+export type UploadStatusMap = { [itemKey: string]: UploadStatus };
+export type TextEditStatusMap = { [itemKey: string]: TextEditStatus };
+export type ImageStyleMap = { [itemKey: string]: ImageStyle };
+export type ImageUrlMap = { [itemKey: string]: string };
+
 interface InitialInterface {
   layoutDatas: LayoutData;
-  uploadStatus: { [itemKey: string]: UploadStatus };
-  textEditStatus: { [itemKey: string]: TextEditStatus };
-  imageStyles: { [itemKey: string]: ImageStyle };
-  imageUrls: { [itemKey: string]: string };
-  projectPermission: Permission
+  uploadStatus: UploadStatusMap;
+  textEditStatus: TextEditStatusMap;
+  imageStyles: ImageStyleMap;
+  imageUrls: ImageUrlMap;
+  projectPermission: Permission;
 }
 
 interface AddSectionPayloadI {
