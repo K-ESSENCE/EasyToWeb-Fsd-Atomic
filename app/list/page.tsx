@@ -197,166 +197,185 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-            {filteredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="group relative bg-white rounded-lg border border-gray-200 overflow-visible hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                onClick={() => router.push(`/editor/${project.id}`)}
-              >
-                <div className="aspect-[4/3] overflow-hidden">
-                  {/* 썸네일이 있으면 표시, 없으면 기본 이미지 */}
-                  <img
-                    src={"/default-thumbnail.png"}
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                  />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
-                      {project.title}
-                    </h3>
-                    <div className="relative">
-                      <button
-                        className="text-gray-400 hover:text-gray-600 p-1 !rounded-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDropdownToggle(project.id);
-                        }}
-                      >
-                        <i className="fas fa-ellipsis-h"></i>
-                      </button>
-                      {activeDropdownId === project.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                          <div className="py-1">
-                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
-                              <i className="fas fa-edit w-4 mr-2"></i>
-                              편집하기
-                            </button>
-                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
-                              <i className="fas fa-copy w-4 mr-2"></i>
-                              복제하기
-                            </button>
-                            <button className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
-                              <i className="fas fa-share w-4 mr-2"></i>
-                              공유하기
-                            </button>
-                            <button
-                              className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteClick(project.id);
-                              }}
-                            >
-                              <i className="fas fa-trash-alt w-4 mr-2"></i>
-                              삭제하기
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+          {
+              (filteredProjects.length === 0) ? (
+                  <div className="flex flex-col items-center justify-center w-full py-24 text-gray-400">
+                    <i className="fas fa-folder-open text-6xl mb-4"/>
+                    <h2 className="text-xl font-medium text-gray-600 mb-2">프로젝트가 없습니다</h2>
+                    <p className="text-sm text-gray-500">지금 새로운 프로젝트를 시작해보세요.</p>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
+              ) : (
+                  <div
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+                    {filteredProjects.map((project) => (
+                        <div
+                            key={project.id}
+                            className="group relative bg-white rounded-lg border border-gray-200 overflow-visible hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                            onClick={() => router.push(`/editor/${project.id}`)}
+                        >
+                          <div className="aspect-[4/3] overflow-hidden">
+                            {/* 썸네일이 있으면 표시, 없으면 기본 이미지 */}
+                            <img
+                                src={"/default-thumbnail.png"}
+                                alt={project.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                          </div>
+                          <div className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                                {project.title}
+                              </h3>
+                              <div className="relative">
+                                <button
+                                    className="text-gray-400 hover:text-gray-600 p-1 !rounded-button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDropdownToggle(project.id);
+                                    }}
+                                >
+                                  <i className="fas fa-ellipsis-h"></i>
+                                </button>
+                                {activeDropdownId === project.id && (
+                                    <div
+                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                                      <div className="py-1">
+                                        <button
+                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
+                                          <i className="fas fa-edit w-4 mr-2"></i>
+                                          편집하기
+                                        </button>
+                                        <button
+                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
+                                          <i className="fas fa-copy w-4 mr-2"></i>
+                                          복제하기
+                                        </button>
+                                        <button
+                                            className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100 flex items-center">
+                                          <i className="fas fa-share w-4 mr-2"></i>
+                                          공유하기
+                                        </button>
+                                        <button
+                                            className="w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50 flex items-center"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteClick(project.id);
+                                            }}
+                                        >
+                                          <i className="fas fa-trash-alt w-4 mr-2"></i>
+                                          삭제하기
+                                        </button>
+                                      </div>
+                                    </div>
+                                )}
+                              </div>
+                            </div>
+                            <div
+                                className="flex items-center justify-between text-sm text-gray-500">
+                              <div className="flex items-center space-x-2">
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          project.status === "OPEN"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              project.status === "OPEN"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                          }`}
                       >
                         {project.status === "OPEN" ? "배포됨" : "임시저장"}
                       </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <i className="fas fa-users text-gray-400"></i>
-                      <span>{project.memberCount ?? 1}</span>
-                    </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <i className="fas fa-users text-gray-400"></i>
+                                <span>{project.memberCount ?? 1}</span>
+                              </div>
+                            </div>
+                            <div
+                                className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-sm">
+                              <div className="text-gray-500">
+                                {project.createDate?.slice(0, 10)}
+                              </div>
+                              <div className="text-gray-500">
+                                {project.members?.[0]?.nickname ?? ""}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    ))}
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-sm">
-                    <div className="text-gray-500">
-                      {project.createDate?.slice(0, 10)}
-                    </div>
-                    <div className="text-gray-500">
-                      {project.members?.[0]?.nickname ?? ""}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              )
+          }
         </div>
       </div>
 
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              정말로 이 프로젝트를 삭제하시겠습니까?
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              이 작업은 되돌릴 수 없습니다.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                취소
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-button"
-                onClick={handleDeleteConfirm}
-              >
-                삭제
-              </button>
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div
+                className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                정말로 이 프로젝트를 삭제하시겠습니까?
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                이 작업은 되돌릴 수 없습니다.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+                    onClick={() => setShowDeleteModal(false)}
+                >
+                  취소
+                </button>
+                <button
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-button"
+                    onClick={handleDeleteConfirm}
+                >
+                  삭제
+                </button>
+              </div>
             </div>
           </div>
-        </div>
       )}
 
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
-            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              새 프로젝트 만들기
-            </h3>
-            <input
-              className="w-full mb-3 px-3 py-2 border rounded"
-              placeholder="프로젝트 이름"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-            />
-            <textarea
-              className="w-full mb-3 px-3 py-2 border rounded"
-              placeholder="설명"
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-            />
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
-                onClick={() => setShowCreateModal(false)}
-              >
-                취소
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
-                onClick={handleCreateProject}
-                disabled={creating || !newTitle}
-              >
-                {creating ? "생성 중..." : "생성"}
-              </button>
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div
+                className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                새 프로젝트 만들기
+              </h3>
+              <input
+                  className="w-full mb-3 px-3 py-2 border rounded"
+                  placeholder="프로젝트 이름"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+              />
+              <textarea
+                  className="w-full mb-3 px-3 py-2 border rounded"
+                  placeholder="설명"
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+              />
+              <div className="flex justify-end space-x-3">
+                <button
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+                    onClick={() => setShowCreateModal(false)}
+                >
+                  취소
+                </button>
+                <button
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
+                    onClick={handleCreateProject}
+                    disabled={creating || !newTitle}
+                >
+                  {creating ? "생성 중..." : "생성"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
       )}
     </div>
   );
