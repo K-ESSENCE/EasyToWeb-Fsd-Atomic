@@ -254,10 +254,10 @@ class ApiHandler {
     projectId: string,
     page: number,
     size: number,
-    sort: string[]
+    sort: string
   ): Promise<ApiResponse<ProjectHistoryList>> {
     const response = await this.client.get<ApiResponse<ProjectHistoryList>>(
-      `/project/history/list?projectId=${projectId}&page=${page}&size=${size}&sort=${sort.join(",")}`
+      `/project/history/list?projectId=${projectId}&page=${page}&size=${size}&sort=${sort}`
     );
     return response.data;
   }

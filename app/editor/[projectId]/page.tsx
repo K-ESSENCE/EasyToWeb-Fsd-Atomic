@@ -28,6 +28,8 @@ import {
 	getUserIdFromLocal,
 	getUserNameFromLocal
 } from "../../../utils/session";
+import {useModal} from "../../../hooks/useModal";
+import HistoryPanel from "../../../components/HistoryPanel";
 
 
 interface ComponentItem {
@@ -100,6 +102,7 @@ const App = () => {
 	const [isFullscreen, setIsFullscreen] = useState(true);
 	const [isDragging, setIsDragging] = useState(false);
 	// const [showToast, setShowToast] = useState(false);
+	const historyModal = useModal();
 
 	const [droppedComponents, setDroppedComponents] = useState<ComponentItem[]>([]);
 
@@ -590,6 +593,13 @@ const App = () => {
 							<i className="fas fa-ban mr-2"></i>게시취소
 						</button>
 						<button
+								onClick={() => historyModal.open()}
+								className="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
+						>
+							<i className="fas fa-history mr-2"></i>저장기록
+						</button>
+
+						<button
 								onClick={() => setShowSettings(true)}
 								className="p-2 text-gray-500 hover:text-gray-700 cursor-pointer whitespace-nowrap"
 						>
@@ -639,7 +649,8 @@ const App = () => {
 					/>
 					{/* 중앙 메인 작업 영역 */}
 					<main className={`flex-1 w-screen bg-gray-100 overflow-hidden flex flex-col`}>
-						<div className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
+						<div
+								className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
 							{/* <div className="flex items-center space-x-2">
               <button
                 className={`p-2 rounded-button cursor-pointer whitespace-nowrap ${viewMode === "desktop" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-100"}`}
@@ -910,6 +921,13 @@ const App = () => {
 					{showSettings && (
 							<SettingDialog
 									setShowSettings={setShowSettings}
+									projectId={projectId}
+							/>
+					)}
+
+					{historyModal.show && (
+							<HistoryPanel
+									modal={historyModal}
 									projectId={projectId}
 							/>
 					)}

@@ -23,8 +23,8 @@ export const createYjsDocument = ({
 	const doc = new Y.Doc();
 
 	const provider = new WebsocketProvider(
-			"ws://localhost:8080",
-			// "wss://dev-api.easytoweb.store",
+			// "ws://localhost:8080",
+			"wss://dev-api.easytoweb.store",
 			"layout-modal-room",
 			doc,
 			{
