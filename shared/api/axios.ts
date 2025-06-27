@@ -10,7 +10,7 @@ import {
   Account,
   AccountJoinRequest,
   AccountLoginRequest,
-  AccountPasswordChangeRequest,
+  AccountPasswordChangeRequest, AccountResponse, AccountUpdateRequest,
   ApiError,
   ApiResponse,
   MailCertificationRequest,
@@ -25,7 +25,7 @@ import {
   ProjectMemberPermissionUpdateRequest,
   ProjectPublishContent,
   ProjectPublishResponse,
-  ProjectUpdateRequest,
+  ProjectUpdateRequest, ProjectUpdateThumbnailRequest,
   TokenResponse,
 } from "./types";
 import {
@@ -33,6 +33,14 @@ import {
   getAccessTokenFromLocal,
   updateTokenToLocal
 } from "../../utils/session";
+
+// export const BASE_API_PROTOCOL = "https://";
+// export const BASE_SOCKET_PROTOCOL = "wss://"
+// export const BASE_API_URL = "dev-api.easytoweb.store"
+export const BASE_API_PROTOCOL = "http://";
+export const BASE_SOCKET_PROTOCOL = "ws://"
+export const BASE_API_URL = "localhost:8080"
+export const FULL_API_URL = BASE_API_PROTOCOL + BASE_API_URL;
 
 class ApiHandler {
   private client: AxiosInstance;
@@ -43,7 +51,7 @@ class ApiHandler {
   private requestQueue: ((token: string) => void)[] = [];
 
   constructor() {
-    this.baseURL = "https://dev-api.easytoweb.store/api";
+    this.baseURL = FULL_API_URL + "/api";
     // this.baseURL = "http://localhost:8080/api";
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -152,6 +160,28 @@ class ApiHandler {
     return response.data;
   }
 
+  async logout(): Promise<ApiResponse<void>> {
+    const response = await this.client.post<ApiResponse<void>>(
+        "/account/logout"
+    );
+    return response.data;
+  }
+
+  async me(): Promise<ApiResponse<AccountResponse>> {
+    const response = await this.client.get<ApiResponse<AccountResponse>>(
+        "/account/me"
+    );
+    return response.data;
+  }
+
+  async updateProfile(data: AccountUpdateRequest): Promise<ApiResponse<void>> {
+    const response = await this.client.put<ApiResponse<void>>(
+        "/account/me",
+        data
+    );
+    return response.data;
+  }
+
   async changePassword(
     data: AccountPasswordChangeRequest
   ): Promise<ApiResponse<void>> {
@@ -196,12 +226,6 @@ class ApiHandler {
     return response.data;
   }
 
-  async logout(): Promise<ApiResponse<void>> {
-    const response =
-      await this.client.post<ApiResponse<void>>("/account/logout");
-    clearSessionInLocal();
-    return response.data;
-  }
 
   // Project APIs
   async getProject(projectId: string): Promise<ApiResponse<Project>> {
@@ -344,6 +368,11 @@ class ApiHandler {
     return response.data;
   }
 
+  async updateProjectThumbnail(data: ProjectUpdateThumbnailRequest): Promise<ApiResponse<void>> {
+    const response = await this.client.put<ApiResponse<void>>("/project/thumbnail", data);
+    return response.data;
+  }
+
   async uploadFile({
     file,
     info,
@@ -377,7 +406,7 @@ class ApiHandler {
 
   async uploadFileFormData(
     formData: FormData
-  ): Promise<{ data?: { fileUrl?: string } }> {
+  ): Promise<{ data?: { fileId?:string, fileUrl?: string } }> {
     const response = await this.client.post("/file/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",

@@ -1,14 +1,20 @@
+interface AccountInfo {
+	id: string;
+	nickname: string;
+	email: string;
+	profileUrl:string;
+}
+
 export const saveSessionToLocal = (
 		accessToken: string,
-		account: {
-			id: string;
-			name: string;
-			email: string;
-		}
+		account: AccountInfo
 ) => {
 	localStorage.setItem("accessToken", accessToken);
-	localStorage.setItem("userName", account.name);
-	localStorage.setItem("userId", account.email);
+	localStorage.setItem("account", JSON.stringify(account));
+}
+
+export const updateAccountToLocal = (account: AccountInfo) => {
+	localStorage.setItem("account", JSON.stringify(account));
 }
 
 export const updateTokenToLocal = (
@@ -21,18 +27,17 @@ export const getAccessTokenFromLocal = () => {
 	return localStorage.getItem("accessToken");
 }
 
-export const getUserIdFromLocal = () => {
-	return localStorage.getItem("userId");
+export const getAccountInfoFromLocal = () => {
+	const accountStr = localStorage.getItem("account");
+	if (!accountStr) return;
+
+	return JSON.parse(accountStr) as AccountInfo;
 }
 
-export const getUserNameFromLocal = () => {
-	return localStorage.getItem("userName");
-}
 
 export const clearSessionInLocal = () => {
 	localStorage.removeItem("accessToken");
-	localStorage.removeItem("userName");
-	localStorage.removeItem("userId");
+	localStorage.removeItem("account");
 }
 
 export const isLogin = () => {

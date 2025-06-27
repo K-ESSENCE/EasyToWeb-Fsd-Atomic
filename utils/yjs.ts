@@ -1,10 +1,14 @@
 import * as Y from "yjs";
 import {WebsocketProvider} from "y-websocket";
 import {Awareness} from "y-protocols/awareness";
-import {useRouter} from "next/navigation";
+import {apiHandler, BASE_API_URL, BASE_SOCKET_PROTOCOL} from "../shared/api/axios";
+import html2canvas from "html2canvas";
+import {upload} from "../hooks/useChunkedImageUpload";
+
+export const messageCapture = 3;
 
 interface YjsConfig {
-	roomName: string;
+	projectId: string;
 	accessToken: string;
 	user: {
 		id: string;
@@ -15,7 +19,7 @@ interface YjsConfig {
 }
 
 export const createYjsDocument = ({
-	                                  roomName,
+	                                  projectId,
 	                                  accessToken,
 	                                  user,
 	                                  closeEvent,
@@ -23,13 +27,12 @@ export const createYjsDocument = ({
 	const doc = new Y.Doc();
 
 	const provider = new WebsocketProvider(
-			// "ws://localhost:8080",
-			"wss://dev-api.easytoweb.store",
+			BASE_SOCKET_PROTOCOL + BASE_API_URL,
 			"layout-modal-room",
 			doc,
 			{
 				params: {
-					roomName: roomName,
+					roomName: projectId,
 				},
 				protocols: [`Authorization_${accessToken}`],
 			}
@@ -45,6 +48,11 @@ export const createYjsDocument = ({
 	const imageUrlsMap = doc.getMap("imageUrls");
 	//  Yjs layout 맵 생성
 	const sharedLayoutMap = doc.getMap("layoutDatas");
+
+
+	provider.messageHandlers[messageCapture] = () => {
+		captureAndDownload(projectId);
+	}
 
 	provider.on("connection-close", (event) => {
 		if (!event) {
@@ -169,4 +177,45 @@ export const updateUserSelection = (
 export const cleanupYjsProvider = (provider: WebsocketProvider) => {
 	provider.awareness.setLocalState(null);
 	provider.destroy();
+};
+
+export const captureAndDownload = async (
+		projectId:string
+) => {
+	const element = document.getElementById('project-panel');
+	if (!element) {
+		console.error('project-panel 요소를 찾을 수 없습니다.');
+		return;
+	}
+
+	try {
+		const canvas = await html2canvas(element, {
+			useCORS: true, // 이미지 등 외부 리소스 허용
+			allowTaint: true,
+			scrollY: -window.scrollY, // 고정 위치 캡처
+		});
+
+		// canvas → Blob → File
+		const blob = await new Promise<Blob | null>((resolve) =>
+				canvas.toBlob(resolve, 'image/png')
+		);
+
+		if (!blob) throw new Error('이미지 생성 실패');
+
+		// File 생성
+		const file = new File([blob], 'capture.png', {
+			type: 'image/png',
+			lastModified: Date.now(),
+		});
+
+
+		const {fileId} = await upload(file);
+		if (fileId){
+			await apiHandler.updateProjectThumbnail({id: projectId, thumbnailFileId: fileId});
+		}
+
+
+	} catch (error) {
+		console.error('캡처 실패:', error);
+	}
 };

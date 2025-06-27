@@ -5,7 +5,6 @@ import {useEffect, useState} from "react";
 import CenteredStatus from "./CenteredStatus";
 import LayoutViewerModal from "./LayoutViewerModal";
 import useJsonFromYDocBinary from "../hooks/useJsonFromYdocBinary";
-import PageLoader from "./PageLoader";
 import moment from "moment";
 
 export interface HistoryPanelProps {

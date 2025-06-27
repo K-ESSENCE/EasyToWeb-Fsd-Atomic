@@ -27,6 +27,11 @@ export interface AccountLoginRequest {
   password: string;
 }
 
+export interface AccountUpdateRequest {
+  nickname: string;
+  profileUrl: string;
+}
+
 export interface AccountPasswordChangeRequest {
   email: string;
   currentPassword: string;
@@ -48,11 +53,14 @@ export interface MailCertificationRequest {
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
-  account: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  account: AccountResponse;
+}
+
+export interface AccountResponse {
+  id: string;
+  nickname: string;
+  email: string;
+  profileUrl:string;
 }
 
 
@@ -70,6 +78,7 @@ export interface PromiseError {
 // Project Types
 export interface Project {
   id: string;
+  thumbnailUrl: string;
   title: string;
   description: string;
   status: "CLOSED" | "OPEN";
@@ -145,4 +154,9 @@ export interface ProjectPublishResponse {
 
 export interface ProjectPublishContent {
   content: string;
+}
+
+export interface ProjectUpdateThumbnailRequest {
+  id: string;
+  thumbnailFileId: string;
 }

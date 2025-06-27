@@ -4,8 +4,12 @@
 
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import apiHandler from "../../shared/api/axios";
+import apiHandler, {FULL_API_URL} from "../../shared/api/axios";
 import { Project } from "../../shared/api/types";
+import CenteredStatus from "../../components/CenteredStatus";
+import {useModal} from "../../hooks/useModal";
+import ProfileModal from "../../components/ProfileModal";
+import {getAccountInfoFromLocal} from "../../utils/session";
 
 interface ProjectInfos {
   READ_ONLY: Project[];
@@ -23,9 +27,11 @@ const App: React.FC = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const profileModal = useModal();
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [creating, setCreating] = useState(false);
+  const [initLoading, setInitLoading] = useState(true);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // 실제 프로젝트 목록 상태
@@ -46,6 +52,7 @@ const App: React.FC = () => {
         ADMIN: infos.ADMIN ?? [],
         OWNER: infos.OWNER ?? [],
       });
+      setInitLoading(false);
     };
     fetchProjects();
   }, []);
@@ -138,13 +145,30 @@ const App: React.FC = () => {
       <div className="max-w-[1440px] mx-auto px-8 py-12">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">내 프로젝트</h1>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-button flex items-center space-x-2 cursor-pointer whitespace-nowrap"
-          >
-            <i className="fas fa-plus"></i>
-            <span>새 프로젝트</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-button flex items-center space-x-2 cursor-pointer whitespace-nowrap"
+            >
+              <i className="fas fa-plus"></i>
+              <span>새 프로젝트</span>
+            </button>
+            <button
+                className="w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-300 flex-shrink-0"
+                onClick={() => {
+                  profileModal.open()
+                }}
+            >
+              <img
+                  src={`${FULL_API_URL}${getAccountInfoFromLocal()?.profileUrl}?format=WEBP`}
+                  onError={(e) => {
+                    e.currentTarget.src = "/profile.png";
+                  }}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+              />
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
@@ -152,11 +176,11 @@ const App: React.FC = () => {
             <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex-1 min-w-[280px] max-w-md relative">
                 <input
-                  type="text"
-                  placeholder="프로젝트 검색"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="text"
+                    placeholder="프로젝트 검색"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <i className="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
               </div>
@@ -199,11 +223,20 @@ const App: React.FC = () => {
 
           {
               (filteredProjects.length === 0) ? (
-                  <div className="flex flex-col items-center justify-center w-full py-24 text-gray-400">
-                    <i className="fas fa-folder-open text-6xl mb-4"/>
-                    <h2 className="text-xl font-medium text-gray-600 mb-2">프로젝트가 없습니다</h2>
-                    <p className="text-sm text-gray-500">지금 새로운 프로젝트를 시작해보세요.</p>
-                  </div>
+                  initLoading ? (
+                      <div
+                          className="flex flex-col items-center justify-center w-full py-24 text-gray-400">
+                        <CenteredStatus type={"loading"} message={"로딩중..."}/>
+                      </div>
+
+                  ) : (
+                      <div
+                          className="flex flex-col items-center justify-center w-full py-24 text-gray-400">
+                        <i className="fas fa-folder-open text-6xl mb-4"/>
+                        <h2 className="text-xl font-medium text-gray-600 mb-2">프로젝트가 없습니다</h2>
+                        <p className="text-sm text-gray-500">지금 새로운 프로젝트를 시작해보세요.</p>
+                      </div>
+                  )
               ) : (
                   <div
                       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
@@ -216,8 +249,11 @@ const App: React.FC = () => {
                           <div className="aspect-[4/3] overflow-hidden">
                             {/* 썸네일이 있으면 표시, 없으면 기본 이미지 */}
                             <img
-                                src={"/default-thumbnail.png"}
+                                src={project.thumbnailUrl ? `${FULL_API_URL}${project.thumbnailUrl}` : "/project.jpg"}
                                 alt={project.title}
+                                onError={(e) => {
+                                  e.currentTarget.src = "/project.jpg";
+                                }}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                             />
                           </div>
@@ -377,6 +413,54 @@ const App: React.FC = () => {
             </div>
           </div>
       )}
+
+      {showCreateModal && (
+          <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div
+                className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                새 프로젝트 만들기
+              </h3>
+              <input
+                  className="w-full mb-3 px-3 py-2 border rounded"
+                  placeholder="프로젝트 이름"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+              />
+              <textarea
+                  className="w-full mb-3 px-3 py-2 border rounded"
+                  placeholder="설명"
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+              />
+              <div className="flex justify-end space-x-3">
+                <button
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"
+                    onClick={() => setShowCreateModal(false)}
+                >
+                  취소
+                </button>
+                <button
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
+                    onClick={handleCreateProject}
+                    disabled={creating || !newTitle}
+                >
+                  {creating ? "생성 중..." : "생성"}
+                </button>
+              </div>
+            </div>
+          </div>
+      )}
+
+      {
+        profileModal.show && (
+            <ProfileModal modal={profileModal}/>
+        )
+      }
+
     </div>
   );
 };

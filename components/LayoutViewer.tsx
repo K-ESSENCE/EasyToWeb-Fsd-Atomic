@@ -1,5 +1,6 @@
 import {SectionData} from "./types/common/layoutStyle";
 import {ImageStyleMap} from "../store/slices/layouts";
+import {FULL_API_URL} from "../shared/api/axios";
 
 export interface LayoutViewerProps {
 	sectionValues: SectionData[],
@@ -36,7 +37,7 @@ const LayoutViewer = (
 												<img
 														className="w-full h-full object-cover"
 														alt={`image-${item.id}`}
-														src={`https://dev-api.easytoweb.store${item.imgValue}?format=WEBP`}
+														src={`${FULL_API_URL}${item.imgValue}?format=WEBP`}
 												/>
 											</div>
 									);

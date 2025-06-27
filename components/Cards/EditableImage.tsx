@@ -1,9 +1,10 @@
-import React, { ChangeEvent } from "react";
-import { CardStyleI } from "./../../utils/constants";
-import apiHandler from "../../shared/api/axios";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../store/configureStore";
-import { setImageUploadStatus } from "../../store/slices/layouts";
+import React, {ChangeEvent} from "react";
+import {CardStyleI} from "./../../utils/constants";
+import {FULL_API_URL} from "../../shared/api/axios";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../../store/configureStore";
+import {setImageUploadStatus} from "../../store/slices/layouts";
+import {useChunkedImageUpload} from "../../hooks/useChunkedImageUpload";
 
 interface EditableImageProps {
   imageUrl: string | null | undefined;
@@ -33,83 +34,48 @@ const EditableImage: React.FC<EditableImageProps> = ({
     (state: RootState) => state.layouts.imageStyles[itemKey] || {}
   );
 
-  const CHUNK_SIZE = 1024 * 1024 * 5; // 5MB
+  const {uploadImage} = useChunkedImageUpload();
 
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = (e.target.files as FileList)[0];
     if (!file) return;
 
     dispatch(
-      setImageUploadStatus({
-        itemKey,
-        status: { uploading: true, progress: 0, error: null },
-      })
+        setImageUploadStatus({
+          itemKey,
+          status: { uploading: true, progress: 0, error: null },
+        })
     );
 
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const tempId = crypto.randomUUID();
-    let lastFileUrl: string | undefined = undefined;
-
-    try {
-      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-        const start = chunkIndex * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const blob = file.slice(start, end);
-
-        const info = {
-          id: tempId,
-          chunkNumber: chunkIndex,
-          totalChunks: totalChunks,
-          fileName: file.name,
-          contentType: file.type,
-          fileSize: file.size,
-        };
-
-        const formData = new FormData();
-        formData.append(
-          "info",
-          new Blob([JSON.stringify(info)], { type: "application/json" })
-        );
-        formData.append("file", blob, file.name);
-
-        const response = await apiHandler.uploadFileFormData(formData);
-        const fileUrl = response?.data?.fileUrl;
-        if (fileUrl) {
-          lastFileUrl = fileUrl;
-          onImageChange(file, fileUrl);
-        }
-
-        dispatch(
+    const result = await uploadImage(file, (uploadStatus) => {
+      dispatch(
           setImageUploadStatus({
             itemKey,
-            status: {
-              uploading: true,
-              progress: Math.round(((chunkIndex + 1) / totalChunks) * 100),
-              error: null,
-            },
+            status: { uploading: true, progress: uploadStatus.progress, error: null }
           })
-        );
-      }
+      );
+    });
 
-      dispatch(
+    dispatch(
         setImageUploadStatus({
           itemKey,
           status: { uploading: false, progress: 100, error: null },
         })
-      );
-      if (lastFileUrl) {
-        if (imageUrlsMap) imageUrlsMap.set(itemKey, lastFileUrl);
-        onImageChange(file, lastFileUrl);
-      }
-    } catch (error) {
-      console.error("이미지 업로드 실패:", error);
+    );
+
+    if (result.fileUrl) {
+      imageUrlsMap?.set(itemKey, result.fileUrl);
+      onImageChange(file, result.fileUrl);
+    } else {
+      console.error("이미지 업로드 실패:", result.error);
       dispatch(
-        setImageUploadStatus({
-          itemKey,
-          status: { uploading: false, progress: 0, error: "업로드 실패" },
-        })
+          setImageUploadStatus({
+            itemKey,
+            status: { uploading: false, progress: 0, error: "업로드 실패" },
+          })
       );
     }
+
   };
 
   // 스타일 병합
@@ -159,7 +125,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
             alt={`${itemKey} image`}
             width={parseInt(shapeStyleValues.width)}
             height={parseInt(shapeStyleValues.height)}
-            src={`https://dev-api.easytoweb.store${imageUrl}`}
+            src={`${FULL_API_URL}${imageUrl}`}
             className="object-cover w-full h-full"
             style={{
               borderRadius: `${borderRadius}%`,

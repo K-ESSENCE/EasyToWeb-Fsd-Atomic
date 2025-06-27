@@ -3,7 +3,7 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import SectionList from "../../../components/SideMenu/SectionList";
 import SideMenu from "../../../components/SideMenu/SideMenu";
-import SettingDialog from "../../../components/settingDialog";
+import SettingDialog from "../../../components/SettingDialog";
 import {SectionData} from "../../../components/types/common/layoutStyle";
 import {
 	addSection,
@@ -17,7 +17,11 @@ import {
 import {useDispatch, useSelector} from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
 import {RootState} from "../../../store/configureStore";
-import {cleanupYjsProvider, createYjsDocument, updateUserSelection,} from "../../../utils/yjs";
+import {
+	cleanupYjsProvider,
+	createYjsDocument,
+	updateUserSelection,
+} from "../../../utils/yjs";
 import ActiveUsers from "../../../components/ActiveUsers";
 import {Awareness} from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
@@ -25,13 +29,13 @@ import {useParams, useRouter} from "next/navigation";
 import * as Y from 'yjs';
 import {
 	getAccessTokenFromLocal,
-	getUserIdFromLocal,
-	getUserNameFromLocal
+	getAccountInfoFromLocal,
 } from "../../../utils/session";
 import {useModal} from "../../../hooks/useModal";
 import HistoryPanel from "../../../components/HistoryPanel";
 import PageLoader from "../../../components/PageLoader";
 import LayoutViewerModal from "../../../components/LayoutViewerModal";
+import {ProjectUpdateRequest} from "../../../shared/api/types";
 
 
 interface ComponentItem {
@@ -112,6 +116,7 @@ const App = () => {
 
 	const [history, setHistory] = useState<HistoryState[]>([]);
 	const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+	const [projectInfo, setProjectInfo] = useState({id:"", title:"", description: "", status: "CLOSE"})
 	const [projectName, setProjectName] = useState("새 프로젝트");
 	const [showProjectNameInput, setShowProjectNameInput] = useState(false);
 	const [showUsersPopover, setShowUsersPopover] = useState(false);
@@ -156,8 +161,8 @@ const App = () => {
 		const roomName = projectId;
 		const accessToken = getAccessTokenFromLocal() || "";
 		const user = {
-			id: getUserIdFromLocal() || "guest",
-			name: getUserNameFromLocal() || "게스트",
+			id: getAccountInfoFromLocal()?.email || "guest",
+			name: getAccountInfoFromLocal()?.nickname || "게스트",
 			color: getRandomColor(),
 		};
 		const closeEvent = () => router.back();
@@ -170,7 +175,7 @@ const App = () => {
 			imageStylesMap,
 			imageUrlsMap,
 			sharedLayoutMap,
-		} = createYjsDocument({ roomName, accessToken, user, closeEvent });
+		} = createYjsDocument({ projectId: roomName, accessToken, user, closeEvent });
 
 		setYjsDoc(doc);
 		setAwareness(awareness);
@@ -399,7 +404,7 @@ const App = () => {
 
 
 	useEffect(() => {
-		getPermission();
+		getProjectInfo();
 
 	}, []);
 
@@ -438,9 +443,21 @@ const App = () => {
 		}
 	};
 
-	const handleProjectNameChange = (newName: string) => {
+	const handleProjectNameChange = async (newName: string) => {
 		setProjectName(newName);
 		setShowProjectNameInput(false);
+
+		try {
+			const newInfo = {...projectInfo, title: newName} as ProjectUpdateRequest;
+			await apiHandler.updateProject(newInfo);
+			setProjectInfo(newInfo);
+
+		} catch (error){
+			console.log(error)
+
+		} finally {
+			setShowProjectNameInput(false);
+		}
 	};
 
 
@@ -450,15 +467,21 @@ const App = () => {
 		});
 	}
 
-
-	const getPermission = async () => {
+	const getProjectInfo = async () => {
 		try {
 			const result = await apiHandler.getProject(projectId);
 			const members = result.data?.members ?? [];
-			const myAccountEmail = getUserIdFromLocal();
+			const myAccountEmail = getAccountInfoFromLocal()?.email;
 			const per = members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
-			dispatch(setProjectPermission({projectPermission: per}));
 			setIsFullscreen(per === "READ_ONLY")
+			dispatch(setProjectPermission({projectPermission: per}));
+			setProjectName(result.data?.title ?? "프로젝트");
+			setProjectInfo({
+				id: result.data?.id ?? "",
+				title: result.data?.title ?? "",
+				description: result.data?.description ?? "",
+				status: result.data?.status ?? "CLOSED"
+			});
 
 		} finally {
 
@@ -517,8 +540,9 @@ const App = () => {
               </>
             )}
           </button> */}
-						<button className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
-						        onClick={()=>previewModal.open()}
+						<button
+								className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
+								onClick={() => previewModal.open()}
 						>
 							<i className="fas fa-eye mr-2"></i>미리보기
 						</button>
@@ -612,36 +636,10 @@ const App = () => {
 							<i className="fas fa-cog text-lg"></i>
 						</button>
 						<button
-								onClick={async () => {
-									setPublishStatus(null);
-									try {
-										await apiHandler.exitProject(projectId);
-										router.push("/list");
-									} catch (err) {
-										let msg = "프로젝트 탈퇴에 실패했습니다. 다시 시도해 주세요.";
-										if (
-												typeof err === "object" &&
-												err !== null &&
-												"response" in err
-										) {
-											// @ts-expect-error: axios error type has response property
-											const responseData = err.response?.data;
-											const errorDesc =
-													responseData &&
-													responseData.errors &&
-													responseData.errors.errorDescription;
-											if (errorDesc) msg = errorDesc;
-											// @ts-expect-error: axios error type has message property
-											else if (err.message) msg = err.message;
-										} else if (err instanceof Error) {
-											msg = err.message;
-										}
-										setPublishStatus({type: "error", message: msg});
-									}
-								}}
+								onClick={() => router.replace("/list")}
 								className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
 						>
-							<i className="fas fa-sign-out-alt mr-2"></i>프로젝트 탈퇴
+							<i className="fas fa-list mr-2"></i>목록으로
 						</button>
 					</div>
 				</header>
@@ -655,8 +653,7 @@ const App = () => {
 					/>
 					{/* 중앙 메인 작업 영역 */}
 					<main className={`flex-1 w-screen bg-gray-100 overflow-hidden flex flex-col`}>
-						<div
-								className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
+						<div className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
 							{/* <div className="flex items-center space-x-2">
               <button
                 className={`p-2 rounded-button cursor-pointer whitespace-nowrap ${viewMode === "desktop" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-100"}`}
@@ -714,6 +711,7 @@ const App = () => {
 						</div>
 						<div className="flex-1 overflow-y-auto p-8 flex justify-center">
 							<div className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl relative`}
+							     id={"project-panel"}
 
 									// ${
 									//   viewMode === "desktop"

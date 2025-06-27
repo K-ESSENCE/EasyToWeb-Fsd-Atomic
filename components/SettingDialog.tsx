@@ -1,9 +1,10 @@
 import {useEffect, useState} from "react";
 import apiHandler from "../shared/api/axios";
 import {Permission, PERMISSION_ORDER, ProjectMember, PromiseError} from "../shared/api/types";
-import {getUserIdFromLocal} from "../utils/session";
 import {useDispatch} from "react-redux";
 import {setProjectPermission} from "../store/slices/layouts";
+import {useRouter} from "next/navigation";
+import {getAccountInfoFromLocal} from "../utils/session";
 
 const SettingDialog = ({
 	                       setShowSettings,
@@ -13,6 +14,7 @@ const SettingDialog = ({
 	projectId: string;
 }) => {
 	const dispatch = useDispatch();
+	const router = useRouter();
 
 	const [showInviteModal, setShowInviteModal] = useState(false);
 	const [showRoleModal, setShowRoleModal] = useState(false);
@@ -46,7 +48,7 @@ const SettingDialog = ({
 		}
 	}
 
-	const myAccountEmail = getUserIdFromLocal();
+	const myAccountEmail = getAccountInfoFromLocal()?.email;
 	const myPermission =
 			members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
 
@@ -116,6 +118,19 @@ const SettingDialog = ({
 			}
 		}
 	}
+
+	const handleExit = async () => {
+		if (confirm("방출하겠습니까?").valueOf()){
+			try {
+				await apiHandler.exitProject(projectId);
+				router.push("/list");
+
+			} catch (err) {
+				alert((err as PromiseError)?.error ?? "프로젝트 탈퇴에 실패했습니다. 다시 시도해 주세요.")
+			}
+		}
+	}
+
 
 	return (
 			<div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -195,7 +210,7 @@ const SettingDialog = ({
 									>
 										<i className="fas fa-users text-indigo-500 text-lg w-8"></i>
 										<div>
-											<div className="text-gray-800 font-medium">팀 관리</div>
+											<div className="text-gray-800 font-medium">팀원 초대</div>
 											<div className="text-sm text-gray-500">
 												팀원을 초대합니다
 											</div>
@@ -213,13 +228,25 @@ const SettingDialog = ({
 											</div>
 										</div>
 									</button>
-									<button
-											className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button">
+									<button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors !rounded-button">
 										<i className="fas fa-share-alt text-pink-500 text-lg w-8"></i>
 										<div>
 											<div className="text-gray-800 font-medium">공유 설정</div>
 											<div className="text-sm text-gray-500">
 												프로젝트 공유 옵션을 설정합니다
+											</div>
+										</div>
+									</button>
+
+									<button
+											className="w-full flex items-center p-3 text-left hover:bg-red-50 rounded-lg transition-colors !rounded-button"
+											onClick={()=> handleExit()}
+									>
+										<i className="fas fa-sign-out-alt text-red-500 text-lg w-8"></i>
+										<div>
+											<div className="text-red-600 font-medium">프로젝트 탈퇴</div>
+											<div className="text-sm text-gray-500">
+												이 프로젝트에서 나가게 됩니다
 											</div>
 										</div>
 									</button>
