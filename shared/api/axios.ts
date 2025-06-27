@@ -34,12 +34,9 @@ import {
   updateTokenToLocal
 } from "../../utils/session";
 
-// export const BASE_API_PROTOCOL = "https://";
-// export const BASE_SOCKET_PROTOCOL = "wss://"
-// export const BASE_API_URL = "dev-api.easytoweb.store"
-export const BASE_API_PROTOCOL = "http://";
-export const BASE_SOCKET_PROTOCOL = "ws://"
-export const BASE_API_URL = "localhost:8080"
+export const BASE_API_PROTOCOL = "https://";
+export const BASE_SOCKET_PROTOCOL = "wss://"
+export const BASE_API_URL = "dev-api.easytoweb.store"
 export const FULL_API_URL = BASE_API_PROTOCOL + BASE_API_URL;
 
 class ApiHandler {
