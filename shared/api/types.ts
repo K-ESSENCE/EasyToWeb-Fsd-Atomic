@@ -34,8 +34,9 @@ export interface AccountUpdateRequest {
 
 export interface AccountPasswordChangeRequest {
   email: string;
-  currentPassword: string;
-  newPassword: string;
+  password: string;
+  certificationCode: string;
+  type: "PASSWORD_CHANGE_EMAIL";
 }
 
 // Mail Types
@@ -46,7 +47,7 @@ export interface MailSendRequest {
 export interface MailCertificationRequest {
   email: string;
   certificationCode: string;
-  type: "VERIFIED_EMAIL";
+  type: "VERIFIED_EMAIL" | "PASSWORD_CHANGE_EMAIL";
 }
 
 // Token Types
@@ -83,6 +84,7 @@ export interface Project {
   description: string;
   status: "CLOSED" | "OPEN";
   createDate: string;
+  joinedDate?:string;
   members: ProjectMember[];
   memberCount: number;
 }

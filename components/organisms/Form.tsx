@@ -9,6 +9,8 @@ import apiHandler from "../../shared/api/axios";
 import {useRouter} from "next/navigation";
 import {ApiResponse, PromiseError, TokenResponse} from "../../shared/api/types";
 import {isLogin, saveSessionToLocal} from "../../utils/session";
+import {useModal} from "../../hooks/useModal";
+import PasswordChangeModal from "../PasswordChangeModal";
 
 const Form = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -18,6 +20,7 @@ const Form = () => {
   const [certifyLoading, setCertifyLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const { formData, errors, handleChange, resetForm } = useForm();
+  const passwordChangeModal = useModal();
   const router = useRouter();
 
   useEffect(() => {
@@ -132,91 +135,110 @@ const Form = () => {
   };
 
   const renderInitialForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          이메일
-        </label>
-        <input
-          type="email"
-          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
-          placeholder="your@email.com"
-          value={formData.email}
-          onChange={(e) => handleChange("email")(e)}
-        />
-        <p className="mt-2 hidden peer-invalid:block text-sm text-red-600">
-          올바른 이메일 주소를 입력해주세요.
-        </p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          비밀번호
-        </label>
-        <input
-          type="password"
-          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
-          placeholder="••••••••"
-          value={formData.password}
-          onChange={(e) => handleChange("password")(e)}
-        />
-      </div>
+      <>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              이메일
+            </label>
+            <input
+                type="email"
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
+                placeholder="your@email.com"
+                value={formData.email}
+                onChange={(e) => handleChange("email")(e)}
+            />
+            <p className="mt-2 hidden peer-invalid:block text-sm text-red-600">
+              올바른 이메일 주소를 입력해주세요.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              비밀번호
+            </label>
+            <input
+                type="password"
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => handleChange("password")(e)}
+            />
+          </div>
 
-      <Button className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50">
-        {isLoading ? "로그인 중..." : "로그인"}
-      </Button>
-      <Button
-        className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90"
-        onClick={toggleForm}
-      >
-        회원가입
-      </Button>
-    </form>
+          <Button
+              className="w-full !rounded-button bg-white text-gray-700 py-3 px-4 font-medium border border-gray-300 hover:bg-gray-50">
+            {isLoading ? "로그인 중..." : "로그인"}
+          </Button>
+
+          <Button
+              className="w-full !rounded-button bg-custom text-white py-3 px-4 font-medium hover:bg-custom/90"
+              onClick={toggleForm}
+          >
+            회원가입
+          </Button>
+
+          <div className="text-sm text-center">
+            <button
+                type="button"
+                onClick={() => passwordChangeModal.open()}
+                className="text-blue-600 hover:underline"
+            >
+              비밀번호를 잊으셨나요?
+            </button>
+          </div>
+        </form>
+        {
+          passwordChangeModal.show && (
+            <PasswordChangeModal modal={passwordChangeModal}/>
+          )
+        }
+      </>
   );
 
   const renderSignUpForm = () => (
-    <form onSubmit={handleSignUpSubmit} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          이메일
-        </label>
-        <input
-          type="email"
-          value={formData.email}
-          onChange={(e) => handleChange("email")(e)}
-          className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
-          placeholder="your@email.com"
-        />
-        <p className="mt-2 hidden peer-invalid:block text-sm text-red-600">
-          올바른 이메일 주소를 입력해주세요.
-        </p>
-      </div>
-      <div className="mt-4">
-        <button
-          type="button"
-          onClick={handleVerification}
-          disabled={verificationLoading}
-          className="mt-2 w-full !rounded-button bg-gray-200 text-gray-700 py-2 px-4 font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {verificationLoading ? "인증번호 발송 중..." : "인증번호 받기"}
-        </button>
-      </div>
-      {showVerification && (
-        <div className="mt-4">
+      <form onSubmit={handleSignUpSubmit} className="space-y-6">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            인증번호
+            이메일
           </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
-              placeholder="인증번호 6자리 입력"
-              maxLength={6}
-              value={formData.verificationCode}
-              onChange={(e) => handleChange("verificationCode")(e)}
-            />
-            <button
+          <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange("email")(e)}
+              className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom peer"
+              placeholder="your@email.com"
+          />
+          <p className="mt-2 hidden peer-invalid:block text-sm text-red-600">
+            올바른 이메일 주소를 입력해주세요.
+          </p>
+        </div>
+        <div className="mt-4">
+          <button
               type="button"
-              className="!rounded-button bg-custom text-white py-2 px-4 font-medium hover:bg-custom/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleVerification}
+              disabled={verificationLoading}
+              className="mt-2 w-full !rounded-button bg-gray-200 text-gray-700 py-2 px-4 font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {verificationLoading ? "인증번호 발송 중..." : "인증번호 받기"}
+          </button>
+        </div>
+        {showVerification && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                인증번호
+              </label>
+              <div className="flex gap-2">
+                <input
+                    type="text"
+                    className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
+                    placeholder="인증번호 6자리 입력"
+                    maxLength={6}
+                    value={formData.verificationCode}
+                    onChange={(e) => handleChange("verificationCode")(e)}
+                />
+                <button
+                    type="button"
+                    className="!rounded-button bg-custom text-white py-2 px-4 font-medium hover:bg-custom/90 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleCertifyCode}
               disabled={certifyLoading}
             >

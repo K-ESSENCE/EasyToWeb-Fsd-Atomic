@@ -80,9 +80,9 @@ const App: React.FC = () => {
       if (sortBy === "name") return a.title.localeCompare(b.title);
       if (sortBy === "date")
         return (
-          new Date(b.createDate).getTime() - new Date(a.createDate).getTime()
+          new Date(b.joinedDate ?? "").getTime() - new Date(a.joinedDate ?? "").getTime()
         );
-      if (sortBy === "status") return a.status.localeCompare(b.status);
+      if (sortBy === "status") return b.status.localeCompare(a.status);
       return 0;
     });
 
@@ -136,7 +136,7 @@ const App: React.FC = () => {
   };
 
   const router = useRouter();
-
+  console.log(projectInfos)
   return (
     <div
       className="min-h-screen text-black bg-gray-50"
@@ -212,7 +212,7 @@ const App: React.FC = () => {
                     }
                     className="border border-gray-300 rounded-lg pr-10 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
                   >
-                    <option value="date">최근 수정순</option>
+                    <option value="date">참여 날짜순</option>
                     <option value="name">이름순</option>
                     <option value="status">상태순</option>
                   </select>
@@ -325,12 +325,13 @@ const App: React.FC = () => {
                               </div>
                             </div>
                             <div
-                                className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-sm">
-                              <div className="text-gray-500">
-                                {project.createDate?.slice(0, 10)}
+                                className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-500 grid grid-cols-1 grid-rows-2 min-h-[3.5rem]">
+                              <div className="row-start-1 col-start-1 line-clamp-2 break-all"
+                                   dangerouslySetInnerHTML={{__html:project.description?.replace(/\n/g, '<br />') || '',}}>
                               </div>
-                              <div className="text-gray-500">
-                                {project.members?.[0]?.nickname ?? ""}
+                              <div
+                                  className="row-start-2 col-start-1 text-xs text-gray-400 text-right self-end">
+                                {project.joinedDate?.slice(0, 10)}
                               </div>
                             </div>
                           </div>

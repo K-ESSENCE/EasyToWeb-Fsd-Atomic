@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {UseModalReturnType} from "../hooks/useModal";
+import {useModal, UseModalReturnType} from "../hooks/useModal";
 import apiHandler, {FULL_API_URL} from "../shared/api/axios";
 import {clearSessionInLocal, getAccountInfoFromLocal, updateAccountToLocal} from "../utils/session";
 import {useChunkedImageUpload} from "../hooks/useChunkedImageUpload";
+import PasswordChangeModal from "./PasswordChangeModal";
 
 interface ProfileButtonProps {
 	modal: UseModalReturnType,
@@ -13,6 +14,7 @@ const ProfileModal = ({
 	                       modal
                        }: ProfileButtonProps) => {
 
+	const passwordChangeModal = useModal();
 	const {uploadImage, status} = useChunkedImageUpload();
 	const initialProfileUrl = getAccountInfoFromLocal()?.profileUrl ?? "/profile.png"
 	const [profileUrl, setProfileUrl] = useState(initialProfileUrl);
@@ -82,9 +84,17 @@ const ProfileModal = ({
 
 	return (
 			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+				{
+					passwordChangeModal.show && (
+						<PasswordChangeModal modal={passwordChangeModal}/>
+					)
+				}
+
 				<div
 						className="relative bg-white rounded-2xl p-8 max-w-md w-full mx-4"
-						onClick={(e) => e.stopPropagation()}
+						onClick={(e) => {
+							e.stopPropagation();
+						}}
 				>
 					{/* 닫기 버튼 (우측 상단 X) */}
 					<button
@@ -172,6 +182,7 @@ const ProfileModal = ({
 								className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
 							<button
 									className="text-sm text-blue-600 hover:underline"
+									onClick={()=> passwordChangeModal.open()}
 							>
 								비밀번호 변경
 							</button>
