@@ -8,7 +8,7 @@ interface CenteredStatusProps {
 const icons = {
 	loading: <i className="fas fa-spinner fa-spin text-3xl mb-3"/>,
 	error: <i className="fas fa-exclamation-circle text-3xl text-red-500 mb-3"/>,
-	empty: <i className="fas fa-folder-open text-4xl mb-3 text-gray-400"/>,
+	empty: <i className="fas fa-folder-open text-4xl mb-3"/>,
 };
 
 const CenteredStatus = (
@@ -18,7 +18,7 @@ const CenteredStatus = (
 		}: CenteredStatusProps
 ) => {
 	return (
-			<div className="flex flex-col items-center justify-center h-full text-sm text-gray-500 py-16">
+			<div className="flex flex-col items-center justify-center h-full text-sm  py-16">
 				{icons[type]}
 				<p>{message}</p>
 			</div>

@@ -1,6 +1,6 @@
 "use client";
 
-import {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import SectionList from "../../../components/SideMenu/SectionList";
 import SideMenu from "../../../components/SideMenu/SideMenu";
 import SettingDialog from "../../../components/SettingDialog";
@@ -12,7 +12,7 @@ import {
 	setAllImageUploadStatus,
 	setAllImageUrls,
 	setLayoutData,
-	setProjectPermission,
+	setProjectPermission, setProjectPublishUrl,
 } from "../../../store/slices/layouts";
 import {useDispatch, useSelector} from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
@@ -36,6 +36,7 @@ import HistoryPanel from "../../../components/HistoryPanel";
 import PageLoader from "../../../components/PageLoader";
 import LayoutViewerModal from "../../../components/LayoutViewerModal";
 import {ProjectUpdateRequest} from "../../../shared/api/types";
+import ProjectPublishModal from "../../../components/ProjectPublishModal";
 
 
 interface ComponentItem {
@@ -48,10 +49,6 @@ interface HistoryState {
 	droppedComponents: ComponentItem[];
 }
 
-type PublishStatus =
-		| { type: "success"; url: string }
-		| { type: "error"; message: string }
-		| null;
 
 const App = () => {
 	const dispatch = useDispatch();
@@ -90,6 +87,10 @@ const App = () => {
 			(state: RootState) => state.layouts.projectPermission
 	)
 
+	const projectPublishUrl = useSelector(
+			(state: RootState) => state.layouts.projectPublishUrl
+	)
+
 	/**
 	 * state
 	 */
@@ -111,16 +112,16 @@ const App = () => {
 
 	const historyModal = useModal();
 	const previewModal = useModal();
+	const publishModal = useModal();
 
 	const [droppedComponents, setDroppedComponents] = useState<ComponentItem[]>([]);
 
 	const [history, setHistory] = useState<HistoryState[]>([]);
 	const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
-	const [projectInfo, setProjectInfo] = useState({id:"", title:"", description: "", status: "CLOSE"})
+	const [projectInfo, setProjectInfo] = useState({id:"", title:"", description: ""})
 	const [projectName, setProjectName] = useState("새 프로젝트");
 	const [showProjectNameInput, setShowProjectNameInput] = useState(false);
 	const [showUsersPopover, setShowUsersPopover] = useState(false);
-	const [publishStatus, setPublishStatus] = useState<PublishStatus>(null);
 	const [offlineMessage, setOfflineMessage] = useState("");
 
 	/**
@@ -473,14 +474,15 @@ const App = () => {
 			const members = result.data?.members ?? [];
 			const myAccountEmail = getAccountInfoFromLocal()?.email;
 			const per = members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
+			const publishUrl = result.data?.status === "OPEN" ? result.data.publishUrl : null;
 			setIsFullscreen(per === "READ_ONLY")
 			dispatch(setProjectPermission({projectPermission: per}));
+			dispatch(setProjectPublishUrl({projectPublishUrl: publishUrl}));
 			setProjectName(result.data?.title ?? "프로젝트");
 			setProjectInfo({
 				id: result.data?.id ?? "",
 				title: result.data?.title ?? "",
 				description: result.data?.description ?? "",
-				status: result.data?.status ?? "CLOSED"
 			});
 
 		} finally {
@@ -495,6 +497,12 @@ const App = () => {
 						className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
 					<div className="flex items-center space-x-4">
 						<div className="flex items-center">
+							<img
+									src="/logo_basic.png"
+									alt="Logo"
+									className="h-[60px] w-auto cursor-pointer"
+									onClick={() => router.push("/list")}
+							/>
 							{showProjectNameInput ? (
 									<input
 											type="text"
@@ -548,80 +556,17 @@ const App = () => {
 						</button>
 
 						<button
-								onClick={async () => {
-									const sharedLayoutMap = yjsDoc?.getMap("layoutDatas");
-									setPublishStatus(null);
-									try {
-										const response = await apiHandler.publishProject(
-												projectId,
-												JSON.stringify(sharedLayoutMap?.toJSON()?.sections)
-										);
-										if (response.data?.url) {
-											setPublishStatus({type: "success", url: response.data.url});
-										} else {
-											setPublishStatus({
-												type: "error",
-												message: "배포 결과를 알 수 없습니다.",
-											});
-										}
-									} catch (err) {
-										let msg = "배포에 실패했습니다. 다시 시도해 주세요.";
-										if (
-												typeof err === "object" &&
-												err !== null &&
-												"response" in err
-										) {
-											// @ts-expect-error: axios error type has response property
-											const responseData = err.response?.data;
-											const errorDesc =
-													responseData &&
-													responseData.errors &&
-													responseData.errors.errorDescription;
-											if (errorDesc) msg = errorDesc;
-											// @ts-expect-error: axios error type has message property
-											else if (err.message) msg = err.message;
-										} else if (err instanceof Error) {
-											msg = err.message;
-										}
-										setPublishStatus({type: "error", message: msg});
-									}
-								}}
-								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
+								onClick={()=> publishModal.open()}
+								className={`px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap flex items-center
+								${(!!projectPublishUrl)
+										? "bg-gray-200 hover:bg-gray-300 text-gray-600"
+										: "bg-blue-600 hover:bg-blue-700 text-white"
+								}`}
 						>
-							<i className="fas fa-rocket mr-2"></i>배포
+							<i className={`mr-2 fas ${(!!projectPublishUrl) ? "fa-check" : "fa-rocket"}`}></i>
+							{(!!projectPublishUrl) ? "배포 완료됨" : "배포"}
 						</button>
-						<button
-								onClick={async () => {
-									setPublishStatus(null);
-									try {
-										await apiHandler.unpublishProject(projectId);
-										setPublishStatus({type: "success", url: ""});
-									} catch (err) {
-										let msg = "게시 취소에 실패했습니다. 다시 시도해 주세요.";
-										if (
-												typeof err === "object" &&
-												err !== null &&
-												"response" in err
-										) {
-											// @ts-expect-error: axios error type has response property
-											const responseData = err.response?.data;
-											const errorDesc =
-													responseData &&
-													responseData.errors &&
-													responseData.errors.errorDescription;
-											if (errorDesc) msg = errorDesc;
-											// @ts-expect-error: axios error type has message property
-											else if (err.message) msg = err.message;
-										} else if (err instanceof Error) {
-											msg = err.message;
-										}
-										setPublishStatus({type: "error", message: msg});
-									}
-								}}
-								className="bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
-						>
-							<i className="fas fa-ban mr-2"></i>게시취소
-						</button>
+
 						<button
 								onClick={() => historyModal.open()}
 								className="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
@@ -950,6 +895,14 @@ const App = () => {
 							)
 					}
 
+					{
+						publishModal.show && (
+								<ProjectPublishModal modal={publishModal}
+								                     projectId={projectId}
+								/>
+							)
+					}
+
 					{/* Toast Notification */}
 					{/* <div
           className={`fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center ${
@@ -959,37 +912,7 @@ const App = () => {
           <i className="fas fa-check-circle mr-2"></i>
           프로젝트가 성공적으로 저장되었습니다
         </div> */}
-					{publishStatus && (
-							<div
-									className={`fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50
-              ${publishStatus.type === "success" ? "bg-blue-600 text-white" : "bg-red-500 text-white"}`}
-							>
-								{publishStatus.type === "success" ? (
-										<>
-											{publishStatus.url ? (
-													<>
-														배포 완료! URL:{" "}
-														<a
-																href={`https://dev.easytoweb.store/publish/${publishStatus.url}`}
-																target="_blank"
-																rel="noopener noreferrer"
-																className="underline ml-1"
-														>
-															{publishStatus.url}
-														</a>
-													</>
-											) : (
-													"게시가 취소되었습니다."
-											)}
-										</>
-								) : (
-										<>
-											<i className="fas fa-exclamation-circle mr-2"></i>
-											{publishStatus.message}
-										</>
-								)}
-							</div>
-					)}
+
 
 					{offlineMessage && (
 							<div className="fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50 bg-red-500 text-white">

@@ -1,29 +1,30 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {
-  LayoutData,
-  LayoutItemValues,
-  SectionData,
+	LayoutData,
+	LayoutItemValues,
+	SectionData,
 } from "../../components/types/common/layoutStyle";
 import {MAX_LAYOUT_VALUE} from "../../utils/constants";
 import {Permission} from "../../shared/api/types";
+import toast from "react-hot-toast";
 
 interface UploadStatus {
-  uploading: boolean;
-  progress: number;
-  error: string | null;
+	uploading: boolean;
+	progress: number;
+	error: string | null;
 }
 
 interface TextEditStatus {
-  editing: boolean;
-  text: string;
+	editing: boolean;
+	text: string;
 }
 
 interface ImageStyle {
-  backgroundColor: string;
-  borderColor: string;
-  borderWidth: number;
-  borderStyle: string;
-  borderRadius: number;
+	backgroundColor: string;
+	borderColor: string;
+	borderWidth: number;
+	borderStyle: string;
+	borderRadius: number;
 }
 
 export type UploadStatusMap = { [itemKey: string]: UploadStatus };
@@ -32,284 +33,294 @@ export type ImageStyleMap = { [itemKey: string]: ImageStyle };
 export type ImageUrlMap = { [itemKey: string]: string };
 
 interface InitialInterface {
-  layoutDatas: LayoutData;
-  uploadStatus: UploadStatusMap;
-  textEditStatus: TextEditStatusMap;
-  imageStyles: ImageStyleMap;
-  imageUrls: ImageUrlMap;
-  projectPermission: Permission;
+	layoutDatas: LayoutData;
+	uploadStatus: UploadStatusMap;
+	textEditStatus: TextEditStatusMap;
+	imageStyles: ImageStyleMap;
+	imageUrls: ImageUrlMap;
+	projectPermission: Permission;
+	projectPublishUrl: string | null;
 }
 
 interface AddSectionPayloadI {
-  payload: {
-    newSection: SectionData;
-  };
+	payload: {
+		newSection: SectionData;
+	};
 }
 
 interface PayLoadI {
-  payload: IdPayloadI & LayoutItemPayLoadI;
+	payload: IdPayloadI & LayoutItemPayLoadI;
 }
 
 interface IdPayloadI {
-  id: string;
+	id: string;
 }
 
 interface LayoutItemPayLoadI {
-  newLayoutItemValue: LayoutItemValues;
+	newLayoutItemValue: LayoutItemValues;
 }
 
 interface UpdateSectionTitlePayloadI {
-  sectionKey: string;
-  title: string;
+	sectionKey: string;
+	title: string;
 }
 
 interface AddImagePayloadI {
-  sectionKey: string;
+	sectionKey: string;
 }
 
 interface UpdateImageUrlPayloadI {
-  sectionKey: string;
-  itemId: string;
-  imageUrl: string;
+	sectionKey: string;
+	itemId: string;
+	imageUrl: string;
 }
 
 interface UpdateTextContentPayloadI {
-  sectionKey: string;
-  itemId: string;
-  textContent: string;
+	sectionKey: string;
+	itemId: string;
+	textContent: string;
 }
 
 const initialState: InitialInterface = {
-  layoutDatas: {
-    layoutId: "initial-layout",
-    sectionValues: [],
-  },
-  uploadStatus: {},
-  textEditStatus: {},
-  imageStyles: {},
-  imageUrls: {},
-  projectPermission: "READ_ONLY"
+	layoutDatas: {
+		layoutId: "initial-layout",
+		sectionValues: [],
+	},
+	uploadStatus: {},
+	textEditStatus: {},
+	imageStyles: {},
+	imageUrls: {},
+	projectPermission: "READ_ONLY",
+	projectPublishUrl: null,
 };
 
 const layoutSlice = createSlice({
-  name: "layouts",
-  initialState: initialState,
-  reducers: {
-    addSection: function (
-      state,
-      { payload: { newSection } }: AddSectionPayloadI
-    ) {
-      state.layoutDatas.sectionValues.push({
-        ...newSection,
-        title: `섹션 ${state.layoutDatas.sectionValues.length + 1}`, // 기본 제목 추가
-      });
-    },
-    deleteSection: (state, { payload }: { payload: IdPayloadI }) => {
-      const updatedState = state.layoutDatas.sectionValues.filter(
-        (section) => section.sectionKey !== payload.id
-      );
-      state.layoutDatas.sectionValues = updatedState;
-    },
-    updateSectionTitle: (
-      state,
-      { payload }: { payload: UpdateSectionTitlePayloadI }
-    ) => {
-      const section = state.layoutDatas.sectionValues.find(
-        (section) => section.sectionKey === payload.sectionKey
-      );
-      if (section) {
-        section.title = payload.title;
-      }
-    },
-    addLayoutItem: (state, { payload }: PayLoadI) => {
-      const sectionIndex = state.layoutDatas.sectionValues.findIndex(
-        (section) => section.sectionKey === payload.id
-      );
+	name: "layouts",
+	initialState: initialState,
+	reducers: {
+		addSection: function (
+				state,
+				{payload: {newSection}}: AddSectionPayloadI
+		) {
+			state.layoutDatas.sectionValues.push({
+				...newSection,
+				title: `섹션 ${state.layoutDatas.sectionValues.length + 1}`, // 기본 제목 추가
+			});
+		},
+		deleteSection: (state, {payload}: { payload: IdPayloadI }) => {
+			const updatedState = state.layoutDatas.sectionValues.filter(
+					(section) => section.sectionKey !== payload.id
+			);
+			state.layoutDatas.sectionValues = updatedState;
+		},
+		updateSectionTitle: (
+				state,
+				{payload}: { payload: UpdateSectionTitlePayloadI }
+		) => {
+			const section = state.layoutDatas.sectionValues.find(
+					(section) => section.sectionKey === payload.sectionKey
+			);
+			if (section) {
+				section.title = payload.title;
+			}
+		},
+		addLayoutItem: (state, {payload}: PayLoadI) => {
+			const sectionIndex = state.layoutDatas.sectionValues.findIndex(
+					(section) => section.sectionKey === payload.id
+			);
 
-      if (sectionIndex === -1) return;
+			if (sectionIndex === -1) return;
 
-      if (
-        state.layoutDatas.sectionValues[sectionIndex].layoutValues.length >=
-        MAX_LAYOUT_VALUE
-      )
-        return;
+			if (
+					state.layoutDatas.sectionValues[sectionIndex].layoutValues.length >=
+					MAX_LAYOUT_VALUE
+			)
+				return;
 
-      state.layoutDatas.sectionValues[sectionIndex].layoutValues.push(
-        payload.newLayoutItemValue
-      );
-    },
-    addImageToSection: (state, { payload }: { payload: AddImagePayloadI }) => {
-      const section = state.layoutDatas.sectionValues.find(
-        (section) => section.sectionKey === payload.sectionKey
-      );
-      if (!section) return;
+			state.layoutDatas.sectionValues[sectionIndex].layoutValues.push(
+					payload.newLayoutItemValue
+			);
+		},
+		addImageToSection: (state, {payload}: { payload: AddImagePayloadI }) => {
+			const section = state.layoutDatas.sectionValues.find(
+					(section) => section.sectionKey === payload.sectionKey
+			);
+			if (!section) return;
 
-      if (!section.layoutValues) {
-        section.layoutValues = [];
-      }
+			if (!section.layoutValues) {
+				section.layoutValues = [];
+			}
 
-      if (section.layoutValues.length >= 4) {
-        alert("4개까지");
-        return;
-      }
+			if (section.layoutValues.length >= 4) {
+				toast.error("최대 4개까지 입력 가능합니다.");
+				return;
+			}
 
-      section.layoutValues.push({
-        id: crypto.randomUUID(),
-        layoutName: "img",
-        imgValue: "",
-      });
-    },
-    deleteLayoutItem: (
-      state,
-      { payload }: { payload: { sectionId: string; itemId: string } }
-    ) => {
-      const sectionIndex = state.layoutDatas.sectionValues.findIndex(
-        (section) => section.sectionKey === payload.sectionId
-      );
+			section.layoutValues.push({
+				id: crypto.randomUUID(),
+				layoutName: "img",
+				imgValue: "",
+			});
+		},
+		deleteLayoutItem: (
+				state,
+				{payload}: { payload: { sectionId: string; itemId: string } }
+		) => {
+			const sectionIndex = state.layoutDatas.sectionValues.findIndex(
+					(section) => section.sectionKey === payload.sectionId
+			);
 
-      if (sectionIndex === -1) return;
+			if (sectionIndex === -1) return;
 
-      state.layoutDatas.sectionValues[sectionIndex].layoutValues =
-        state.layoutDatas.sectionValues[sectionIndex].layoutValues.filter(
-          (item) => item.id !== payload.itemId
-        );
-    },
-    updateImageUrl(state, { payload }: { payload: UpdateImageUrlPayloadI }) {
-      const section = state.layoutDatas.sectionValues.find(
-        (section) => section.sectionKey === payload.sectionKey
-      );
-      if (section) {
-        const item = section.layoutValues.find(
-          (item) => item.id === payload.itemId
-        );
-        if (item) {
-          item.imgValue = payload.imageUrl;
-        }
-      }
-    },
-    // updateTextContent(
-    //   state,
-    //   { payload }: { payload: UpdateTextContentPayloadI }
-    // ) {
-    //   const section = state.layoutDatas.sectionValues.find(
-    //     (section) => section.sectionKey === payload.sectionKey
-    //   );
-    //   if (section) {
-    //     const item = section.layoutValues.find(
-    //       (item) => item.id === payload.itemId
-    //     );
-    //     if (item) {
-    //       item.textValue = payload.textContent;
-    //     }
-    //   }
-    // },
-    updateTextContent(
-        state,
-        { payload }: { payload: UpdateTextContentPayloadI }
-    ) {
-      const updatedSections = state.layoutDatas.sectionValues.map(section => {
-        if (section.sectionKey !== payload.sectionKey) return section;
+			state.layoutDatas.sectionValues[sectionIndex].layoutValues =
+					state.layoutDatas.sectionValues[sectionIndex].layoutValues.filter(
+							(item) => item.id !== payload.itemId
+					);
+		},
+		updateImageUrl(state, {payload}: { payload: UpdateImageUrlPayloadI }) {
+			const section = state.layoutDatas.sectionValues.find(
+					(section) => section.sectionKey === payload.sectionKey
+			);
+			if (section) {
+				const item = section.layoutValues.find(
+						(item) => item.id === payload.itemId
+				);
+				if (item) {
+					item.imgValue = payload.imageUrl;
+				}
+			}
+		},
+		// updateTextContent(
+		//   state,
+		//   { payload }: { payload: UpdateTextContentPayloadI }
+		// ) {
+		//   const section = state.layoutDatas.sectionValues.find(
+		//     (section) => section.sectionKey === payload.sectionKey
+		//   );
+		//   if (section) {
+		//     const item = section.layoutValues.find(
+		//       (item) => item.id === payload.itemId
+		//     );
+		//     if (item) {
+		//       item.textValue = payload.textContent;
+		//     }
+		//   }
+		// },
+		updateTextContent(
+				state,
+				{payload}: { payload: UpdateTextContentPayloadI }
+		) {
+			const updatedSections = state.layoutDatas.sectionValues.map(section => {
+				if (section.sectionKey !== payload.sectionKey) return section;
 
-        return {
-          ...section,
-          layoutValues: section.layoutValues.map(item => {
-            if (item.id !== payload.itemId) return item;
-            return {
-              ...item,
-              textValue: payload.textContent,
-            };
-          }),
-        };
-      });
+				return {
+					...section,
+					layoutValues: section.layoutValues.map(item => {
+						if (item.id !== payload.itemId) return item;
+						return {
+							...item,
+							textValue: payload.textContent,
+						};
+					}),
+				};
+			});
 
-      state.layoutDatas.sectionValues = updatedSections;
-    },
-    setLayoutData(state, action: PayloadAction<LayoutData>) {
-      state.layoutDatas = action.payload;
-    },
-    setImageUploadStatus: (
-      state,
-      action: PayloadAction<{ itemKey: string; status: Partial<UploadStatus> }>
-    ) => {
-      const { itemKey, status } = action.payload;
-      state.uploadStatus[itemKey] = {
-        ...state.uploadStatus[itemKey],
-        ...status,
-      };
-    },
-    resetImageUploadStatus: (
-      state,
-      action: PayloadAction<{ itemKey: string }>
-    ) => {
-      delete state.uploadStatus[action.payload.itemKey];
-    },
-    setAllImageUploadStatus: (
-      state,
-      action: PayloadAction<{ [itemKey: string]: UploadStatus }>
-    ) => {
-      state.uploadStatus = action.payload;
-    },
-    setImageStyle: (
-      state,
-      action: PayloadAction<{ itemKey: string; style: Partial<ImageStyle> }>
-    ) => {
-      const { itemKey, style } = action.payload;
-      state.imageStyles[itemKey] = {
-        ...state.imageStyles[itemKey],
-        ...style,
-      };
-    },
-    setAllImageStyles: (
-      state,
-      action: PayloadAction<{ [itemKey: string]: ImageStyle }>
-    ) => {
-      state.imageStyles = action.payload;
-    },
-    setImageUrl: (
-      state,
-      action: PayloadAction<{ itemKey: string; url: string }>
-    ) => {
-      const { itemKey, url } = action.payload;
-      state.imageUrls[itemKey] = url;
-    },
-    setAllImageUrls: (
-      state,
-      action: PayloadAction<{ [itemKey: string]: string }>
-    ) => {
-      state.imageUrls = action.payload;
-    },
-    resetLayoutState: (state) => {
-      Object.assign(state, initialState);
-      // saveEditorState(initialState.layoutDatas);
-    },
-    setProjectPermission: (
-        state,
-        action: PayloadAction<{ projectPermission: Permission }>
-    ) => {
-      const { projectPermission } = action.payload;
-      state.projectPermission = projectPermission
-    },
-  },
+			state.layoutDatas.sectionValues = updatedSections;
+		},
+		setLayoutData(state, action: PayloadAction<LayoutData>) {
+			state.layoutDatas = action.payload;
+		},
+		setImageUploadStatus: (
+				state,
+				action: PayloadAction<{ itemKey: string; status: Partial<UploadStatus> }>
+		) => {
+			const {itemKey, status} = action.payload;
+			state.uploadStatus[itemKey] = {
+				...state.uploadStatus[itemKey],
+				...status,
+			};
+		},
+		resetImageUploadStatus: (
+				state,
+				action: PayloadAction<{ itemKey: string }>
+		) => {
+			delete state.uploadStatus[action.payload.itemKey];
+		},
+		setAllImageUploadStatus: (
+				state,
+				action: PayloadAction<{ [itemKey: string]: UploadStatus }>
+		) => {
+			state.uploadStatus = action.payload;
+		},
+		setImageStyle: (
+				state,
+				action: PayloadAction<{ itemKey: string; style: Partial<ImageStyle> }>
+		) => {
+			const {itemKey, style} = action.payload;
+			state.imageStyles[itemKey] = {
+				...state.imageStyles[itemKey],
+				...style,
+			};
+		},
+		setAllImageStyles: (
+				state,
+				action: PayloadAction<{ [itemKey: string]: ImageStyle }>
+		) => {
+			state.imageStyles = action.payload;
+		},
+		setImageUrl: (
+				state,
+				action: PayloadAction<{ itemKey: string; url: string }>
+		) => {
+			const {itemKey, url} = action.payload;
+			state.imageUrls[itemKey] = url;
+		},
+		setAllImageUrls: (
+				state,
+				action: PayloadAction<{ [itemKey: string]: string }>
+		) => {
+			state.imageUrls = action.payload;
+		},
+		resetLayoutState: (state) => {
+			Object.assign(state, initialState);
+			// saveEditorState(initialState.layoutDatas);
+		},
+		setProjectPermission: (
+				state,
+				action: PayloadAction<{ projectPermission: Permission }>
+		) => {
+			const {projectPermission} = action.payload;
+			state.projectPermission = projectPermission
+		},
+		setProjectPublishUrl: (
+				state,
+				action: PayloadAction<{ projectPublishUrl: string | null }>
+		) => {
+			const {projectPublishUrl} = action.payload;
+			state.projectPublishUrl = projectPublishUrl;
+		},
+	},
 });
 
 export default layoutSlice;
 export const {
-  addSection,
-  deleteSection,
-  updateSectionTitle,
-  addLayoutItem,
-  addImageToSection,
-  deleteLayoutItem,
-  updateImageUrl,
-  updateTextContent,
-  setLayoutData,
-  setImageUploadStatus,
-  resetImageUploadStatus,
-  setAllImageUploadStatus,
-  setImageStyle,
-  setAllImageStyles,
-  setImageUrl,
-  setAllImageUrls,
-  resetLayoutState,
-  setProjectPermission,
+	addSection,
+	deleteSection,
+	updateSectionTitle,
+	addLayoutItem,
+	addImageToSection,
+	deleteLayoutItem,
+	updateImageUrl,
+	updateTextContent,
+	setLayoutData,
+	setImageUploadStatus,
+	resetImageUploadStatus,
+	setAllImageUploadStatus,
+	setImageStyle,
+	setAllImageStyles,
+	setImageUrl,
+	setAllImageUrls,
+	resetLayoutState,
+	setProjectPermission,
+	setProjectPublishUrl
 } = layoutSlice.actions;

@@ -87,6 +87,7 @@ export interface Project {
   joinedDate?:string;
   members: ProjectMember[];
   memberCount: number;
+  publishUrl: string | null;
 }
 
 export interface ProjectMember {
@@ -115,7 +116,6 @@ export interface ProjectUpdateRequest {
   id: string;
   title: string;
   description: string;
-  status: "CLOSED" | "OPEN";
 }
 
 export interface ProjectInviteRequest {

@@ -4,15 +4,16 @@ import apiHandler, {FULL_API_URL} from "../shared/api/axios";
 import {clearSessionInLocal, getAccountInfoFromLocal, updateAccountToLocal} from "../utils/session";
 import {useChunkedImageUpload} from "../hooks/useChunkedImageUpload";
 import PasswordChangeModal from "./PasswordChangeModal";
+import BaseModal from "./BaseModal";
 
-interface ProfileButtonProps {
+interface ProfileModalProps {
 	modal: UseModalReturnType,
 }
 
 
 const ProfileModal = ({
 	                       modal
-                       }: ProfileButtonProps) => {
+                       }: ProfileModalProps) => {
 
 	const passwordChangeModal = useModal();
 	const {uploadImage, status} = useChunkedImageUpload();
@@ -83,32 +84,14 @@ const ProfileModal = ({
 
 
 	return (
-			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-				{
-					passwordChangeModal.show && (
-						<PasswordChangeModal modal={passwordChangeModal}/>
-					)
-				}
+			<>
+				<PasswordChangeModal modal={passwordChangeModal}/>
 
-				<div
-						className="relative bg-white rounded-2xl p-8 max-w-md w-full mx-4"
-						onClick={(e) => {
-							e.stopPropagation();
-						}}
-				>
-					{/* 닫기 버튼 (우측 상단 X) */}
-					<button
-							className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-							onClick={() => modal.close()}
-					>
-						<i className="fas fa-times text-xl"/>
-					</button>
-
-					{/* 프로필 이미지 */}
-					<div className="flex flex-col items-center mb-6">
+				<BaseModal modal={modal}>
+					<div className="flex flex-col items-center">
 						<label
 								htmlFor="profileImageInput"
-								className="relative group cursor-pointer w-[36vw] max-w-[330px] min-w-[144px] aspect-square"
+								className="relative group cursor-pointer w-[36vw] max-w-[360px] min-w-[144px] aspect-square"
 						>
 							<img
 									src={`${FULL_API_URL}${profileUrl}?format=WEBP`}
@@ -119,14 +102,16 @@ const ProfileModal = ({
 									className="w-full h-full object-cover rounded-xl border-2 border-gray-300 shadow"
 							/>
 
-							<div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-200">
+							<div
+									className="absolute inset-0 bg-black bg-opacity-50 rounded-xl opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-200">
 								<i className="fas fa-camera text-white text-2xl mb-2"></i>
 								<span className="text-white text-sm">이미지 변경</span>
 							</div>
 
 							{status.uploading && (
-									<div className="absolute inset-0 bg-black bg-opacity-60 rounded-xl flex flex-col items-center justify-center z-10">
-										<i className="fas fa-spinner fa-spin text-white text-2xl mb-2" />
+									<div
+											className="absolute inset-0 bg-black bg-opacity-60 rounded-xl flex flex-col items-center justify-center z-10">
+										<i className="fas fa-spinner fa-spin text-white text-2xl mb-2"/>
 										<span className="text-white text-sm">업로드 중... {status.progress}%</span>
 									</div>
 							)}
@@ -157,7 +142,7 @@ const ProfileModal = ({
 								type="text"
 								value={getAccountInfoFromLocal()?.email ?? ""}
 								readOnly
-								className="w-full pt-6 pb-2 px-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="w-full pt-6 pb-2 px-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					</div>
 
@@ -169,8 +154,8 @@ const ProfileModal = ({
 						<input
 								type="text"
 								value={nickname}
-								onChange={(e)=>setNickname(e.target.value)}
-								className="w-full pt-6 pb-2 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+								onChange={(e) => setNickname(e.target.value)}
+								className="w-full pt-6 pb-2 px-3 border border-gray-300 text-gray-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 						/>
 					</div>
 
@@ -182,13 +167,13 @@ const ProfileModal = ({
 								className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
 							<button
 									className="text-sm text-blue-600 hover:underline"
-									onClick={()=> passwordChangeModal.open()}
+									onClick={() => passwordChangeModal.open()}
 							>
 								비밀번호 변경
 							</button>
 							<button
 									className="text-sm text-red-500 hover:underline"
-					        onClick={()=>handleLogout()}
+									onClick={() => handleLogout()}
 							>
 								로그아웃
 							</button>
@@ -197,13 +182,13 @@ const ProfileModal = ({
 						{/* 오른쪽 저장 버튼 */}
 						<button
 								className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-button"
-								onClick={()=> updateProfile()}
+								onClick={() => updateProfile()}
 						>
 							저장
 						</button>
 					</div>
-				</div>
-			</div>
+				</BaseModal>
+			</>
 	)
 }
 

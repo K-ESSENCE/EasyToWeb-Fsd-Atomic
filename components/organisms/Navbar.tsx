@@ -31,13 +31,13 @@ const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
               <img
-                className="h-8 w-auto"
-                src="https://ai-public.creatie.ai/gen_page/logo_placeholder.png"
+                className="h-14 w-auto"
+                src="/logo_full.png"
                 alt="Easy Web Builder"
               />
-              <span className="ml-2 text-xl font-bold text-gray-900">
-                Easy Web Builder
-              </span>
+              {/*<span className="ml-2 text-xl font-bold text-gray-900">*/}
+              {/*  Easy Web Builder*/}
+              {/*</span>*/}
             </Link>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-8">

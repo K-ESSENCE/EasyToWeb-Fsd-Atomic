@@ -4,6 +4,7 @@ import {Awareness} from "y-protocols/awareness";
 import {apiHandler, BASE_API_URL, BASE_SOCKET_PROTOCOL} from "../shared/api/axios";
 import html2canvas from "html2canvas";
 import {upload} from "../hooks/useChunkedImageUpload";
+import toast from "react-hot-toast";
 
 export const messageCapture = 3;
 
@@ -91,7 +92,7 @@ export const createYjsDocument = ({
 		}
 
 		if (error.code !== 1006) closeEvent();
-		if (error.reason) alert(error.reason);
+		if (error.reason) toast.error(error.reason);
 	})
 
 	// Handle WebSocket errors

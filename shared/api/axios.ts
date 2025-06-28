@@ -33,6 +33,7 @@ import {
   getAccessTokenFromLocal,
   updateTokenToLocal
 } from "../../utils/session";
+import toast from "react-hot-toast";
 
 export const BASE_API_PROTOCOL = "https://";
 export const BASE_SOCKET_PROTOCOL = "wss://"
@@ -129,10 +130,10 @@ class ApiHandler {
       }
     }
 
-    const errorMessage = error.response?.data?.errors?.errorDescription || "An unexpected error occurred";
+    const errorMessage = error.response?.data?.errors?.errorDescription || "서버 오류가 발생하였습니다. 잠시후 다시 시도해주세요.";
 
     if (!isReissueUrl && !this.showAlertIn3Sec) {
-      alert(errorMessage);
+      toast.error(errorMessage);
       this.showAlertIn3Sec = true;
       setTimeout(() => {
         this.showAlertIn3Sec = false;
