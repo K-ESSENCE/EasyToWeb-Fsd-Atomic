@@ -37,6 +37,9 @@ import {
 export const BASE_API_PROTOCOL = "https://";
 export const BASE_SOCKET_PROTOCOL = "wss://"
 export const BASE_API_URL = "dev-api.easytoweb.store"
+// export const BASE_API_PROTOCOL = "http://";
+// export const BASE_SOCKET_PROTOCOL = "ws://"
+// export const BASE_API_URL = "localhost:8080"
 export const FULL_API_URL = BASE_API_PROTOCOL + BASE_API_URL;
 
 class ApiHandler {
@@ -183,7 +186,7 @@ class ApiHandler {
     data: AccountPasswordChangeRequest
   ): Promise<ApiResponse<void>> {
     const response = await this.client.post<ApiResponse<void>>(
-      "/account/password/change",
+      "/account/password",
       data
     );
     return response.data;
@@ -200,9 +203,8 @@ class ApiHandler {
   }
 
   async sendPasswordMail(data: MailSendRequest): Promise<ApiResponse<void>> {
-    const response = await this.client.post<ApiResponse<void>>(
-      "/mail/password/send",
-      data
+    const response = await this.client.get<ApiResponse<void>>(
+      `/account/mail/password?email=${encodeURIComponent(data.email)}`
     );
     return response.data;
   }
