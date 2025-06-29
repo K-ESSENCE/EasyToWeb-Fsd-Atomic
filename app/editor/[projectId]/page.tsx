@@ -852,12 +852,6 @@ const App = () => {
 						</div>
 					</main>
 
-					{
-							!syncInfo.lastSyncDate && (
-									<PageLoader message={"불러오는 중입니다..."}/>
-							)
-					}
-
 					{/* 우측 사이드바 (속성 패널) */}
 					<SideMenu
 							// isOpen={isSideMenuOpen}
@@ -903,16 +897,11 @@ const App = () => {
 							)
 					}
 
-					{/* Toast Notification */}
-					{/* <div
-          className={`fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center ${
-            showToast ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
-          }`}
-        >
-          <i className="fas fa-check-circle mr-2"></i>
-          프로젝트가 성공적으로 저장되었습니다
-        </div> */}
-
+					{
+							!syncInfo.lastSyncDate && (
+									<PageLoader message={"불러오는 중입니다..."}/>
+							)
+					}
 
 					{offlineMessage && (
 							<div className="fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50 bg-red-500 text-white">

@@ -1,11 +1,13 @@
 import React, {useState} from "react";
 import {UseModalReturnType} from "../hooks/useModal";
 import BaseModal from "./BaseModal";
-import apiHandler, {FULL_API_URL} from "../shared/api/axios";
+import apiHandler from "../shared/api/axios";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../store/configureStore";
 import toast from "react-hot-toast";
 import {setProjectPublishUrl} from "../store/slices/layouts";
+
+export const FULL_FRONT_URL = `${window.location.protocol}//${window.location.host}`;
 
 interface ProjectPublishModalProps {
 	modal: UseModalReturnType;
@@ -81,12 +83,12 @@ const ProjectPublishModal = ({
 							<div className="mb-6 p-4 border border-blue-200 bg-blue-50 rounded-lg text-center">
 								<p className="text-sm text-gray-700 mb-2">✅ 현재 프로젝트가 게시되어 있습니다.</p>
 								<a
-										href={`${FULL_API_URL}/publish/${publishUrl}`}
+										href={`${FULL_FRONT_URL}/publish/${publishUrl}`}
 										target="_blank"
 										rel="noopener noreferrer"
 										className="text-blue-600 underline break-all text-sm font-medium"
 								>
-									{`${FULL_API_URL}/publish/${publishUrl}`}
+									{`${FULL_FRONT_URL}/publish/${publishUrl}`}
 								</a>
 							</div>
 					) : (

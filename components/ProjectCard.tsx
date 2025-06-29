@@ -6,8 +6,8 @@ import {useModal} from "../hooks/useModal";
 import ProjectDeleteModal from "./ProjectDeleteModal";
 import toast from "react-hot-toast";
 import ProjectUpdateModal from "./ProjectUpdateModal";
+import {FULL_FRONT_URL} from "./ProjectPublishModal";
 
-export const FULL_FRONT_URL = `${window.location.protocol}//${window.location.host}`;
 
 interface ProjectCardProps {
 	project: Project & { role: string },
@@ -124,7 +124,7 @@ const ProjectCard = ({
 								onError={(e) => {
 									e.currentTarget.src = "/project.jpg";
 								}}
-								className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+								className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
 						/>
 					</div>
 					<div className="p-4">

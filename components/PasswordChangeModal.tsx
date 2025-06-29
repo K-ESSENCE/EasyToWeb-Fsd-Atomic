@@ -117,7 +117,7 @@ const PasswordChangeModal = ({
 								type="email"
 								value={formData.email}
 								onChange={handleChange("email")}
-								className="w-full rounded-lg border-gray-300 shadow-sm focus:border-custom focus:ring-custom"
+								className="w-full rounded-lg border-gray-300 text-gray-700 shadow-sm focus:border-custom focus:ring-custom"
 								placeholder="your@email.com"
 						/>
 					</div>

@@ -90,8 +90,9 @@ class ApiHandler {
   private async handleError(error: AxiosError<ApiResponse<ApiError>>): Promise<never> {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const isReissueUrl = error.config?.url?.includes("/account/reissue");
+    const isLoginUrl = error.config?.url?.includes("/account/login");
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isReissueUrl) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isReissueUrl && !isLoginUrl) {
       originalRequest._retry = true;
 
       if (this.isRefreshing) {

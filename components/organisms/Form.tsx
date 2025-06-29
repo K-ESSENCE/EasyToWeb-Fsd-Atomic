@@ -52,7 +52,7 @@ const Form = () => {
 				router.push("/list");
 			}
 		} catch (error) {
-			toast.error((error as PromiseError)?.error ?? "로그인 중 오류가 발생했습니다.");
+			console.log(error);
 		} finally {
 			setIsLoading(false);
 		}
@@ -72,8 +72,8 @@ const Form = () => {
 
 			setShowVerification(true);
 		} catch (error) {
-			toast.error("인증번호 발송 중 오류가 발생했습니다.");
 			console.error("Verification error:", error);
+
 		} finally {
 			setVerificationLoading(false);
 		}
@@ -95,8 +95,8 @@ const Form = () => {
 
 			toast.success("이메일 인증이 완료되었습니다.");
 		} catch (error) {
-			toast.error("인증번호 확인 중 오류가 발생했습니다.");
 			console.error("Certification error:", error);
+
 		} finally {
 			setCertifyLoading(false);
 		}
@@ -128,8 +128,8 @@ const Form = () => {
 			setIsSignUp(false);
 			resetForm();
 		} catch (error) {
-			toast.error("회원가입 중 오류가 발생했습니다.");
 			console.error("Join error:", error);
+
 		} finally {
 			setJoinLoading(false);
 		}
