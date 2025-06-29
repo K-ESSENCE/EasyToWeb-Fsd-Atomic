@@ -70,6 +70,7 @@ const CardFrame = ({
         shapeStyleValues={shapeStyleValues}
         itemKey={itemKey}
         imageUrlsMap={imageUrlsMap}
+        selectedKey={selctedItemkey}
         // titleStyle={titleStyle}
         // describe={describe}
       />

@@ -20,10 +20,6 @@ const EditableText: React.FC<EditableTextProps> = ({
         >
           {textContent}
         </div>
-        <p className="text-gray-600">
-          텍스트의 크기, 줄 간격, 자간 등을 오른쪽 사이드바에서 조절할 수
-          있습니다.
-        </p>
       </div>
     </div>
   );

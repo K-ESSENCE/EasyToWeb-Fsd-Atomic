@@ -30,14 +30,18 @@ const LayoutViewer = (
 									);
 								}
 
-								if (item.layoutName === "img") {
+								if ((item.layoutName === "img")) {
 									return (
 											<div className="w-48 h-full" key={item.id}>
-												<img
-														className="w-full h-full object-cover"
-														alt={`image-${item.id}`}
-														src={`${FULL_API_URL}${item.imgValue}?format=WEBP`}
-												/>
+												{
+													(item.imgValue) && (
+																<img
+																		className="w-full h-full object-cover"
+																		alt={`image-${item.id}`}
+																		src={`${FULL_API_URL}${item.imgValue}?format=WEBP`}
+																/>
+														)
+												}
 											</div>
 									);
 								}
