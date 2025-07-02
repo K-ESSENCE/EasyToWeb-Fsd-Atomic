@@ -1,5 +1,5 @@
 import { getShapeStyleValues } from '../../utils/utils';
-import { Shapes, TextStyleI } from '../types/common/layoutStyle';
+import { Shapes, TextStyleI } from '../types/common/layout';
 
 interface DefaultProps {
   type: Shapes;

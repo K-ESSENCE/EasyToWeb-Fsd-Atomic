@@ -5,7 +5,7 @@ import apiHandler from "../shared/api/axios";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../store/configureStore";
 import toast from "react-hot-toast";
-import {setProjectPublishUrl} from "../store/slices/layouts";
+import {setProjectPublishUrl} from "../store/slices/editor";
 
 export const FULL_FRONT_URL = `${window.location.protocol}//${window.location.host}`;
 
@@ -15,12 +15,12 @@ interface ProjectPublishModalProps {
 }
 
 const ProjectPublishModal = ({
-	                            modal,
-	                            projectId,
-                            }: ProjectPublishModalProps) => {
+	                             modal,
+	                             projectId,
+                             }: ProjectPublishModalProps) => {
 	const dispatch = useDispatch();
-	const layoutDatas = useSelector(
-			(state: RootState) => state.layouts.layoutDatas.sectionValues
+	const layoutData = useSelector(
+			(state: RootState) => state.layouts.layouts[0]
 	);
 
 	const publishUrl = useSelector(
@@ -35,7 +35,7 @@ const ProjectPublishModal = ({
 		try {
 			const response = await apiHandler.publishProject(
 					projectId,
-					JSON.stringify(layoutDatas)
+					JSON.stringify(layoutData)
 			);
 			const url = response.data?.url;
 			if (url) {
@@ -115,6 +115,20 @@ const ProjectPublishModal = ({
 						<i className={`fas mr-2 ${isPublished ? "fa-ban" : "fa-rocket"}`}></i>
 						{isPublished ? "게시취소" : "배포"}
 					</button>
+
+					{
+							isPublished && (
+									<button
+											className="px-4 py-2 text-sm font-medium text-blue-600 bg-white border border-blue-600 hover:bg-blue-50 rounded-button whitespace-nowrap flex items-center"
+											onClick={handleDeploy}
+											disabled={loading}
+									>
+										<i className="fas fa-redo mr-2"></i>
+										재배포
+									</button>
+							)
+					}
+
 
 					<button
 							className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-button"

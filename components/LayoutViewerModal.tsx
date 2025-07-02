@@ -1,21 +1,18 @@
 import {UseModalReturnType} from "../hooks/useModal";
-import {SectionData} from "./types/common/layoutStyle";
 import LayoutViewer from "./LayoutViewer";
-import {ImageStyleMap} from "../store/slices/layouts";
 import BaseModal from "./BaseModal";
+import {LayoutState} from "../store/slices/editor";
 
 export interface LayoutViewerModalProps {
 	modal: UseModalReturnType;
-	sectionValues: SectionData[];
-	imageStyles: ImageStyleMap
+	layouts: LayoutState[];
 	loading?: boolean;
 	error?: string;
 }
 
 const LayoutViewerModal = ({
 	                           modal,
-	                           sectionValues,
-	                           imageStyles,
+	                           layouts,
 	                           loading = false,
 	                           error = "",
                            }: LayoutViewerModalProps) => {
@@ -40,9 +37,7 @@ const LayoutViewerModal = ({
 													<p>{error}</p>
 												</div>
 										) : (
-												<LayoutViewer sectionValues={sectionValues}
-												              imageStyles={imageStyles}
-												/>
+												<LayoutViewer layouts={layouts}/>
 										)
 								)
 					}

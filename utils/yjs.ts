@@ -43,12 +43,8 @@ export const createYjsDocument = ({
 	const uploadStatusMap = doc.getMap("uploadStatus");
 	// Yjs textEditStatus 맵 생성
 	const textEditStatusMap = doc.getMap("textEditStatus");
-	// Yjs imageStyles 맵 생성
-	const imageStylesMap = doc.getMap("imageStyles");
-	// Yjs imageUrls 맵 생성
-	const imageUrlsMap = doc.getMap("imageUrls");
 	//  Yjs layout 맵 생성
-	const sharedLayoutMap = doc.getMap("layoutDatas");
+	const sharedLayoutMap = doc.getMap("layoutData");
 
 
 	provider.messageHandlers[messageCapture] = () => {
@@ -152,8 +148,6 @@ export const createYjsDocument = ({
 		awareness,
 		uploadStatusMap,
 		textEditStatusMap,
-		imageStylesMap,
-		imageUrlsMap,
 		sharedLayoutMap,
 	};
 };

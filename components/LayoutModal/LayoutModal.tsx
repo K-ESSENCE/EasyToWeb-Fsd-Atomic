@@ -5,7 +5,7 @@ import Icon from '../icons/Icon';
 import LayoutModalMenus from './LayoutModalMenus';
 import LayoutItemContainer from './LayoutItemContainer';
 import { useState } from 'react';
-import { Shapes } from '../types/common/layoutStyle';
+import { Shapes } from '../types/common/layout';
 
 export interface BlockDesingI {
   blockDesignType: Shapes;

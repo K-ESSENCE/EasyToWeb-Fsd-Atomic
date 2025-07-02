@@ -1,5 +1,13 @@
-import { Shapes } from "../components/types/common/layoutStyle";
-import { MOCK_SHAPE_SIZES, SHAPE_SIZES } from "./constants";
+import {
+  BackgroundStyle,
+  CommonStyle,
+  ComponentProps,
+  Item,
+  LayoutConfig,
+  Section,
+  SectionStyle,
+  Shapes
+} from "../components/types/common/layout";
 
 export function objDeepFreeze<T extends object, V extends keyof T>(obj: T): T {
   Object.keys(obj).forEach((key) => {
@@ -11,36 +19,86 @@ export function objDeepFreeze<T extends object, V extends keyof T>(obj: T): T {
   return Object.freeze(obj);
 }
 
-export function getShapeStyleValues(
-  shapeType: Shapes,
-  condition: "dynamic" | "mock"
-) {
-  const targetObj = condition === "mock" ? MOCK_SHAPE_SIZES : SHAPE_SIZES;
+export const createSection = ({
+                                layout,
+                                style,
+                                backgroundStyle,
+                              }: {
+  layout: LayoutConfig;
+  style?: SectionStyle;
+  backgroundStyle?: BackgroundStyle;
+}): Section => {
+  return {
+    sectionKey: crypto.randomUUID(),
+    layout,
+    style,
+    backgroundStyle,
+    title: "",
+    items: [],
+  };
+};
 
-  switch (shapeType) {
-    case "rectNormal":
-      return targetObj.RECT.NORMAL;
 
-    case "rectBig":
-      return targetObj.RECT.BIG;
+export const createItem = ({
+                             type,
+                             commonStyle = {},
+                             componentProps,
+                           }: {
+  type: Shapes;
+  commonStyle?: CommonStyle;
+  componentProps?: Partial<ComponentProps>;
+}): Item => {
+  const id = crypto.randomUUID();
 
-    case "rectSmall":
-      return targetObj.RECT.SMALL;
+  // 기본 props 설정
+  let finalProps: ComponentProps;
 
-    case "round":
-      return targetObj.ROUND;
-
-    case "defaultSection":
-      return targetObj.SECTION;
-
+  switch (type) {
     case "text":
-      return targetObj.TEXT;
+      finalProps = {
+        text: "",
+        textStyle: {
+          size: "16px",
+          color: "#000",
+          align: "left",
+          bold: false,
+        },
+        ...(componentProps as Partial<ComponentProps>),
+      };
+      break;
 
     case "img":
-      return targetObj.IMG;
+      finalProps = {
+        url: "",
+        imageStyle: {
+          borderRadius: 0,
+          borderColor: "#ccc",
+          borderWidth: 0,
+          borderStyle: "none",
+        },
+        ...(componentProps as Partial<ComponentProps>),
+      };
+      break;
+
+    case "card":
+      finalProps = {
+        title: "제목",
+        body: "내용",
+        imageUrl: "",
+        actions: [],
+        ...(componentProps as Partial<ComponentProps>),
+      };
+      break;
 
     default:
-      const invalid: never = shapeType;
-      throw new Error(`유효하지 않은 type: ${invalid}`);
+      finalProps = componentProps as ComponentProps;
+      break;
   }
-}
+
+  return {
+    id,
+    type: type,
+    commonStyle,
+    componentProps: finalProps,
+  };
+};

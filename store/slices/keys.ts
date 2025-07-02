@@ -34,6 +34,11 @@ const keySlice = createSlice({
       state.nowItemKey = payload;
       setNowSelectedState(state);
     },
+    resetKeys: (state) => {
+      state.nowSectionKey = '';
+      state.nowItemKey = '';
+      setNowSelectedState(state);
+    }
   },
   // extraReducers: (builder) => {
   //   builder.addCase(layouts.actions.addSection, (state) => {
@@ -43,4 +48,4 @@ const keySlice = createSlice({
 });
 
 export default keySlice;
-export const { changeNowItemKey, changeNowSectionKey } = keySlice.actions;
+export const { changeNowItemKey, changeNowSectionKey, resetKeys } = keySlice.actions;

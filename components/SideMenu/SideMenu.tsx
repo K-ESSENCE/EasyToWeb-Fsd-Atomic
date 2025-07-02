@@ -1,568 +1,112 @@
-// import { useState, useEffect } from "react";
+import React from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../../store/configureStore";
+import {deleteLayoutItem, deleteSection} from "../../store/slices/editor";
+import ImageMenu from "./ImageMenu";
+import TextMenu from "./TextMenu";
+import CommonMenu from "./CommonMenu";
+import {changeNowItemKey, changeNowSectionKey} from "../../store/slices/keys";
+import SectionMenu from "./SectionMenu";
 
-import { useSelector, useDispatch } from "react-redux";
-import { SideMenuProps } from "./types";
-import { RootState } from "../../store/configureStore";
-import {
-  deleteLayoutItem,
-  deleteSection,
-  setImageStyle,
-} from "../../store/slices/layouts";
-import { changeNowItemKey, changeNowSectionKey } from "../../store/slices/keys";
-import { LayoutItemValues } from "../types/common/layoutStyle";
-// import {
-//   updateSectionTitle,
-//   addImageToSection,
-//   addLayoutItem,
-// } from "../../store/slices/layouts";
-// import { MenuHeader } from "./components/MenuHeader";
-// import { SectionItem } from "./components/SectionItem";
-// import { FONTS, BACKGROUND_COLORS, ELEMENTS } from "./constants";
-// import { MenuType, SideMenuProps } from "./types";
+const SideMenu = ({isFullscreen}: { isFullscreen: boolean }) => {
+	const dispatch = useDispatch();
 
-// const useKeyboardShortcut = (
-//   isOpen: boolean,
-//   onClose: (value: boolean) => void
-// ) => {
-//   useEffect(() => {
-//     const handleKeyDown = (event: KeyboardEvent) => {
-//       if (event.ctrlKey && event.key === "[") {
-//         event.preventDefault();
-//         onClose(!isOpen);
-//       }
-//     };
+	const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
+	const selectedItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
 
-//     window.addEventListener("keydown", handleKeyDown);
-//     return () => window.removeEventListener("keydown", handleKeyDown);
-//   }, [isOpen, onClose]);
-// };
 
-const SideMenu = ({ isFullscreen }: SideMenuProps) => {
-  const dispatch = useDispatch();
+	const selectedSection = useSelector((state: RootState) =>
+			state.layouts.layouts[0].sections.find(
+					(section) => section.sectionKey === nowSectionKey
+			)
+	);
 
-  const nowSectionKey = useSelector(
-    (state: RootState) => state.keys.nowSectionKey
-  );
+	const selectedItem = selectedSection?.items.find(
+			(item) => item.id === selectedItemKey
+	);
 
-  const selectedItemKey = useSelector(
-    (state: RootState) => state.keys.nowItemKey
-  );
+	const handleDeleteItem = () => {
+		if (nowSectionKey && selectedItemKey) {
+			dispatch(
+					deleteLayoutItem({sectionId: nowSectionKey, itemId: selectedItemKey})
+			);
+			dispatch(changeNowItemKey(""));
+		}
+	};
 
-  const nowSection = useSelector((state: RootState) =>
-    state.layouts.layoutDatas.sectionValues.find(
-      (section) => section.sectionKey === nowSectionKey
-    )
-  );
+	const handleDeleteSection = () => {
+		if (nowSectionKey) {
+			dispatch(deleteSection({id: nowSectionKey}));
+		}
+		dispatch(changeNowSectionKey(""));
+		dispatch(changeNowItemKey(""));
+	};
 
-  const nowItem = nowSection?.layoutValues.find(
-    (item) => item.id === selectedItemKey
-  );
+	const handleCancelSelect = () => {
+		dispatch(changeNowSectionKey(""));
+		dispatch(changeNowItemKey(""));
+	}
 
-  const imageStyle = useSelector(
-    (state: RootState) => state.layouts.imageStyles[selectedItemKey] || {}
-  );
-  const selectedItemType = useSelector((state: RootState) => {
-    // Find the type of the selected item
-    const layoutDatas = state.layouts.layoutDatas.sectionValues;
-    for (const section of layoutDatas) {
-      for (const item of section.layoutValues as LayoutItemValues[]) {
-        if (item.id === selectedItemKey) {
-          return item.layoutName;
-        }
-      }
-    }
-    return null;
-  });
+	return (
+			<aside
+					className={`w-72 bg-white border-l border-gray-200 overflow-y-auto transition-all duration-300 ${isFullscreen ? "hidden" : ""}`}
+			>
+				{nowSectionKey && (
+						<div className="p-4 border-b border-gray-100">
+							<div className="flex items-center gap-2">
+								<button
+										onClick={handleCancelSelect}
+										className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-xs"
+								>
+									선택 취소
+								</button>
+								<button
+										onClick={handleDeleteSection}
+										className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs"
+								>
+									섹션 삭제
+								</button>
+								{
+										selectedItemKey && (
+												<button
+														onClick={handleDeleteItem}
+														className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+												>
+													아이템 삭제
+												</button>
+										)
+								}
+							</div>
+						</div>
+				)}
 
-  // const sections = useSelector(
-  //   (state: RootState) => state.layouts.layoutDatas.sectionValues
-  // );
-  // const selectedSection = sections.find(
-  //   (section) => section.sectionKey === selectedSectionKey
-  // );
-
-  // const [sectionsState, setSections] = useState<string[]>([]);
-  // const [selectedSectionId, setSelectedSectionId] = useState<string>("");
-  // const [menuType] = useState<MenuType>("settings");
-  // const [title, setTitle] = useState<string>(selectedSection?.title || "");
-
-  // useKeyboardShortcut(isOpen, onClose);
-
-  // useEffect(() => {
-  //   setTitle(selectedSection?.title || "");
-  // }, [selectedSection]);
-
-  // const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const newTitle = e.target.value;
-  //   setTitle(newTitle);
-  //   if (selectedSectionKey) {
-  //     dispatch(
-  //       updateSectionTitle({ sectionKey: selectedSectionKey, title: newTitle })
-  //     );
-  //   }
-  // };
-
-  // const addSection = () => {
-  //   const newSectionId = crypto.randomUUID();
-  //   setSections([...sectionsState, newSectionId]);
-  //   setSelectedSectionId(newSectionId);
-  // };
-
-  // const handleElementClick = (label: string) => {
-  //   if (!selectedSectionKey) return;
-
-  //   if (label === "이미지") {
-  //     dispatch(addImageToSection({ sectionKey: selectedSectionKey }));
-  //   } else if (label === "텍스트") {
-  //     const newTextItem: LayoutItemValues = {
-  //       id: crypto.randomUUID(),
-  //       layoutName: "text",
-  //     };
-  //     dispatch(
-  //       addLayoutItem({
-  //         id: selectedSectionKey,
-  //         newLayoutItemValue: newTextItem,
-  //       })
-  //     );
-  //   }
-  // };
-
-  // if (!isOpen) return null;
-
-  // const renderSettingsContent = () => (
-  //   <div className="space-y-4">
-  //     <div className="bg-white p-4 rounded-xl border border-gray-200">
-  //       <h3 className="text-sm font-medium text-gray-700 mb-3">섹션 설정</h3>
-  //       <div className="space-y-2">
-  //         <label className="block">
-  //           <span className="text-sm text-gray-600">섹션 제목</span>
-  //           <input
-  //             type="text"
-  //             value={title}
-  //             onChange={handleTitleChange}
-  //             className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-  //             placeholder="섹션 제목을 입력하세요"
-  //           />
-  //         </label>
-  //         {/* <label className="block">
-  //           <span className="text-sm text-gray-600">배경색</span>
-  //           <div className="mt-1 flex gap-2">
-  //             {BACKGROUND_COLORS.map(({ color, class: bgClass }) => (
-  //               <button
-  //                 key={color}
-  //                 className={`w-6 h-6 rounded-full ${bgClass} border border-gray-300 focus:ring-2 focus:ring-blue-500`}
-  //               />
-  //             ))}
-  //           </div>
-  //         </label> */}
-  //       </div>
-  //     </div>
-
-  //     <div className="bg-white p-4 rounded-xl border border-gray-200">
-  //       <h3 className="text-sm font-medium text-gray-700 mb-3">요소 추가</h3>
-  //       <div className="grid grid-cols-3 gap-2">
-  //         {ELEMENTS.map((element) => (
-  //           <button
-  //             key={element.label}
-  //             onClick={() => handleElementClick(element.label)}
-  //             className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex flex-col items-center justify-center"
-  //           >
-  //             <i className={`fas ${element.icon} text-lg mb-1`}></i>
-  //             <span className="text-xs">{element.label}</span>
-  //           </button>
-  //         ))}
-  //       </div>
-  //     </div>
-
-  //     {/* <div className="bg-white p-4 rounded-xl border border-gray-200">
-  //       <h3 className="text-sm font-medium text-gray-700 mb-3">스타일 설정</h3>
-  //       <div className="space-y-2">
-  //         <label className="block">
-  //           <span className="text-sm text-gray-600">글꼴</span>
-  //           <select className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-  //             {FONTS.map(font => (
-  //               <option key={font}>{font}</option>
-  //             ))}
-  //           </select>
-  //         </label>
-  //       </div>
-  //     </div> */}
-  //   </div>
-  // );
-
-  // const renderSectionsList = () => (
-  //   <>
-  //     <div className="overflow-y-auto flex-1 p-2">
-  //       <div className="space-y-2">
-  //         {sectionsState.map((sectionId, index) => (
-  //           <SectionItem
-  //             key={sectionId}
-  //             sectionId={sectionId}
-  //             isSelected={selectedSectionId === sectionId}
-  //             index={index}
-  //             onSelect={setSelectedSectionId}
-  //           />
-  //         ))}
-  //       </div>
-  //     </div>
-  //     <div className="p-4 border-t border-gray-200">
-  //       <button
-  //         onClick={addSection}
-  //         className="w-full py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 shadow-md"
-  //       >
-  //         <i className="fas fa-plus"></i>새 섹션 만들기
-  //       </button>
-  //     </div>
-  //   </>
-  // );
-
-  const handleDelete = () => {
-    if (nowSectionKey && selectedItemKey) {
-      dispatch(
-        deleteLayoutItem({ sectionId: nowSectionKey, itemId: selectedItemKey })
-      );
-      dispatch(changeNowItemKey(""));
-    }
-  };
-
-  const handleDeleteSection = () => {
-    if (nowSectionKey) {
-      dispatch(deleteSection({ id: nowSectionKey }));
-    }
-    // nowSectionKey 초기화
-    dispatch(changeNowSectionKey(""));
-    dispatch(changeNowItemKey(""));
-  };
-
-  return (
-    // <div className={`w-[280px] h-screen bg-gray-50 shadow-md flex flex-col fixed ${isOpen ? 'right-0' : '-right-[280px]'} top-0 transition-all duration-300`}>
-    //   <MenuHeader title="편집" onClose={()=>onClose(false)} />
-    //   <div className="overflow-y-auto flex-1 p-4">
-    //     {menuType === 'settings' ? renderSettingsContent() : renderSectionsList()}
-    //   </div>
-    // </div>
-    <aside
-      className={`w-72 bg-white border-l border-gray-200 overflow-y-auto transition-all duration-300 ${isFullscreen ? "hidden" : ""}`}
-    >
-      {nowSectionKey && (
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <button
-                  onClick={handleDeleteSection}
-                  className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs"
-              >
-                섹션 삭제
-              </button>
-              {selectedItemKey && (
-                  <button
-                      onClick={handleDelete}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
-                  >
-                    아이템 삭제
-                  </button>
-              )}
-            </div>
-          </div>
-      )}
-      {selectedItemKey && (
-        <div className="p-4 text-black">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-800">
-              {nowItem?.layoutName} 속성
-            </h3>
-            <button className="text-gray-400 hover:text-gray-600 cursor-pointer whitespace-nowrap">
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          <div className="space-y-5">
-            {/* <div>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    너비
-                  </label>
-                  <div className="flex items-center">
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="100%"
-                    />
-                    <div className="bg-gray-100 border border-gray-300 border-l-0 rounded-r-lg px-3 py-2 text-sm text-gray-500">
-                      px
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    높이
-                  </label>
-                  <div className="flex items-center">
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="자동"
-                    />
-                    <div className="bg-gray-100 border border-gray-300 border-l-0 rounded-r-lg px-3 py-2 text-sm text-gray-500">
-                      px
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    여백
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs text-gray-500 mb-1">상단</span>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs text-gray-500 mb-1">우측</span>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs text-gray-500 mb-1">하단</span>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs text-gray-500 mb-1">좌측</span>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div> */}
-            <div>
-              {selectedItemType === "img" && (
-                <>
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    스타일
-                  </h4>
-                  <div className=" space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          배경색
-                        </label>
-                        <div className="flex items-center">
-                          <input
-                            className="w-8 h-8 p-0 border rounded"
-                            type="color"
-                            value={imageStyle.backgroundColor || "#ffffff"}
-                            onChange={(e) =>
-                              dispatch(
-                                setImageStyle({
-                                  itemKey: selectedItemKey,
-                                  style: {
-                                    ...imageStyle,
-                                    backgroundColor: e.target.value,
-                                  },
-                                })
-                              )
-                            }
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            테두리 색
-                          </label>
-                          <input
-                            type="color"
-                            value={imageStyle.borderColor || "#000000"}
-                            onChange={(e) =>
-                              dispatch(
-                                setImageStyle({
-                                  itemKey: selectedItemKey,
-                                  style: {
-                                    ...imageStyle,
-                                    borderColor: e.target.value,
-                                  },
-                                })
-                              )
-                            }
-                            className="w-8 h-8 p-0 border rounded"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          테두리
-                        </label>
-                        <div className="flex-1">
-                          <select
-                            value={imageStyle.borderStyle || "solid"}
-                            onChange={(e) =>
-                              dispatch(
-                                setImageStyle({
-                                  itemKey: selectedItemKey,
-                                  style: {
-                                    ...imageStyle,
-                                    borderStyle: e.target.value,
-                                  },
-                                })
-                              )
-                            }
-                            className="w-full border rounded px-2 py-1"
-                          >
-                            <option value="solid">실선</option>
-                            <option value="dashed">점선</option>
-                            <option value="dotted">점점선</option>
-                            <option value="double">이중선</option>
-                            <option value="none">없음</option>
-                          </select>
-                        </div>
-                        <input
-                          type="number"
-                          min={0}
-                          max={20}
-                          value={imageStyle.borderWidth || 0}
-                          onChange={(e) =>
-                            dispatch(
-                              setImageStyle({
-                                itemKey: selectedItemKey,
-                                style: {
-                                  ...imageStyle,
-                                  borderWidth: Number(e.target.value),
-                                },
-                              })
-                            )
-                          }
-                          className="w-16 border rounded px-2 py-1"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        모서리 반경
-                      </label>
-                      <input
-                        type="range"
-                        className="w-full"
-                        min={0}
-                        max={50}
-                        value={imageStyle.borderRadius || 0}
-                        onChange={(e) =>
-                          dispatch(
-                            setImageStyle({
-                              itemKey: selectedItemKey,
-                              style: {
-                                ...imageStyle,
-                                borderRadius: Number(e.target.value),
-                              },
-                            })
-                          )
-                        }
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>0px</span>
-                        <span>10px</span>
-                        <span>20px</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              인터랙션
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">
-                  클릭 가능
-                </label>
-                <div className="relative inline-block w-10 mr-2 align-middle select-none">
-                  <input
-                    type="checkbox"
-                    name="toggle"
-                    id="toggle"
-                    className="checked:bg-blue-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 cursor-pointer"
-                  />
-                  <label
-                    htmlFor="toggle"
-                    className="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
-                  ></label>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  클릭 액션
-                </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option>없음</option>
-                  <option>링크 열기</option>
-                  <option>팝업 표시</option>
-                  <option>스크롤 이동</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  호버 효과
-                </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option>없음</option>
-                  <option>색상 변경</option>
-                  <option>크기 확대</option>
-                  <option>그림자 추가</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              고급 설정
-            </h4>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                CSS 커스터마이징
-              </label>
-              <textarea
-                className="w-full h-24 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder=".element {
-/* 여기에 CSS 작성 */
-}"
-              ></textarea>
-            </div>
-          </div>
-        </div>
-      )}
-      {!nowSectionKey && !selectedItemKey && (
-        <div className="h-full flex items-center justify-center p-6">
-          <div className="text-center">
-            <div className="text-gray-400 mb-3">
-              <i className="fas fa-hand-pointer text-5xl"></i>
-            </div>
-            <p className="text-gray-500 text-lg font-medium">
-              요소를 선택하세요
-            </p>
-            <p className="text-gray-400 text-sm mt-2">
-              편집할 요소를 선택하면 여기에 속성이 표시됩니다
-            </p>
-          </div>
-        </div>
-      )}
-    </aside>
-  );
+				{
+					selectedItem ? (
+							<div className="p-4 text-black space-y-6">
+								{selectedItem.type === "img" && <ImageMenu item={selectedItem}/>}
+								{selectedItem.type === "text" && <TextMenu item={selectedItem}/>}
+								<CommonMenu item={selectedItem}/>
+							</div>
+					) : selectedSection ? (
+							<div className="p-4 text-black space-y-6">
+								<SectionMenu section={selectedSection}/>
+							</div>
+					) : (
+							<div className="h-full flex items-center justify-center p-6">
+								<div className="text-center">
+									<div className="text-gray-400 mb-3">
+										<i className="fas fa-hand-pointer text-5xl"></i>
+									</div>
+									<p className="text-gray-500 text-lg font-medium">요소를 선택하세요</p>
+									<p className="text-gray-400 text-sm mt-2">
+										편집할 요소를 선택하면 여기에 속성이 표시됩니다
+									</p>
+								</div>
+							</div>
+					)
+				}
+			</aside>
+	);
 };
 
 export default SideMenu;

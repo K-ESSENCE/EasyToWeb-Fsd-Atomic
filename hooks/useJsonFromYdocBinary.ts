@@ -1,11 +1,9 @@
 import {useEffect, useState} from "react";
 import * as Y from "yjs";
-import {LayoutData, SectionData} from "../components/types/common/layoutStyle";
-import {ImageStyleMap} from "../store/slices/layouts";
+import {LayoutState} from "../store/slices/editor";
 
 interface YDocJson {
-	sections: SectionData[];
-	imageStyles: ImageStyleMap;
+	layouts: LayoutState[];
 }
 
 const useJsonFromYDocBinary = (base64Data: string | null) => {
@@ -27,15 +25,9 @@ const useJsonFromYDocBinary = (base64Data: string | null) => {
 			const ydoc = new Y.Doc();
 			Y.applyUpdate(ydoc, byteArray);
 
-			const imageStylesMap = ydoc.getMap("imageStyles");
-			const sharedLayoutMap = ydoc.getMap("layoutDatas");
-
-			const json = {
-				imageStyles: imageStylesMap.toJSON() as ImageStyleMap,
-				sections: (sharedLayoutMap.toJSON()?.sections ?? []) as SectionData[],
-			};
-
-			setJson(json);
+			const sharedLayoutMap = ydoc.getMap("layoutData");
+			const json = sharedLayoutMap.toJSON() as LayoutState;
+			setJson({layouts:[json]});
 
 		} catch (e) {
 			console.error("Yjs 문서 생성 실패:", e);

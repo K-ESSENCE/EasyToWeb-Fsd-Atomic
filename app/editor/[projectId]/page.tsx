@@ -1,42 +1,36 @@
 "use client";
 
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import SectionList from "../../../components/SideMenu/SectionList";
 import SideMenu from "../../../components/SideMenu/SideMenu";
 import SettingDialog from "../../../components/SettingDialog";
-import {SectionData} from "../../../components/types/common/layoutStyle";
 import {
-	addSection,
+	addSection, PageLayoutStyle,
 	resetLayoutState,
-	setAllImageStyles,
 	setAllImageUploadStatus,
-	setAllImageUrls,
 	setLayoutData,
-	setProjectPermission, setProjectPublishUrl,
-} from "../../../store/slices/layouts";
+	setProjectPermission,
+	setProjectPublishUrl,
+} from "../../../store/slices/editor";
 import {useDispatch, useSelector} from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
 import {RootState} from "../../../store/configureStore";
-import {
-	cleanupYjsProvider,
-	createYjsDocument,
-	updateUserSelection,
-} from "../../../utils/yjs";
+import {cleanupYjsProvider, createYjsDocument, updateUserSelection,} from "../../../utils/yjs";
 import ActiveUsers from "../../../components/ActiveUsers";
 import {Awareness} from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
 import {useParams, useRouter} from "next/navigation";
 import * as Y from 'yjs';
-import {
-	getAccessTokenFromLocal,
-	getAccountInfoFromLocal,
-} from "../../../utils/session";
+import {getAccessTokenFromLocal, getAccountInfoFromLocal,} from "../../../utils/session";
 import {useModal} from "../../../hooks/useModal";
 import HistoryPanel from "../../../components/HistoryPanel";
 import PageLoader from "../../../components/PageLoader";
 import LayoutViewerModal from "../../../components/LayoutViewerModal";
 import {ProjectUpdateRequest} from "../../../shared/api/types";
 import ProjectPublishModal from "../../../components/ProjectPublishModal";
+import {createDefaultSection, Section} from "../../../components/types/common/layout";
+import {resetKeys} from "../../../store/slices/keys";
+import PageSettingModal from "../../../components/PageSettingModal";
 
 
 interface ComponentItem {
@@ -60,36 +54,16 @@ const App = () => {
 	/**
 	 * selector
 	 */
-	const layoutDatas = useSelector(
-			(state: RootState) => state.layouts.layoutDatas.sectionValues
-	);
+	const layout = useSelector((state: RootState) => state.layouts.layouts[0]);
+	const sections = useSelector((state: RootState) => state.layouts.layouts[0].sections);
+	const uploadStatus = useSelector((state: RootState) => state.layouts.uploadStatus);
+	const projectPermission = useSelector((state: RootState) => state.layouts.projectPermission);
+	const projectPublishUrl = useSelector((state: RootState) => state.layouts.projectPublishUrl)
 
-	const nowSectionKey = useSelector(
-			(state: RootState) => state.keys.nowSectionKey
-	);
-	const selectedItemKey = useSelector(
-			(state: RootState) => state.keys.nowItemKey
-	);
+	const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
+	const selectedItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
 
-	const uploadStatus = useSelector(
-			(state: RootState) => state.layouts.uploadStatus
-	);
 
-	const imageUrls = useSelector(
-			(state: RootState) => state.layouts.imageUrls
-	);
-
-	const imageStyles = useSelector(
-			(state: RootState) => state.layouts.imageStyles
-	);
-
-	const projectPermission = useSelector(
-			(state: RootState) => state.layouts.projectPermission
-	)
-
-	const projectPublishUrl = useSelector(
-			(state: RootState) => state.layouts.projectPublishUrl
-	)
 
 	/**
 	 * state
@@ -97,13 +71,9 @@ const App = () => {
 	const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
 	const [awareness, setAwareness] = useState<Awareness | null>(null);
 	const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<unknown> | null>(null);
-	const [imageStylesMap, setImageStylesMap] = useState<Y.Map<unknown> | null>(null);
-	const [imageUrlsMap, setImageUrlsMap] = useState<Y.Map<unknown> | null>(null);
 	const [sharedLayoutMap, setSharedLayoutMap] = useState<Y.Map<unknown> | null>(null);
 
-	const [syncInfo, setSyncInfo] = useState<{isSync:boolean, lastSyncDate:Date | null}>(
-			{isSync:false, lastSyncDate: null}
-	)
+	const [syncInfo, setSyncInfo] = useState<{isSync: boolean, lastSyncDate: Date | null}>({isSync: false, lastSyncDate: null});
 	const [showSettings, setShowSettings] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isFullscreen, setIsFullscreen] = useState(true);
@@ -113,6 +83,7 @@ const App = () => {
 	const historyModal = useModal();
 	const previewModal = useModal();
 	const publishModal = useModal();
+	const pageSettingModal = useModal();
 
 	const [droppedComponents, setDroppedComponents] = useState<ComponentItem[]>([]);
 
@@ -130,8 +101,6 @@ const App = () => {
 	const canvasRef = useRef<HTMLDivElement>(null);
 	const usersPopoverRef = useRef<HTMLDivElement>(null);
 	const uploadStatusRef = useRef(uploadStatus);
-	const imageStylesRef = useRef(imageStyles);
-	const imageUrlsRef = useRef(imageUrls);
 
 
 	/**
@@ -140,14 +109,6 @@ const App = () => {
 	useEffect(() => {
 		uploadStatusRef.current = uploadStatus;
 	}, [uploadStatus]);
-
-	useEffect(() => {
-		imageStylesRef.current = imageStyles;
-	}, [imageStyles]);
-
-	useEffect(() => {
-		imageUrlsRef.current = imageUrls;
-	}, [imageUrls]);
 
 
 	/**
@@ -173,16 +134,12 @@ const App = () => {
 			provider,
 			awareness,
 			uploadStatusMap,
-			imageStylesMap,
-			imageUrlsMap,
 			sharedLayoutMap,
 		} = createYjsDocument({ projectId: roomName, accessToken, user, closeEvent });
 
 		setYjsDoc(doc);
 		setAwareness(awareness);
 		setUploadStatusMap(uploadStatusMap);
-		setImageStylesMap(imageStylesMap);
-		setImageUrlsMap(imageUrlsMap);
 		setSharedLayoutMap(sharedLayoutMap);
 
 		const handleSync = (isSynced: boolean) => {
@@ -200,6 +157,7 @@ const App = () => {
 
 		return () => {
 			dispatch(resetLayoutState());
+			dispatch(resetKeys());
 			cleanupYjsProvider(provider);
 			provider.off("sync", handleSync);
 		};
@@ -214,9 +172,12 @@ const App = () => {
 
 		const handleSharedLayoutChange = (events: Array<unknown>) => {
 			const targetMap = events[0] as Y.YMapEvent<unknown>;
-			const remoteLayoutDatas = targetMap.target.get("sections") as SectionData[];
-			if (!remoteLayoutDatas) return;
-			dispatch(setLayoutData({ layoutId: "default", sectionValues: remoteLayoutDatas }));
+			const remoteLayoutId = targetMap.target.get("layoutId") as string;
+			const remoteSections = targetMap.target.get("sections") as Section[];
+			const remoteLayoutStyle = targetMap.target.get("layoutStyle") as PageLayoutStyle;
+
+			if (!remoteSections) return;
+			dispatch(setLayoutData({layout:{layoutId: remoteLayoutId, sections: remoteSections, layoutStyle: remoteLayoutStyle}}));
 		};
 
 		sharedLayoutMap.observeDeep(handleSharedLayoutChange);
@@ -242,38 +203,6 @@ const App = () => {
 	}, [uploadStatusMap]);
 
 
-	useEffect(() => {
-		if (!imageStylesMap) return;
-
-		const handleImageStylesChange = (event: Y.YMapEvent<unknown>) => {
-			const yjsImageStyles = event.target.toJSON();
-			if (JSON.stringify(yjsImageStyles) !== JSON.stringify(imageStylesRef.current)) {
-				dispatch(setAllImageStyles(yjsImageStyles));
-			}
-		};
-
-		imageStylesMap.observe(handleImageStylesChange);
-		return () => {
-			imageStylesMap.unobserve(handleImageStylesChange);
-		};
-	}, [imageStylesMap]);
-
-	useEffect(() => {
-		if (!imageUrlsMap) return;
-
-		const handleImageUrlsChange = (event: Y.YMapEvent<unknown>) => {
-			const yjsImageUrls = event.target.toJSON();
-			if (JSON.stringify(yjsImageUrls) !== JSON.stringify(imageUrlsRef.current)) {
-				dispatch(setAllImageUrls(yjsImageUrls));
-			}
-		};
-
-		imageUrlsMap.observe(handleImageUrlsChange);
-		return () => {
-			imageUrlsMap.unobserve(handleImageUrlsChange);
-		};
-	}, [imageUrlsMap]);
-
 
 
 	/**
@@ -294,8 +223,8 @@ const App = () => {
 
 		// 로컬 변경을 YJS에 반영
 		// 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
-		const currentSections = sharedLayoutMap.get("sections") as SectionData[] | undefined;
-		const isSame = JSON.stringify(currentSections) === JSON.stringify(layoutDatas);
+		const currentSections = sharedLayoutMap.get("sections") as Section[] | undefined;
+		const isSame = JSON.stringify(currentSections) === JSON.stringify(sections);
 
 		// [1] 최초 sync 전 → 수정 차단
 		if (!lastSyncDate) return;
@@ -307,7 +236,7 @@ const App = () => {
 		// [2] sync 중이면 정상 반영
 		if (isSync) {
 			if (!isSame) {
-				sharedLayoutMap.set("sections", layoutDatas);
+				sharedLayoutMap.set("sections", sections);
 			}
 			return;
 		}
@@ -315,7 +244,7 @@ const App = () => {
 		// [3] 오프라인 상태: 60초 이내 수정 가능
 		if (elapsed <= 60_000) {
 			if (!isSame) {
-				sharedLayoutMap.set("sections", layoutDatas);
+				sharedLayoutMap.set("sections", sections);
 			}
 			return;
 		}
@@ -329,7 +258,7 @@ const App = () => {
 		}
 
 
-	}, [layoutDatas, syncInfo, projectPermission]);
+	}, [sections, syncInfo, projectPermission]);
 
 
 	useEffect(() => {
@@ -348,36 +277,6 @@ const App = () => {
 	}, [uploadStatus, uploadStatusMap]);
 
 
-	useEffect(() => {
-		if (!imageStylesMap) return;
-		const current = imageStylesRef.current;
-		Object.entries(current).forEach(([itemKey, style]) => {
-			const yjsStyle = imageStylesMap.get(itemKey);
-			if (!yjsStyle || JSON.stringify(yjsStyle) !== JSON.stringify(style)) {
-				imageStylesMap.set(itemKey, style);
-			}
-		});
-		// 삭제된 키 동기화
-		imageStylesMap.forEach((_, key) => {
-			if (!current[key]) imageStylesMap.delete(key);
-		});
-	}, [imageStyles, imageStylesMap]);
-
-
-	useEffect(() => {
-		if (!imageUrlsMap) return;
-		const current = imageUrlsRef.current;
-		Object.entries(current).forEach(([itemKey, url]) => {
-			const yjsUrl = imageUrlsMap.get(itemKey);
-			if (!yjsUrl || yjsUrl !== url) {
-				imageUrlsMap.set(itemKey, url);
-			}
-		});
-		// 삭제된 키 동기화
-		imageUrlsMap.forEach((_, key) => {
-			if (!current[key]) imageUrlsMap.delete(key);
-		});
-	}, [imageUrls, imageUrlsMap]);
 
 	useEffect(() => {
 		const {lastSyncDate} = syncInfo;
@@ -409,16 +308,6 @@ const App = () => {
 
 	}, []);
 
-	/**
-	 * page func
-	 */
-
-	const generateUUID = useCallback(() => {
-		if (typeof window !== "undefined") {
-			return crypto.randomUUID();
-		}
-		return "temp-id";
-	}, []);
 
 
 	const addToHistory = (components: ComponentItem[]) => {
@@ -652,6 +541,14 @@ const App = () => {
 											className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"}`}
 									></i>
 								</button>
+								{/* 페이지 설정 */}
+								<button
+										onClick={()=>pageSettingModal.open()}
+										className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap"
+										title="페이지 설정"
+								>
+									<i className="fas fa-cog"></i>
+								</button>
 							</div>
 						</div>
 						<div className="flex-1 overflow-y-auto p-8 flex justify-center">
@@ -699,12 +596,9 @@ const App = () => {
 												//     dispatch(changeNowSectionKey(newSection.sectionKey));
 												//   }, [dispatch, generateUUID]);
 
-												const newSection: SectionData = {
-													sectionKey: generateUUID(),
-													layoutValues: [],
-												};
+
 												if (componentType === "컨테이너") {
-													dispatch(addSection({newSection}));
+													dispatch(addSection({newSection: createDefaultSection()}));
 													return;
 												}
 												// setDroppedComponents(updatedComponents);
@@ -746,19 +640,14 @@ const App = () => {
 														>
 															<ActiveUsers
 																	awareness={awareness}
-																	layoutDatas={layoutDatas}
+																	sections={sections}
 																	uploadStatus={uploadStatus}
 															/>
 														</div>
 												)}
 											</div>
 									)}
-									<MainContent
-											layoutDatas={layoutDatas}
-											selectedItemKey={selectedItemKey}
-											nowSectionKey={nowSectionKey}
-											imageUrlsMap={imageUrlsMap}
-									/>
+									<MainContent sections={sections}/>
 									{/* {droppedComponents.map((component) => (
                   <div
                     key={component.id}
@@ -833,7 +722,7 @@ const App = () => {
                     </div>
                   </div>
                 ))} */}
-									{layoutDatas.length === 0 && (
+									{sections.length === 0 && (
 											<div
 													className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
 												<div className="text-gray-400 mb-3">
@@ -853,13 +742,13 @@ const App = () => {
 					</main>
 
 					{/* 우측 사이드바 (속성 패널) */}
-					<SideMenu
-							// isOpen={isSideMenuOpen}
-							// onClose={() => setIsSideMenuOpen(false)}
-							addSection={() => {
-							}}
-							isFullscreen={isFullscreen}
-					/>
+					<SideMenu isFullscreen={isFullscreen}/>
+
+					{
+						pageSettingModal.show && (
+								<PageSettingModal modal={pageSettingModal}/>
+							)
+					}
 
 					{/* Setting Dialog */}
 					{
@@ -884,8 +773,8 @@ const App = () => {
 					{
 						previewModal.show && (
 								<LayoutViewerModal modal={previewModal}
-								                   sectionValues={layoutDatas}
-								                   imageStyles={imageStyles}/>
+								                   layouts={[layout]}
+								/>
 							)
 					}
 

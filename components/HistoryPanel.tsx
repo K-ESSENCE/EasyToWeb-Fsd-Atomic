@@ -95,10 +95,9 @@ const HistoryPanel = ({
 				{
 						viewerModal.show && (
 								<LayoutViewerModal modal={viewerModal}
-								                   sectionValues={json?.sections ?? []}
+								                   layouts={json?.layouts ?? []}
 								                   loading={previewLoading}
-								                   error={!(json?.sections) ? "오류가 발생했습니다. 관리자에게 문의주세요." : ""}
-								                   imageStyles={json?.imageStyles ?? {}}
+								                   error={!(json?.layouts) ? "오류가 발생했습니다. 관리자에게 문의주세요." : ""}
 								/>
 						)
 				}

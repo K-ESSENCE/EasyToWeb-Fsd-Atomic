@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import apiHandler from "../../../shared/api/axios";
-import React from "react";
-import { SectionData } from "../../../components/types/common/layoutStyle";
 import LayoutViewer from "../../../components/LayoutViewer";
 import CenteredStatus from "../../../components/CenteredStatus";
+import {LayoutState} from "../../../store/slices/editor";
 
 function isAxiosErrorWithResponse(err: unknown): err is {
   response: { data?: { errors?: { errorDescription?: string } } };
@@ -20,7 +19,7 @@ export default function ProjectPage({
   params: Promise<{ url: string }>;
 }) {
   const { url } = React.use(params);
-  const [content, setContent] = useState<SectionData[] | null>(null);
+  const [content, setContent] = useState<LayoutState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   console.log("url", url);
@@ -33,7 +32,7 @@ export default function ProjectPage({
       .getPublishedProject(url)
       .then((res) => {
         if (res.data?.content) {
-          console.log(res.data.content, "??");
+          console.log(res.data.content);
           setContent(JSON.parse(res.data.content));
         }
         if (res?.data?.content === null) {
@@ -64,10 +63,8 @@ export default function ProjectPage({
   if (!content) return <CenteredStatus type="empty" message="없는 페이지입니다." />;
 
   return (
-    <div className="w-full h-full">
-      <LayoutViewer sectionValues={content}
-                    imageStyles={{}}
-      />
-    </div>
+      <div className="w-full h-full flex items-center justify-center">
+        <LayoutViewer layouts={[content]}/>
+      </div>
   );
 }

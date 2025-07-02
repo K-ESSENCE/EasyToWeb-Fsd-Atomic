@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import layoutsSlice from './slices/layouts';
+import layoutsSlice from './slices/editor';
 import keysSlice from './slices/keys';
 import settingsSlice from './slices/settings';
 import sectionsSlice from './slices/sections';

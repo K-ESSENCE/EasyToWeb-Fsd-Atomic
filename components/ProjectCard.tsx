@@ -116,8 +116,7 @@ const ProjectCard = ({
 						className="group relative bg-white rounded-lg border border-gray-200 overflow-visible hover:shadow-lg transition-shadow duration-200 cursor-pointer"
 						onClick={() => router.push(`/editor/${project.id}`)}
 				>
-					<div className="aspect-[4/3] overflow-hidden">
-						{/* 썸네일이 있으면 표시, 없으면 기본 이미지 */}
+					<div className="aspect-[4/3] overflow-hidden bg-gray-100">
 						<img
 								src={project.thumbnailUrl ? `${FULL_API_URL}${project.thumbnailUrl}` : "/project.jpg"}
 								alt={project.title}

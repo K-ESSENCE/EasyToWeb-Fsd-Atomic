@@ -1,4 +1,6 @@
 // API Response Types
+import {Permission} from "../../components/types/common/status";
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T | null;
@@ -98,14 +100,6 @@ export interface ProjectMember {
   permission: Permission;
 }
 
-export const PERMISSION_ORDER = {
-  OWNER: 3,
-  ADMIN: 2,
-  EDIT: 1,
-  READ_ONLY: 0,
-} as const;
-
-export type Permission = keyof typeof PERMISSION_ORDER;
 
 export interface ProjectCreateRequest {
   title: string;

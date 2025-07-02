@@ -1,4 +1,6 @@
-interface DefaultProps {
+import React from "react";
+
+interface SelectableFrameProps {
 	isItem?: boolean;
 	thisKey: string;
 	selectedKey: string | null;
@@ -12,7 +14,7 @@ const SelectableFrame = ({
 	                         selectedKey,
 	                         children,
 	                         changeKey,
-                         }: DefaultProps) => {
+                         }: SelectableFrameProps) => {
 	const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
 		// 삭제 버튼 클릭 시 이벤트 전파 방지
 		if (isItem) {
@@ -33,7 +35,7 @@ const SelectableFrame = ({
 
 	return (
 			<div
-					className={`mt-5 p-4 rounded-md transition-all duration-150 ease-in-out
+					className={`p-4 rounded-md transition-all duration-150 ease-in-out
     ${isSelected ? "ring-2 ring-offset-2 ring-green-400 bg-green-50" : "ring-1 ring-transparent"}
     hover:ring-2 hover:ring-blue-400 hover:bg-blue-50`}
 					onClick={handleClick}

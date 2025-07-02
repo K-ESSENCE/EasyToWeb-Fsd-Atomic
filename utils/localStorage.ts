@@ -1,4 +1,4 @@
-import { LayoutData } from "../components/types/common/layoutStyle";
+import { LayoutData } from "../components/types/common/layout";
 
 const EDITOR_STATE_KEY = 'easytoweb_editor_state';
 

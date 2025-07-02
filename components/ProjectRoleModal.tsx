@@ -1,13 +1,14 @@
 import BaseModal from "./BaseModal";
 import {UseModalReturnType} from "../hooks/useModal";
-import {Permission, PERMISSION_ORDER, ProjectMember, PromiseError} from "../shared/api/types";
+import { ProjectMember, PromiseError} from "../shared/api/types";
 import apiHandler from "../shared/api/axios";
 import toast from "react-hot-toast";
 import {useEffect, useState} from "react";
-import {setProjectPermission, setProjectPublishUrl} from "../store/slices/layouts";
+import {setProjectPermission} from "../store/slices/editor";
 import {getAccountInfoFromLocal} from "../utils/session";
 import {useDispatch} from "react-redux";
 import useAlert from "../hooks/useAlert";
+import {Permission, PERMISSION_ORDER} from "./types/common/status";
 
 interface ProjectRoleModalProps {
 	modal: UseModalReturnType,
