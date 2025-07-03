@@ -27,6 +27,7 @@ const EditableText = ({ item, onTextChange }: EditableTextProps) => {
     margin: commonStyle.margin,
     padding: commonStyle.padding,
     borderRadius: commonStyle.borderRadius,
+    backgroundColor: commonStyle.backgroundColor,
     minHeight: "1.5em",
     minWidth: "1.5em",
     whiteSpace: "pre-wrap",

@@ -8,19 +8,17 @@ interface BaseModalProps {
 	widthClass?: string; // optional: 너비 조정
 }
 
-const BaseModal = ({ modal, children, widthClass = "max-w-md" }: BaseModalProps) => {
+const BaseModal = ({modal, children, widthClass = "max-w-md"}: BaseModalProps) => {
 	if (!modal.show || typeof window === "undefined") return null;
 
 	return createPortal(
 			<div
-					className="fixed inset-0 z-50 flex items-center justify-center"
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 					onClick={modal.close}
 			>
-				<div className="absolute inset-0 bg-black bg-opacity-50"/>
-
 				<div
-						className={`relative z-10 w-full ${widthClass} bg-white rounded-xl shadow-2xl p-6 pt-10 mx-4`}
-						onClick={(e) => e.stopPropagation()}
+						className={`relative z-10 w-full ${widthClass} bg-white rounded-xl shadow-2xl flex flex-col max-h-full overflow-hidden`}
+						onClick={e => e.stopPropagation()}
 				>
 					<button
 							onClick={modal.close}
@@ -30,7 +28,7 @@ const BaseModal = ({ modal, children, widthClass = "max-w-md" }: BaseModalProps)
 						<i className="fas fa-times"/>
 					</button>
 
-					<div className="mt-1">
+					<div className="overflow-y-auto flex-1 p-6">
 						{children}
 					</div>
 				</div>

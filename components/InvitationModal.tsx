@@ -57,7 +57,7 @@ const InvitationModal = ({
 					팀원 초대
 				</h3>
 				<input
-						className="w-full mb-3 px-3 py-2 border rounded"
+						className="w-full mb-3 px-3 py-2 border rounded text-gray-800"
 						placeholder="이메일 입력"
 						value={inviteEmail}
 						onChange={(e) => setInviteEmail(e.target.value)}

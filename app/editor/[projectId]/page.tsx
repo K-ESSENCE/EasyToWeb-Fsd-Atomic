@@ -5,7 +5,9 @@ import SectionList from "../../../components/SideMenu/SectionList";
 import SideMenu from "../../../components/SideMenu/SideMenu";
 import SettingDialog from "../../../components/SettingDialog";
 import {
-	addSection, PageLayoutStyle,
+	addLayout,
+	addSection,
+	PageLayoutStyle,
 	resetLayoutState,
 	setAllImageUploadStatus,
 	setLayoutData,
@@ -15,7 +17,12 @@ import {
 import {useDispatch, useSelector} from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
 import {RootState} from "../../../store/configureStore";
-import {cleanupYjsProvider, createYjsDocument, updateUserSelection,} from "../../../utils/yjs";
+import {
+	cleanupYjsProvider,
+	createYjsDocument,
+	getTestDoc,
+	updateUserSelection,
+} from "../../../utils/yjs";
 import ActiveUsers from "../../../components/ActiveUsers";
 import {Awareness} from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
@@ -464,7 +471,7 @@ const App = () => {
 						</button>
 
 						<button
-								onClick={() => setShowSettings(true)}
+								onClick={() => {setShowSettings(true)}}
 								className="p-2 text-gray-500 hover:text-gray-700 cursor-pointer whitespace-nowrap"
 						>
 							<i className="fas fa-cog text-lg"></i>

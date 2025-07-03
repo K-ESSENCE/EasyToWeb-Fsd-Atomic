@@ -131,7 +131,7 @@ const ProjectRoleModal = ({
 													onChange={(e) =>
 															handleRoleSave(member.accountId, e.target.value as Permission)
 													}
-													className="border rounded px-2 py-1 text-sm w-40 disabled:bg-gray-100 disabled:text-gray-400"
+													className="border rounded px-2 py-1 text-sm w-40 disabled:bg-gray-100 disabled:text-gray-400 text-gray-800"
 											>
 												<option value="OWNER">OWNER</option>
 												<option value="ADMIN">ADMIN</option>

@@ -20,7 +20,8 @@ const LayoutViewerModal = ({
 
 	return (
 			<BaseModal modal={modal} widthClass={"w-[85vw] h-[85vh]"}>
-				<div className="w-full h-full flex flex-col gap-4 text-black">
+				<div
+						className="flex flex-col justify-center items-center h-full overflow-auto p-4 text-black">
 					{
 						loading ? (
 										<div

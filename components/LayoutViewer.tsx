@@ -22,7 +22,7 @@ const LayoutViewer = ({ layouts }: LayoutViewerProps) => {
 
 	return (
 			<div
-					className="flex flex-col transition-all duration-200 min-h-screen overflow-y-auto mb-[80px]"
+					className="flex flex-col transition-all duration-200 min-h-0 overflow-y-auto mb-[80px]"
 					style={wrapperStyle}
 			>
 				{sections.map((section, key) => {
@@ -89,6 +89,7 @@ const LayoutViewer = ({ layouts }: LayoutViewerProps) => {
 												margin: commonStyle.margin,
 												padding: commonStyle.padding,
 												borderRadius: commonStyle.borderRadius,
+												backgroundColor: commonStyle.backgroundColor,
 												minHeight: "1.5em",
 												minWidth: "1.5em",
 												whiteSpace: "pre-wrap",

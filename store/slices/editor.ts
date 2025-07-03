@@ -229,6 +229,14 @@ const layoutSlice = createSlice({
 				section.layout = {...section.layout, ...payload.layout};
 			}
 		},
+		addLayout: (
+				state,
+				{payload}: PayloadAction<{
+					layout: LayoutState;
+				}>
+		) => {
+			state.layouts[0] = payload.layout
+		},
 		updateCommonStyle: (
 				state,
 				{payload}: PayloadAction<{
@@ -293,6 +301,7 @@ export const {
 	deleteSection,
 	updateSectionTitle,
 	addLayoutItem,
+	addLayout,
 	addImageToSection,
 	deleteLayoutItem,
 	updateImageUrl,
