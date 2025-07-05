@@ -1,429 +1,453 @@
 "use client";
 
-import React, {useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SectionList from "../../../components/SideMenu/SectionList";
 import SideMenu from "../../../components/SideMenu/SideMenu";
 import SettingDialog from "../../../components/SettingDialog";
 import {
-	addLayout,
-	addSection,
-	PageLayoutStyle,
-	resetLayoutState,
-	setAllImageUploadStatus,
-	setLayoutData,
-	setProjectPermission,
-	setProjectPublishUrl,
+  addSection,
+  PageLayoutStyle,
+  resetLayoutState,
+  setAllImageUploadStatus,
+  setLayoutData,
+  setProjectPermission,
+  setProjectPublishUrl,
 } from "../../../store/slices/editor";
-import {useDispatch, useSelector} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MainContent from "../../../components/organisms/MainContent";
-import {RootState} from "../../../store/configureStore";
+import { RootState } from "../../../store/configureStore";
 import {
-	cleanupYjsProvider,
-	createYjsDocument,
-	getTestDoc,
-	updateUserSelection,
+  cleanupYjsProvider,
+  createYjsDocument,
+  updateUserSelection,
 } from "../../../utils/yjs";
 import ActiveUsers from "../../../components/ActiveUsers";
-import {Awareness} from "y-protocols/awareness";
+import { Awareness } from "y-protocols/awareness";
 import apiHandler from "../../../shared/api/axios";
-import {useParams, useRouter} from "next/navigation";
-import * as Y from 'yjs';
-import {getAccessTokenFromLocal, getAccountInfoFromLocal,} from "../../../utils/session";
-import {useModal} from "../../../hooks/useModal";
+import { useParams, useRouter } from "next/navigation";
+import * as Y from "yjs";
+import {
+  getAccessTokenFromLocal,
+  getAccountInfoFromLocal,
+} from "../../../utils/session";
+import { useModal } from "../../../hooks/useModal";
 import HistoryPanel from "../../../components/HistoryPanel";
 import PageLoader from "../../../components/PageLoader";
 import LayoutViewerModal from "../../../components/LayoutViewerModal";
-import {ProjectUpdateRequest} from "../../../shared/api/types";
+import { ProjectUpdateRequest } from "../../../shared/api/types";
 import ProjectPublishModal from "../../../components/ProjectPublishModal";
-import {createDefaultSection, Section} from "../../../components/types/common/layout";
-import {resetKeys} from "../../../store/slices/keys";
+import {
+  createDefaultSection,
+  Section,
+} from "../../../components/types/common/layout";
+import { resetKeys } from "../../../store/slices/keys";
 import PageSettingModal from "../../../components/PageSettingModal";
 
-
 interface ComponentItem {
-	id: string;
-	type: string;
-	position: { x: number; y: number };
+  id: string;
+  type: string;
+  position: { x: number; y: number };
 }
 
 interface HistoryState {
-	droppedComponents: ComponentItem[];
+  droppedComponents: ComponentItem[];
 }
 
-
 const App = () => {
-	const dispatch = useDispatch();
-	const params = useParams();
-	const router = useRouter();
-	const projectId = params.projectId as string;
-	// const query = useSearchParams().get("clear");
+  const dispatch = useDispatch();
+  const params = useParams();
+  const router = useRouter();
+  const projectId = params.projectId as string;
+  // const query = useSearchParams().get("clear");
 
-	/**
-	 * selector
-	 */
-	const layout = useSelector((state: RootState) => state.layouts.layouts[0]);
-	const sections = useSelector((state: RootState) => state.layouts.layouts[0].sections);
-	const uploadStatus = useSelector((state: RootState) => state.layouts.uploadStatus);
-	const projectPermission = useSelector((state: RootState) => state.layouts.projectPermission);
-	const projectPublishUrl = useSelector((state: RootState) => state.layouts.projectPublishUrl)
+  /**
+   * selector
+   */
+  const layout = useSelector((state: RootState) => state.layouts.layouts[0]);
+  const sections = useSelector(
+    (state: RootState) => state.layouts.layouts[0].sections
+  );
+  const uploadStatus = useSelector(
+    (state: RootState) => state.layouts.uploadStatus
+  );
+  const projectPermission = useSelector(
+    (state: RootState) => state.layouts.projectPermission
+  );
+  const projectPublishUrl = useSelector(
+    (state: RootState) => state.layouts.projectPublishUrl
+  );
 
-	const nowSectionKey = useSelector((state: RootState) => state.keys.nowSectionKey);
-	const selectedItemKey = useSelector((state: RootState) => state.keys.nowItemKey);
+  const nowSectionKey = useSelector(
+    (state: RootState) => state.keys.nowSectionKey
+  );
+  const selectedItemKey = useSelector(
+    (state: RootState) => state.keys.nowItemKey
+  );
 
+  /**
+   * state
+   */
+  const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
+  const [awareness, setAwareness] = useState<Awareness | null>(null);
+  const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<unknown> | null>(
+    null
+  );
+  const [sharedLayoutMap, setSharedLayoutMap] = useState<Y.Map<unknown> | null>(
+    null
+  );
 
+  const [syncInfo, setSyncInfo] = useState<{
+    isSync: boolean;
+    lastSyncDate: Date | null;
+  }>({ isSync: false, lastSyncDate: null });
+  const [showSettings, setShowSettings] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  // const [showToast, setShowToast] = useState(false);
 
-	/**
-	 * state
-	 */
-	const [yjsDoc, setYjsDoc] = useState<Y.Doc | null>(null);
-	const [awareness, setAwareness] = useState<Awareness | null>(null);
-	const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<unknown> | null>(null);
-	const [sharedLayoutMap, setSharedLayoutMap] = useState<Y.Map<unknown> | null>(null);
+  const historyModal = useModal();
+  const previewModal = useModal();
+  const publishModal = useModal();
+  const pageSettingModal = useModal();
 
-	const [syncInfo, setSyncInfo] = useState<{isSync: boolean, lastSyncDate: Date | null}>({isSync: false, lastSyncDate: null});
-	const [showSettings, setShowSettings] = useState(false);
-	const [searchTerm, setSearchTerm] = useState("");
-	const [isFullscreen, setIsFullscreen] = useState(true);
-	const [isDragging, setIsDragging] = useState(false);
-	// const [showToast, setShowToast] = useState(false);
+  const [droppedComponents, setDroppedComponents] = useState<ComponentItem[]>(
+    []
+  );
 
-	const historyModal = useModal();
-	const previewModal = useModal();
-	const publishModal = useModal();
-	const pageSettingModal = useModal();
+  const [history, setHistory] = useState<HistoryState[]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+  const [projectInfo, setProjectInfo] = useState({
+    id: "",
+    title: "",
+    description: "",
+  });
+  const [projectName, setProjectName] = useState("새 프로젝트");
+  const [showProjectNameInput, setShowProjectNameInput] = useState(false);
+  const [showUsersPopover, setShowUsersPopover] = useState(false);
+  const [offlineMessage, setOfflineMessage] = useState("");
 
-	const [droppedComponents, setDroppedComponents] = useState<ComponentItem[]>([]);
+  /**
+   * ref
+   */
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const usersPopoverRef = useRef<HTMLDivElement>(null);
+  const uploadStatusRef = useRef(uploadStatus);
 
-	const [history, setHistory] = useState<HistoryState[]>([]);
-	const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
-	const [projectInfo, setProjectInfo] = useState({id:"", title:"", description: ""})
-	const [projectName, setProjectName] = useState("새 프로젝트");
-	const [showProjectNameInput, setShowProjectNameInput] = useState(false);
-	const [showUsersPopover, setShowUsersPopover] = useState(false);
-	const [offlineMessage, setOfflineMessage] = useState("");
+  /**
+   * ref init
+   */
+  useEffect(() => {
+    uploadStatusRef.current = uploadStatus;
+  }, [uploadStatus]);
 
-	/**
-	 * ref
-	 */
-	const canvasRef = useRef<HTMLDivElement>(null);
-	const usersPopoverRef = useRef<HTMLDivElement>(null);
-	const uploadStatusRef = useRef(uploadStatus);
+  /**
+   * 기본 초기화 및 provider 관리
+   */
+  useEffect(() => {
+    if (!projectId) return;
 
+    const getRandomColor = () =>
+      `#${Math.floor(Math.random() * 16777215)
+        .toString(16)
+        .padStart(6, "0")}`;
 
-	/**
-	 * ref init
-	 */
-	useEffect(() => {
-		uploadStatusRef.current = uploadStatus;
-	}, [uploadStatus]);
+    const roomName = projectId;
+    const accessToken = getAccessTokenFromLocal() || "";
+    const user = {
+      id: getAccountInfoFromLocal()?.email || "guest",
+      name: getAccountInfoFromLocal()?.nickname || "게스트",
+      color: getRandomColor(),
+    };
+    const closeEvent = () => router.back();
 
+    const { doc, provider, awareness, uploadStatusMap, sharedLayoutMap } =
+      createYjsDocument({ projectId: roomName, accessToken, user, closeEvent });
 
-	/**
-	 * 기본 초기화 및 provider 관리
-	 */
-	useEffect(() => {
-		if (!projectId) return;
+    setYjsDoc(doc);
+    setAwareness(awareness);
+    setUploadStatusMap(uploadStatusMap);
+    setSharedLayoutMap(sharedLayoutMap);
 
-		const getRandomColor = () =>
-				`#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`;
+    const handleSync = (isSynced: boolean) => {
+      console.log("Yjs synced with server:", isSynced);
 
-		const roomName = projectId;
-		const accessToken = getAccessTokenFromLocal() || "";
-		const user = {
-			id: getAccountInfoFromLocal()?.email || "guest",
-			name: getAccountInfoFromLocal()?.nickname || "게스트",
-			color: getRandomColor(),
-		};
-		const closeEvent = () => router.back();
+      if (isSynced) {
+        setSyncInfo({ isSync: true, lastSyncDate: new Date() });
+      } else {
+        setSyncInfo((info) => ({ ...info, isSync: false }));
+      }
+    };
 
-		const {
-			doc,
-			provider,
-			awareness,
-			uploadStatusMap,
-			sharedLayoutMap,
-		} = createYjsDocument({ projectId: roomName, accessToken, user, closeEvent });
+    provider.on("sync", handleSync);
 
-		setYjsDoc(doc);
-		setAwareness(awareness);
-		setUploadStatusMap(uploadStatusMap);
-		setSharedLayoutMap(sharedLayoutMap);
+    return () => {
+      dispatch(resetLayoutState());
+      dispatch(resetKeys());
+      cleanupYjsProvider(provider);
+      provider.off("sync", handleSync);
+    };
+  }, [projectId]);
 
-		const handleSync = (isSynced: boolean) => {
-			console.log("Yjs synced with server:", isSynced);
+  /**
+   * yjs -> state 변동사항 적용 effect
+   */
+  useEffect(() => {
+    if (!sharedLayoutMap) return;
 
-			if (isSynced) {
-				setSyncInfo({ isSync: true, lastSyncDate: new Date() });
-			} else {
-				setSyncInfo((info) => ({ ...info, isSync: false }));
-			}
-		}
+    const handleSharedLayoutChange = (events: Array<unknown>) => {
+      const targetMap = events[0] as Y.YMapEvent<unknown>;
+      const remoteLayoutId = targetMap.target.get("layoutId") as string;
+      const remoteSections = targetMap.target.get("sections") as Section[];
+      const remoteLayoutStyle = targetMap.target.get(
+        "layoutStyle"
+      ) as PageLayoutStyle;
 
-		provider.on("sync", handleSync);
+      if (!remoteSections) return;
+      dispatch(
+        setLayoutData({
+          layout: {
+            layoutId: remoteLayoutId,
+            sections: remoteSections,
+            layoutStyle: remoteLayoutStyle,
+          },
+        })
+      );
+    };
 
+    sharedLayoutMap.observeDeep(handleSharedLayoutChange);
+    return () => {
+      sharedLayoutMap.unobserveDeep(handleSharedLayoutChange);
+    };
+  }, [sharedLayoutMap, syncInfo]);
 
-		return () => {
-			dispatch(resetLayoutState());
-			dispatch(resetKeys());
-			cleanupYjsProvider(provider);
-			provider.off("sync", handleSync);
-		};
-	}, [projectId]);
+  useEffect(() => {
+    if (!uploadStatusMap) return;
 
+    const handleUploadStatusChange = (event: Y.YMapEvent<unknown>) => {
+      const yjsUploadStatus = event.target.toJSON();
+      if (
+        JSON.stringify(yjsUploadStatus) !==
+        JSON.stringify(uploadStatusRef.current)
+      ) {
+        dispatch(setAllImageUploadStatus(yjsUploadStatus));
+      }
+    };
 
-	/**
-	 * yjs -> state 변동사항 적용 effect
-	 */
-	useEffect(() => {
-		if (!sharedLayoutMap) return;
+    uploadStatusMap.observe(handleUploadStatusChange);
+    return () => {
+      uploadStatusMap.unobserve(handleUploadStatusChange);
+    };
+  }, [uploadStatusMap]);
 
-		const handleSharedLayoutChange = (events: Array<unknown>) => {
-			const targetMap = events[0] as Y.YMapEvent<unknown>;
-			const remoteLayoutId = targetMap.target.get("layoutId") as string;
-			const remoteSections = targetMap.target.get("sections") as Section[];
-			const remoteLayoutStyle = targetMap.target.get("layoutStyle") as PageLayoutStyle;
+  /**
+   * state -> yjs 변경사항 적용 effect
+   */
+  // nowSectionKey나 selectedItemKey가 변경될 때 awareness 상태 업데이트
+  useEffect(() => {
+    if (awareness) {
+      updateUserSelection(awareness, nowSectionKey, selectedItemKey);
+    }
+  }, [awareness, nowSectionKey, selectedItemKey]);
 
-			if (!remoteSections) return;
-			dispatch(setLayoutData({layout:{layoutId: remoteLayoutId, sections: remoteSections, layoutStyle: remoteLayoutStyle}}));
-		};
+  useEffect(() => {
+    if (!yjsDoc || !sharedLayoutMap) return;
+    if (projectPermission === "READ_ONLY") return;
 
-		sharedLayoutMap.observeDeep(handleSharedLayoutChange);
-		return () => {
-			sharedLayoutMap.unobserveDeep(handleSharedLayoutChange);
-		};
-	}, [sharedLayoutMap, syncInfo]);
+    const { isSync, lastSyncDate } = syncInfo;
 
-	useEffect(() => {
-		if (!uploadStatusMap) return;
+    // 로컬 변경을 YJS에 반영
+    // 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
+    const currentSections = sharedLayoutMap.get("sections") as
+      | Section[]
+      | undefined;
+    const isSame = JSON.stringify(currentSections) === JSON.stringify(sections);
 
-		const handleUploadStatusChange = (event: Y.YMapEvent<unknown>) => {
-			const yjsUploadStatus = event.target.toJSON();
-			if (JSON.stringify(yjsUploadStatus) !== JSON.stringify(uploadStatusRef.current)) {
-				dispatch(setAllImageUploadStatus(yjsUploadStatus));
-			}
-		};
+    // [1] 최초 sync 전 → 수정 차단
+    if (!lastSyncDate) return;
 
-		uploadStatusMap.observe(handleUploadStatusChange);
-		return () => {
-			uploadStatusMap.unobserve(handleUploadStatusChange);
-		};
-	}, [uploadStatusMap]);
+    const now = Date.now();
+    const lastSyncTime = new Date(lastSyncDate).getTime();
+    const elapsed = now - lastSyncTime;
 
+    // [2] sync 중이면 정상 반영
+    if (isSync) {
+      if (!isSame) {
+        sharedLayoutMap.set("sections", sections);
+      }
+      return;
+    }
 
+    // [3] 오프라인 상태: 60초 이내 수정 가능
+    if (elapsed <= 60_000) {
+      if (!isSame) {
+        sharedLayoutMap.set("sections", sections);
+      }
+      return;
+    }
 
-
-	/**
-	 * state -> yjs 변경사항 적용 effect
-	 */
-	// nowSectionKey나 selectedItemKey가 변경될 때 awareness 상태 업데이트
-	useEffect(() => {
-		if (awareness) {
-			updateUserSelection(awareness, nowSectionKey, selectedItemKey);
-		}
-	}, [awareness, nowSectionKey, selectedItemKey]);
-
-	useEffect(() => {
-		if (!yjsDoc || !sharedLayoutMap) return;
-		if (projectPermission === "READ_ONLY") return;
-
-		const { isSync, lastSyncDate } = syncInfo;
-
-		// 로컬 변경을 YJS에 반영
-		// 현재 값과 비교해서 실제로 변경이 있는 경우만 업데이트
-		const currentSections = sharedLayoutMap.get("sections") as Section[] | undefined;
-		const isSame = JSON.stringify(currentSections) === JSON.stringify(sections);
-
-		// [1] 최초 sync 전 → 수정 차단
-		if (!lastSyncDate) return;
-
-		const now = Date.now();
-		const lastSyncTime = new Date(lastSyncDate).getTime();
-		const elapsed = now - lastSyncTime;
-
-		// [2] sync 중이면 정상 반영
-		if (isSync) {
-			if (!isSame) {
-				sharedLayoutMap.set("sections", sections);
-			}
-			return;
-		}
-
-		// [3] 오프라인 상태: 60초 이내 수정 가능
-		if (elapsed <= 60_000) {
-			if (!isSame) {
-				sharedLayoutMap.set("sections", sections);
-			}
-			return;
-		}
-
-		// [4] 60초 넘은 경우 수정 불가
-		if (elapsed > 60_000) {
-			console.warn("🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않을 수 있습니다.");
-			/*if (!isSame) {
+    // [4] 60초 넘은 경우 수정 불가
+    if (elapsed > 60_000) {
+      console.warn(
+        "🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않을 수 있습니다."
+      );
+      /*if (!isSame) {
 				sharedLayoutMap.set("sections", layoutDatas);
 			}*/
-		}
+    }
+  }, [sections, syncInfo, projectPermission]);
 
+  useEffect(() => {
+    if (!uploadStatusMap) return;
+    const current = uploadStatusRef.current;
+    Object.entries(current).forEach(([itemKey, status]) => {
+      const yjsStatus = uploadStatusMap.get(itemKey);
+      if (!yjsStatus || JSON.stringify(yjsStatus) !== JSON.stringify(status)) {
+        uploadStatusMap.set(itemKey, status);
+      }
+    });
+    // 삭제된 키 동기화
+    uploadStatusMap.forEach((_, key) => {
+      if (!current[key]) uploadStatusMap.delete(key);
+    });
+  }, [uploadStatus, uploadStatusMap]);
 
-	}, [sections, syncInfo, projectPermission]);
+  useEffect(() => {
+    const { lastSyncDate } = syncInfo;
+    if (!lastSyncDate) return;
 
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const last = new Date(lastSyncDate).getTime();
+      const diff = now - last;
 
-	useEffect(() => {
-		if (!uploadStatusMap) return;
-		const current = uploadStatusRef.current;
-		Object.entries(current).forEach(([itemKey, status]) => {
-			const yjsStatus = uploadStatusMap.get(itemKey);
-			if (!yjsStatus || JSON.stringify(yjsStatus) !== JSON.stringify(status)) {
-				uploadStatusMap.set(itemKey, status);
-			}
-		});
-		// 삭제된 키 동기화
-		uploadStatusMap.forEach((_, key) => {
-			if (!current[key]) uploadStatusMap.delete(key);
-		});
-	}, [uploadStatus, uploadStatusMap]);
+      if (!syncInfo.isSync) {
+        if (diff > 60_000) {
+          setOfflineMessage(
+            "🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않습니다."
+          );
+        } else if (diff > 6_000) {
+          setOfflineMessage("📡 현재 오프라인입니다. 네트워크를 확인해주세요.");
+        }
+      } else {
+        setOfflineMessage("");
+      }
+    }, 1000);
 
+    return () => clearInterval(interval);
+  }, [syncInfo]);
 
+  useEffect(() => {
+    getProjectInfo();
+  }, []);
 
-	useEffect(() => {
-		const {lastSyncDate} = syncInfo;
-		if (!lastSyncDate) return;
+  const addToHistory = (components: ComponentItem[]) => {
+    const newHistory = history.slice(0, currentHistoryIndex + 1);
+    newHistory.push({ droppedComponents: [...components] });
+    setHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+  };
 
-		const interval = setInterval(() => {
-			const now = Date.now();
-			const last = new Date(lastSyncDate).getTime();
-			const diff = now - last;
+  const handleUndo = () => {
+    if (currentHistoryIndex > 0) {
+      const previousState = history[currentHistoryIndex - 1];
+      setDroppedComponents(previousState.droppedComponents);
+      setCurrentHistoryIndex(currentHistoryIndex - 1);
+    }
+  };
 
-			if (!syncInfo.isSync) {
-				if (diff > 60_000) {
-					setOfflineMessage("🚨 60초 이상 서버와 sync되지 않았습니다. 수정 내용이 서버에 반영되지 않습니다.");
-				} else if (diff > 6_000) {
-					setOfflineMessage("📡 현재 오프라인입니다. 네트워크를 확인해주세요.");
-				}
-			} else {
-				setOfflineMessage("");
-			}
-		}, 1000);
+  const handleRedo = () => {
+    if (currentHistoryIndex < history.length - 1) {
+      const nextState = history[currentHistoryIndex + 1];
+      setDroppedComponents(nextState.droppedComponents);
+      setCurrentHistoryIndex(currentHistoryIndex + 1);
+    }
+  };
 
-		return () => clearInterval(interval);
-	}, [syncInfo]);
+  const handleProjectNameChange = async (newName: string) => {
+    setProjectName(newName);
+    setShowProjectNameInput(false);
 
+    try {
+      const newInfo = {
+        ...projectInfo,
+        title: newName,
+      } as ProjectUpdateRequest;
+      await apiHandler.updateProject(newInfo);
+      setProjectInfo(newInfo);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setShowProjectNameInput(false);
+    }
+  };
 
+  const handleFullScreen = () => {
+    setIsFullscreen((prev) => {
+      return !prev;
+    });
+  };
 
-	useEffect(() => {
-		getProjectInfo();
+  const getProjectInfo = async () => {
+    try {
+      const result = await apiHandler.getProject(projectId);
+      const members = result.data?.members ?? [];
+      const myAccountEmail = getAccountInfoFromLocal()?.email;
+      const per =
+        members.find((m) => m.email === myAccountEmail)?.permission ??
+        "READ_ONLY";
+      const publishUrl =
+        result.data?.status === "OPEN" ? result.data.publishUrl : null;
+      setIsFullscreen(per === "READ_ONLY");
+      dispatch(setProjectPermission({ projectPermission: per }));
+      dispatch(setProjectPublishUrl({ projectPublishUrl: publishUrl }));
+      setProjectName(result.data?.title ?? "프로젝트");
+      setProjectInfo({
+        id: result.data?.id ?? "",
+        title: result.data?.title ?? "",
+        description: result.data?.description ?? "",
+      });
+    } finally {
+    }
+  };
 
-	}, []);
-
-
-
-	const addToHistory = (components: ComponentItem[]) => {
-		const newHistory = history.slice(0, currentHistoryIndex + 1);
-		newHistory.push({droppedComponents: [...components]});
-		setHistory(newHistory);
-		setCurrentHistoryIndex(newHistory.length - 1);
-	};
-
-	const handleUndo = () => {
-		if (currentHistoryIndex > 0) {
-			const previousState = history[currentHistoryIndex - 1];
-			setDroppedComponents(previousState.droppedComponents);
-			setCurrentHistoryIndex(currentHistoryIndex - 1);
-		}
-	};
-
-	const handleRedo = () => {
-		if (currentHistoryIndex < history.length - 1) {
-			const nextState = history[currentHistoryIndex + 1];
-			setDroppedComponents(nextState.droppedComponents);
-			setCurrentHistoryIndex(currentHistoryIndex + 1);
-		}
-	};
-
-	const handleProjectNameChange = async (newName: string) => {
-		setProjectName(newName);
-		setShowProjectNameInput(false);
-
-		try {
-			const newInfo = {...projectInfo, title: newName} as ProjectUpdateRequest;
-			await apiHandler.updateProject(newInfo);
-			setProjectInfo(newInfo);
-
-		} catch (error){
-			console.log(error)
-
-		} finally {
-			setShowProjectNameInput(false);
-		}
-	};
-
-
-	const handleFullScreen = () => {
-		setIsFullscreen(prev => {
-			return !prev
-		});
-	}
-
-	const getProjectInfo = async () => {
-		try {
-			const result = await apiHandler.getProject(projectId);
-			const members = result.data?.members ?? [];
-			const myAccountEmail = getAccountInfoFromLocal()?.email;
-			const per = members.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
-			const publishUrl = result.data?.status === "OPEN" ? result.data.publishUrl : null;
-			setIsFullscreen(per === "READ_ONLY")
-			dispatch(setProjectPermission({projectPermission: per}));
-			dispatch(setProjectPublishUrl({projectPublishUrl: publishUrl}));
-			setProjectName(result.data?.title ?? "프로젝트");
-			setProjectInfo({
-				id: result.data?.id ?? "",
-				title: result.data?.title ?? "",
-				description: result.data?.description ?? "",
-			});
-
-		} finally {
-
-		}
-	}
-
-	return (
-			<div className="flex flex-col h-screen bg-gray-50">
-				{/* 상단 헤더 영역 */}
-				<header
-						className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
-					<div className="flex items-center space-x-4">
-						<div className="flex items-center">
-							<img
-									src="/logo_basic.png"
-									alt="Logo"
-									className="h-[60px] w-auto cursor-pointer"
-									onClick={() => router.push("/list")}
-							/>
-							{showProjectNameInput ? (
-									<input
-											type="text"
-											value={projectName}
-											onChange={(e) => setProjectName(e.target.value)}
-											onBlur={() => handleProjectNameChange(projectName)}
-											onKeyPress={(e) =>
-													e.key === "Enter" && handleProjectNameChange(projectName)
-											}
-											className="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 focus:outline-none bg-transparent"
-											autoFocus
-									/>
-							) : (
-									<h1
-											className="text-xl font-semibold text-gray-800 hover:text-blue-600 cursor-pointer flex items-center"
-											onClick={() => setShowProjectNameInput(true)}
-									>
-										{projectName}
-										<i className="fas fa-pencil-alt text-sm ml-2 text-gray-400"></i>
-									</h1>
-							)}
-						</div>
-					</div>
-					<div className="flex items-center space-x-3">
-						{/* <button
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* 상단 헤더 영역 */}
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center">
+            <img
+              src="/logo_basic.png"
+              alt="Logo"
+              className="h-[60px] w-auto cursor-pointer"
+              onClick={() => router.push("/list")}
+            />
+            {showProjectNameInput ? (
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                onBlur={() => handleProjectNameChange(projectName)}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && handleProjectNameChange(projectName)
+                }
+                className="text-xl font-semibold text-gray-800 border-b-2 border-blue-500 focus:outline-none bg-transparent"
+                autoFocus
+              />
+            ) : (
+              <h1
+                className="text-xl font-semibold text-gray-800 hover:text-blue-600 cursor-pointer flex items-center"
+                onClick={() => setShowProjectNameInput(true)}
+              >
+                {projectName}
+                <i className="fas fa-pencil-alt text-sm ml-2 text-gray-400"></i>
+              </h1>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          {/* <button
             onClick={handleSave}
             disabled={isSaving}
             className={`${
@@ -444,58 +468,65 @@ const App = () => {
               </>
             )}
           </button> */}
-						<button
-								className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
-								onClick={() => previewModal.open()}
-						>
-							<i className="fas fa-eye mr-2"></i>미리보기
-						</button>
+          <button
+            className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap"
+            onClick={() => previewModal.open()}
+          >
+            <i className="fas fa-eye mr-2"></i>미리보기
+          </button>
 
-						<button
-								onClick={()=> publishModal.open()}
-								className={`px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap flex items-center
-								${(!!projectPublishUrl)
-										? "bg-gray-200 hover:bg-gray-300 text-gray-600"
-										: "bg-blue-600 hover:bg-blue-700 text-white"
-								}`}
-						>
-							<i className={`mr-2 fas ${(!!projectPublishUrl) ? "fa-check" : "fa-rocket"}`}></i>
-							{(!!projectPublishUrl) ? "배포 완료됨" : "배포"}
-						</button>
+          <button
+            onClick={() => publishModal.open()}
+            className={`px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap flex items-center
+								${
+                  !!projectPublishUrl
+                    ? "bg-gray-200 hover:bg-gray-300 text-gray-600"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+          >
+            <i
+              className={`mr-2 fas ${!!projectPublishUrl ? "fa-check" : "fa-rocket"}`}
+            ></i>
+            {!!projectPublishUrl ? "배포 완료됨" : "배포"}
+          </button>
 
-						<button
-								onClick={() => historyModal.open()}
-								className="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
-						>
-							<i className="fas fa-history mr-2"></i>저장기록
-						</button>
+          <button
+            onClick={() => historyModal.open()}
+            className="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
+          >
+            <i className="fas fa-history mr-2"></i>저장기록
+          </button>
 
-						<button
-								onClick={() => {setShowSettings(true)}}
-								className="p-2 text-gray-500 hover:text-gray-700 cursor-pointer whitespace-nowrap"
-						>
-							<i className="fas fa-cog text-lg"></i>
-						</button>
-						<button
-								onClick={() => router.replace("/list")}
-								className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
-						>
-							<i className="fas fa-list mr-2"></i>목록으로
-						</button>
-					</div>
-				</header>
-				<div className="flex flex-1 overflow-hidden">
-					{/* 좌측 사이드바 (컴포넌트 패널) */}
-					<SectionList
-							searchTerm={searchTerm}
-							setSearchTerm={setSearchTerm}
-							setIsDragging={setIsDragging}
-							isFullscreen={isFullscreen}
-					/>
-					{/* 중앙 메인 작업 영역 */}
-					<main className={`flex-1 w-screen bg-gray-100 overflow-hidden flex flex-col`}>
-						<div className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
-							{/* <div className="flex items-center space-x-2">
+          <button
+            onClick={() => {
+              setShowSettings(true);
+            }}
+            className="p-2 text-gray-500 hover:text-gray-700 cursor-pointer whitespace-nowrap"
+          >
+            <i className="fas fa-cog text-lg"></i>
+          </button>
+          <button
+            onClick={() => router.replace("/list")}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-button text-sm font-medium cursor-pointer whitespace-nowrap ml-2"
+          >
+            <i className="fas fa-list mr-2"></i>목록으로
+          </button>
+        </div>
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        {/* 좌측 사이드바 (컴포넌트 패널) */}
+        <SectionList
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          setIsDragging={setIsDragging}
+          isFullscreen={isFullscreen}
+        />
+        {/* 중앙 메인 작업 영역 */}
+        <main
+          className={`flex-1 w-screen bg-gray-100 overflow-hidden flex flex-col`}
+        >
+          <div className="bg-white border-b border-gray-200 p-2 flex items-center justify-between">
+            {/* <div className="flex items-center space-x-2">
               <button
                 className={`p-2 rounded-button cursor-pointer whitespace-nowrap ${viewMode === "desktop" ? "bg-blue-50 text-blue-600" : "text-gray-500 hover:bg-gray-100"}`}
                 onClick={() => handleViewModeChange("desktop")}
@@ -515,147 +546,148 @@ const App = () => {
                 <i className="fas fa-mobile-alt"></i>
               </button>
             </div> */}
-							<div className="flex items-center space-x-2">
-								<button
-										onClick={handleUndo}
-										disabled={currentHistoryIndex <= 0}
-										className={`p-2 rounded-button whitespace-nowrap ${
-												currentHistoryIndex <= 0
-														? "text-gray-300 cursor-not-allowed"
-														: "text-gray-500 hover:bg-gray-100 cursor-pointer"
-										}`}
-								>
-									<i className="fas fa-undo"></i>
-								</button>
-								<button
-										onClick={handleRedo}
-										disabled={currentHistoryIndex >= history.length - 1}
-										className={`p-2 rounded-button whitespace-nowrap ${
-												currentHistoryIndex >= history.length - 1
-														? "text-gray-300 cursor-not-allowed"
-														: "text-gray-500 hover:bg-gray-100 cursor-pointer"
-										}`}
-								>
-									<i className="fas fa-redo"></i>
-								</button>
-								<button
-										id="fullscreen-toggle"
-										onClick={handleFullScreen}
-										disabled={projectPermission === "READ_ONLY"}
-										className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap disabled:text-gray-300 disabled:cursor-not-allowed disabled:bg-transparent"
-								>
-									<i
-											className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"}`}
-									></i>
-								</button>
-								{/* 페이지 설정 */}
-								<button
-										onClick={()=>pageSettingModal.open()}
-										className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap"
-										title="페이지 설정"
-								>
-									<i className="fas fa-cog"></i>
-								</button>
-							</div>
-						</div>
-						<div className="flex-1 overflow-y-auto p-8 flex justify-center">
-							<div className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl relative`}
-							     id={"project-panel"}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleUndo}
+                disabled={currentHistoryIndex <= 0}
+                className={`p-2 rounded-button whitespace-nowrap ${
+                  currentHistoryIndex <= 0
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-500 hover:bg-gray-100 cursor-pointer"
+                }`}
+              >
+                <i className="fas fa-undo"></i>
+              </button>
+              <button
+                onClick={handleRedo}
+                disabled={currentHistoryIndex >= history.length - 1}
+                className={`p-2 rounded-button whitespace-nowrap ${
+                  currentHistoryIndex >= history.length - 1
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-500 hover:bg-gray-100 cursor-pointer"
+                }`}
+              >
+                <i className="fas fa-redo"></i>
+              </button>
+              <button
+                id="fullscreen-toggle"
+                onClick={handleFullScreen}
+                disabled={projectPermission === "READ_ONLY"}
+                className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap disabled:text-gray-300 disabled:cursor-not-allowed disabled:bg-transparent"
+              >
+                <i
+                  className={`fas ${isFullscreen ? "fa-compress" : "fa-expand"}`}
+                ></i>
+              </button>
+              {/* 페이지 설정 */}
+              <button
+                onClick={() => pageSettingModal.open()}
+                className="p-2 text-gray-500 hover:bg-gray-100 rounded-button cursor-pointer whitespace-nowrap"
+                title="페이지 설정"
+              >
+                <i className="fas fa-cog"></i>
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-8 flex justify-center">
+            <div
+              className={`bg-white shadow-lg rounded-lg border border-gray-200 min-h-[calc(100vh-12rem)] w-full max-w-6xl relative`}
+              id={"project-panel"}
 
-									// ${
-									//   viewMode === "desktop"
-									//     ? "w-full max-w-6xl"
-									//     : viewMode === "tablet"
-									//       ? "w-[768px]"
-									//       : "w-[375px]"
-									// }
-							>
+              // ${
+              //   viewMode === "desktop"
+              //     ? "w-full max-w-6xl"
+              //     : viewMode === "tablet"
+              //       ? "w-[768px]"
+              //       : "w-[375px]"
+              // }
+            >
+              <div
+                ref={canvasRef}
+                className={`min-h-screen p-6 relative border-2 ${isDragging ? "border-blue-400 bg-blue-50" : "bg-white border-dashed border-gray-300"} rounded-lg transition-colors duration-200 ${projectPermission === "READ_ONLY" ? "cursor-not-allowed pointer-events-none" : ""}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const componentType = e.dataTransfer.getData("text/plain");
 
-								<div
-										ref={canvasRef}
-										className={`min-h-screen p-6 relative border-2 ${isDragging ? "border-blue-400 bg-blue-50" : "bg-white border-dashed border-gray-300"} rounded-lg transition-colors duration-200 ${(projectPermission === "READ_ONLY") ? "cursor-not-allowed pointer-events-none" : ""}`}
-										onDragOver={(e) => {
-											e.preventDefault();
-										}}
-										onDrop={(e) => {
-											e.preventDefault();
-											const componentType = e.dataTransfer.getData("text/plain");
+                  const canvasRect = canvasRef.current?.getBoundingClientRect();
+                  if (canvasRect) {
+                    const x = e.clientX - canvasRect.left;
+                    const y = e.clientY - canvasRect.top;
+                    const newComponent: ComponentItem = {
+                      id: `${componentType}-${Date.now()}`,
+                      type: componentType,
+                      position: { x, y },
+                    };
+                    const updatedComponents = [
+                      ...droppedComponents,
+                      newComponent,
+                    ];
+                    //   const onAddSection = useCallback(() => {
+                    //     const newSection: SectionData = {
+                    //       sectionKey: generateUUID(),
+                    //       layoutValues: [],
+                    //     };
+                    //     dispatch(addSection({ newSection }));
+                    //     dispatch(changeNowSectionKey(newSection.sectionKey));
+                    //   }, [dispatch, generateUUID]);
 
-											const canvasRect = canvasRef.current?.getBoundingClientRect();
-											if (canvasRect) {
-												const x = e.clientX - canvasRect.left;
-												const y = e.clientY - canvasRect.top;
-												const newComponent: ComponentItem = {
-													id: `${componentType}-${Date.now()}`,
-													type: componentType,
-													position: {x, y},
-												};
-												const updatedComponents = [
-													...droppedComponents,
-													newComponent,
-												];
-												//   const onAddSection = useCallback(() => {
-												//     const newSection: SectionData = {
-												//       sectionKey: generateUUID(),
-												//       layoutValues: [],
-												//     };
-												//     dispatch(addSection({ newSection }));
-												//     dispatch(changeNowSectionKey(newSection.sectionKey));
-												//   }, [dispatch, generateUUID]);
-
-
-												if (componentType === "컨테이너") {
-													dispatch(addSection({newSection: createDefaultSection()}));
-													return;
-												}
-												// setDroppedComponents(updatedComponents);
-												addToHistory(updatedComponents);
-											}
-										}}
-								>
-									{/* Floating ActiveUsers Button & Popover */}
-									{awareness && (
-											<div className="fixed top-12 right-4 z-20 flex flex-col items-end">
-												{/* Round Button */}
-												<button
-														className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center shadow-lg hover:bg-blue-600 transition mb-2 focus:outline-none"
-														onClick={() => setShowUsersPopover((prev) => !prev)}
-														aria-label="Show active users"
-														type="button"
-												>
-													{/* User group icon (Heroicons/FontAwesome or SVG) */}
-													<svg
-															xmlns="http://www.w3.org/2000/svg"
-															className="h-6 w-6 text-white"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-													>
-														<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																strokeWidth={2}
-																d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 010 7.75"
-														/>
-													</svg>
-												</button>
-												{/* Popover */}
-												{showUsersPopover && (
-														<div
-																ref={usersPopoverRef}
-																className="mt-2 bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px] max-w-xs"
-														>
-															<ActiveUsers
-																	awareness={awareness}
-																	sections={sections}
-																	uploadStatus={uploadStatus}
-															/>
-														</div>
-												)}
-											</div>
-									)}
-									<MainContent sections={sections}/>
-									{/* {droppedComponents.map((component) => (
+                    if (componentType === "컨테이너") {
+                      dispatch(
+                        addSection({ newSection: createDefaultSection() })
+                      );
+                      return;
+                    }
+                    // setDroppedComponents(updatedComponents);
+                    addToHistory(updatedComponents);
+                  }
+                }}
+              >
+                {/* Floating ActiveUsers Button & Popover */}
+                {awareness && (
+                  <div className="fixed top-12 right-4 z-20 flex flex-col items-end">
+                    {/* Round Button */}
+                    <button
+                      className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center shadow-lg hover:bg-blue-600 transition mb-2 focus:outline-none"
+                      onClick={() => setShowUsersPopover((prev) => !prev)}
+                      aria-label="Show active users"
+                      type="button"
+                    >
+                      {/* User group icon (Heroicons/FontAwesome or SVG) */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 010 7.75"
+                        />
+                      </svg>
+                    </button>
+                    {/* Popover */}
+                    {showUsersPopover && (
+                      <div
+                        ref={usersPopoverRef}
+                        className="mt-2 bg-white p-4 rounded-lg shadow-lg border border-gray-200 min-w-[220px] max-w-xs"
+                      >
+                        <ActiveUsers
+                          awareness={awareness}
+                          sections={sections}
+                          uploadStatus={uploadStatus}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+                <MainContent sections={sections} />
+                {/* {droppedComponents.map((component) => (
                   <div
                     key={component.id}
                     id={`dropped-${component.id}`}
@@ -729,83 +761,60 @@ const App = () => {
                     </div>
                   </div>
                 ))} */}
-									{sections.length === 0 && (
-											<div
-													className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-												<div className="text-gray-400 mb-3">
-													<i className="fas fa-plus-circle text-5xl"></i>
-												</div>
-												<p className="text-gray-500 text-lg font-medium">
-													여기에 컨테이너를 드래그하여 추가하세요
-												</p>
-												<p className="text-gray-400 text-sm mt-2">
-													왼쪽 패널에서 원하는 요소를 선택하여 드래그하세요
-												</p>
-											</div>
-									)}
-								</div>
-							</div>
-						</div>
-					</main>
+                {sections.length === 0 && (
+                  <div className="text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="text-gray-400 mb-3">
+                      <i className="fas fa-plus-circle text-5xl"></i>
+                    </div>
+                    <p className="text-gray-500 text-lg font-medium">
+                      여기에 컨테이너를 드래그하여 추가하세요
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      왼쪽 패널에서 원하는 요소를 선택하여 드래그하세요
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </main>
 
-					{/* 우측 사이드바 (속성 패널) */}
-					<SideMenu isFullscreen={isFullscreen}/>
+        {/* 우측 사이드바 (속성 패널) */}
+        <SideMenu isFullscreen={isFullscreen} />
 
-					{
-						pageSettingModal.show && (
-								<PageSettingModal modal={pageSettingModal}/>
-							)
-					}
+        {pageSettingModal.show && <PageSettingModal modal={pageSettingModal} />}
 
-					{/* Setting Dialog */}
-					{
-						showSettings && (
-							<SettingDialog
-									setShowSettings={setShowSettings}
-									projectId={projectId}
-							/>
-						)
-					}
+        {/* Setting Dialog */}
+        {showSettings && (
+          <SettingDialog
+            setShowSettings={setShowSettings}
+            projectId={projectId}
+          />
+        )}
 
+        {historyModal.show && (
+          <HistoryPanel modal={historyModal} projectId={projectId} />
+        )}
 
-					{
-						historyModal.show && (
-							<HistoryPanel
-									modal={historyModal}
-									projectId={projectId}
-							/>
-						)
-					}
+        {previewModal.show && (
+          <LayoutViewerModal modal={previewModal} layouts={[layout]} />
+        )}
 
-					{
-						previewModal.show && (
-								<LayoutViewerModal modal={previewModal}
-								                   layouts={[layout]}
-								/>
-							)
-					}
+        {publishModal.show && (
+          <ProjectPublishModal modal={publishModal} projectId={projectId} />
+        )}
 
-					{
-						publishModal.show && (
-								<ProjectPublishModal modal={publishModal}
-								                     projectId={projectId}
-								/>
-							)
-					}
+        {!syncInfo.lastSyncDate && (
+          <PageLoader message={"불러오는 중입니다..."} />
+        )}
 
-					{
-							!syncInfo.lastSyncDate && (
-									<PageLoader message={"불러오는 중입니다..."}/>
-							)
-					}
-
-					{offlineMessage && (
-							<div className="fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50 bg-red-500 text-white">
-								{offlineMessage}
-							</div>
-					)}
-				</div>
-			</div>
-	);
+        {offlineMessage && (
+          <div className="fixed bottom-20 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 flex items-center z-50 bg-red-500 text-white">
+            {offlineMessage}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 export default App;
