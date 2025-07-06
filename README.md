@@ -61,3 +61,9 @@ resolve된 값을 반환
 
 ## ws=> wss 
  HTTPS 페이지에서 HTTP(WebSocket: ws://) 연결을 시도하면 보안상 차단됨
+
+ ## 추후 추가될 기능 
+ 1. 스타일링
+ 2. AI
+ 3. 자료구조 변경
+    
