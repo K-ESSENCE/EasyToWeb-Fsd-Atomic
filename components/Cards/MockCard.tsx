@@ -1,28 +1,29 @@
-import { getShapeStyleValues } from '../../utils/utils';
-import { Shapes, TextStyleI } from '../types/common/layout';
+import { Shapes, TextStyle } from "../types/common/layout";
 
 interface DefaultProps {
   type: Shapes;
-  titleStyle?: TextStyleI;
+  titleStyle?: TextStyle;
   describe?: string;
 }
 
 const MockCard = ({ type, titleStyle, describe }: DefaultProps) => {
-  const shapeStyleValues = getShapeStyleValues(type, 'mock');
+  const shapeStyleValues = {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  };
 
-  const splitedDescribe = describe
-    ?.split('<br/>')
-    .map((line, idx) => (
-      <p 
-        key={idx}
-        className="font-[350] text-[6px] leading-[10.14px] text-center"
-      >
-        {line}
-      </p>
-    ));
+  const splitedDescribe = describe?.split("<br/>").map((line, idx) => (
+    <p
+      key={idx}
+      className="font-[350] text-[6px] leading-[10.14px] text-center"
+    >
+      {line}
+    </p>
+  ));
 
   return (
-    <div 
+    <div
       className="flex flex-col gap-[6px] text-center"
       style={{ width: shapeStyleValues.width }}
     >
@@ -34,11 +35,11 @@ const MockCard = ({ type, titleStyle, describe }: DefaultProps) => {
           borderRadius: `${shapeStyleValues.borderRadius}%`,
         }}
       />
-      <h1 
-        className={`mb-[5px] text-xs ${titleStyle?.bold ? 'font-bold' : 'font-normal'}`}
-        style={{ color: titleStyle?.color || 'black' }}
+      <h1
+        className={`mb-[5px] text-xs ${titleStyle?.bold ? "font-bold" : "font-normal"}`}
+        style={{ color: titleStyle?.color || "black" }}
       >
-        {titleStyle?.text}
+        {type}
       </h1>
       <div>{describe && splitedDescribe}</div>
     </div>

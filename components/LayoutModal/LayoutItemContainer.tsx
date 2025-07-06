@@ -1,12 +1,13 @@
-import { BlockDesingI } from './LayoutModal';
-import MockCard from '../Cards/MockCard';
+import { BlockDesingI } from "./LayoutModal";
+import MockCard from "../Cards/MockCard";
+import { Shapes } from "../types/common/layout";
 
 const LayoutItemContainer = ({
   layoutItem,
   onClick,
 }: {
   layoutItem: BlockDesingI;
-  onClick: Function;
+  onClick: (blockDesignType: Shapes) => void;
 }) => {
   const { title, describe, blockDesignType } = layoutItem;
 
@@ -16,7 +17,6 @@ const LayoutItemContainer = ({
         <MockCard
           titleStyle={{
             color: title?.color,
-            text: '',
             bold: title?.bold,
           }}
           type={blockDesignType}

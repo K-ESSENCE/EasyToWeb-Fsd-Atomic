@@ -1,5 +1,5 @@
-import React, {useEffect, useRef} from "react";
-import {Item} from "../types/common/layout";
+import React, { useEffect, useRef } from "react";
+import { Item, TextProps } from "../types/common/layout";
 
 interface EditableTextProps {
   item: Item;
@@ -7,7 +7,8 @@ interface EditableTextProps {
 }
 
 const EditableText = ({ item, onTextChange }: EditableTextProps) => {
-  const textProps = item.type === "text" ? item.componentProps : null;
+  const textProps: TextProps | null =
+    item.type === "text" ? (item.componentProps as TextProps) : null;
   const textStyle = textProps?.textStyle || {};
   const commonStyle = item.commonStyle || {};
   const divRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,7 @@ const EditableText = ({ item, onTextChange }: EditableTextProps) => {
     minWidth: "1.5em",
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
-    outline: 'none'
+    outline: "none",
   };
 
   useEffect(() => {
@@ -51,18 +52,18 @@ const EditableText = ({ item, onTextChange }: EditableTextProps) => {
   };
 
   return (
-      <div className="w-full h-full overflow-hidden">
-        <div className="w-full">
-          <div
-              ref={divRef}
-              contentEditable
-              onBlur={handleBlur}
-              style={style}
-              className="text-gray-800"
-              suppressContentEditableWarning
-          />
-        </div>
+    <div className="w-full h-full overflow-hidden">
+      <div className="w-full">
+        <div
+          ref={divRef}
+          contentEditable
+          onBlur={handleBlur}
+          style={style}
+          className="text-gray-800"
+          suppressContentEditableWarning
+        />
       </div>
+    </div>
   );
 };
 

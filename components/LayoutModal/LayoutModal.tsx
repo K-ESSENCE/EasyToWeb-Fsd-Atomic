@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import ModalBackground from '../ModalBackground';
-import Icon from '../icons/Icon';
-import LayoutModalMenus from './LayoutModalMenus';
-import LayoutItemContainer from './LayoutItemContainer';
-import { useState } from 'react';
-import { Shapes } from '../types/common/layout';
+import ModalBackground from "../ModalBackground";
+import Icon from "../icons/Icon";
+import LayoutModalMenus from "./LayoutModalMenus";
+import LayoutItemContainer from "./LayoutItemContainer";
+import { useState } from "react";
+import { Shapes } from "../types/common/layout";
 
 export interface BlockDesingI {
   blockDesignType: Shapes;
@@ -15,46 +15,46 @@ export interface BlockDesingI {
 }
 
 const LAYOUT_MENUS_INFO: { [key: string]: BlockDesingI[] } = {
-  이미지: [{ blockDesignType: 'rectNormal', value: 1 }],
-  구분선: [{ blockDesignType: 'rectNormal', value: 1 }],
+  이미지: [{ blockDesignType: "img", value: 1 }],
+  구분선: [{ blockDesignType: "img", value: 1 }],
   목록: [
     {
-      blockDesignType: 'round',
+      blockDesignType: "text",
       title: {
-        text: '초단기한글',
+        text: "초단기한글",
       },
     },
     {
-      blockDesignType: 'rectNormal',
+      blockDesignType: "text",
       title: {
-        text: '[클래스]',
+        text: "[클래스]",
         bold: true,
       },
       describe:
-        '친구들과 함께 모여 교과과정에 필요한 핵심 과목을 집중적으로 관리 받습니다.전문 선생님의 학습 관리로 자기주도 학습을 성장시킬 수 있습니다.',
+        "친구들과 함께 모여 교과과정에 필요한 핵심 과목을 집중적으로 관리 받습니다.전문 선생님의 학습 관리로 자기주도 학습을 성장시킬 수 있습니다.",
     },
     {
-      blockDesignType: 'rectSmall',
+      blockDesignType: "text",
       title: {
-        text: '1:1방문',
+        text: "1:1방문",
         bold: true,
-        color: '#EE7D00',
+        color: "#EE7D00",
       },
-      describe: '주1회/과목당10 학습관리 및 상담',
+      describe: "주1회/과목당10 학습관리 및 상담",
     },
     {
-      blockDesignType: 'rectBig',
+      blockDesignType: "text",
       title: {
-        text: '티칭 및 학습',
+        text: "티칭 및 학습",
         bold: true,
       },
       describe:
-        '북패드 디지털 콘텐츠를 활용하여 학생들의 지면 학습을 더욱 심도 깊고 쉽게 이해하여 기본 개념을 탄탄하게 합니다.',
+        "북패드 디지털 콘텐츠를 활용하여 학생들의 지면 학습을 더욱 심도 깊고 쉽게 이해하여 기본 개념을 탄탄하게 합니다.",
     },
   ],
   텍스트: [],
-  표: [{ blockDesignType: 'rectNormal' }],
-  레이아웃: [{ blockDesignType: 'rectNormal' }],
+  표: [{ blockDesignType: "text" }],
+  레이아웃: [{ blockDesignType: "text" }],
 };
 
 const LAYOUT_MENUS = Object.keys(LAYOUT_MENUS_INFO);
@@ -64,9 +64,9 @@ const LayoutModal = ({
   onClose,
   addLayout,
 }: {
-  addLayout: Function;
+  addLayout: (blockDesignType: Shapes) => void;
   isOpen: boolean;
-  onClose: Function;
+  onClose: () => void;
 }) => {
   const [selecttedMenu, setSelectedMenu] = useState(LAYOUT_MENUS[0]);
 
@@ -81,7 +81,7 @@ const LayoutModal = ({
           <h1 className="font-bold text-2xl leading-[28.64px] tracking-[0.48px] text-white">
             블록 디자인 추가
           </h1>
-          <div onClick={() => onClose(false)}>
+          <div onClick={onClose}>
             <Icon color="#FFFFFF" width={26} height={26} icon="close"></Icon>
           </div>
         </div>

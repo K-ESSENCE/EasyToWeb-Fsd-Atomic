@@ -2,10 +2,10 @@
 export interface Section {
   sectionKey: string;
   title?: string;
-  layout: LayoutConfig;         // 배치 정보
-  style?: SectionStyle;         // 섹션 자체 스타일
+  layout: LayoutConfig; // 배치 정보
+  style?: SectionStyle; // 섹션 자체 스타일
   backgroundStyle?: BackgroundStyle; // 배경 스타일
-  items: Item[];          // 내부 아이템 배열
+  items: Item[]; // 내부 아이템 배열
 }
 
 export interface ItemBase<T extends Shapes = Shapes> {
@@ -17,8 +17,11 @@ export interface ItemBase<T extends Shapes = Shapes> {
 
 // 아이템
 export type Item = {
-  [K in Shapes]: ItemBase<K>
-}[Shapes];
+  id: string;
+  type: Shapes;
+  commonStyle?: CommonStyle;
+  componentProps: ShapeComponentPropsMap[Shapes];
+};
 
 export type Shapes = "text" | "img" | "card" | "video" | "button";
 
@@ -41,7 +44,6 @@ export interface ShapeComponentPropsMap {
 
 export type ComponentProps = ShapeComponentPropsMap[Shapes];
 
-
 export interface TextProps {
   text: string;
   textStyle?: TextStyle;
@@ -60,16 +62,15 @@ export interface CardProps {
   cardStyle?: CardStyle;
 }
 
-
 // layout 구성 (섹션 배치)
 export interface LayoutConfig {
   type: "grid" | "flex" | "absolute";
-  columns?: number;                // grid일 때 사용
-  gap?: number;                    // 간격 px
-  height?: string;                // 섹션 높이
-  align?: "left" | "center" | "right";  // 전체 아이템 정렬
-  justifyContent?: string;        // flex 조정용
-  alignItems?: string;            // flex 조정용
+  columns?: number; // grid일 때 사용
+  gap?: number; // 간격 px
+  height?: string; // 섹션 높이
+  align?: "left" | "center" | "right"; // 전체 아이템 정렬
+  justifyContent?: string; // flex 조정용
+  alignItems?: string; // flex 조정용
 }
 
 // 섹션 스타일
@@ -82,21 +83,21 @@ export interface SectionStyle {
 // 섹션 배경
 export interface BackgroundStyle {
   backgroundColor?: string;
-  backgroundImage?: string;     // URL or base64
+  backgroundImage?: string; // URL or base64
   backgroundSize?: "cover" | "contain";
-  backgroundPosition?: string;  // "center", "top left"
+  backgroundPosition?: string; // "center", "top left"
   backgroundRepeat?: "no-repeat" | "repeat" | "repeat-x" | "repeat-y";
 }
 
 // 텍스트 스타일
 export interface TextStyle {
-  size?: string;              // "16px"
-  color?: string;             // "#333"
+  size?: string; // "16px"
+  color?: string; // "#333"
   bold?: boolean;
   align?: "left" | "center" | "right";
-  lineHeight?: string;        // "1.5"
-  letterSpacing?: string;     // "0.5px"
-  fontFamily?: string;        // "Pretendard", "Arial"
+  lineHeight?: string; // "1.5"
+  letterSpacing?: string; // "0.5px"
+  fontFamily?: string; // "Pretendard", "Arial"
   italic?: boolean;
   underline?: boolean;
 }
@@ -182,5 +183,3 @@ export const createDefaultImageItem = (): Item => ({
     },
   },
 });
-
-

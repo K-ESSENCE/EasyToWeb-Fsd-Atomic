@@ -6,7 +6,7 @@ import {
   LayoutConfig,
   Section,
   SectionStyle,
-  Shapes
+  Shapes,
 } from "../components/types/common/layout";
 
 export function objDeepFreeze<T extends object, V extends keyof T>(obj: T): T {
@@ -20,10 +20,10 @@ export function objDeepFreeze<T extends object, V extends keyof T>(obj: T): T {
 }
 
 export const createSection = ({
-                                layout,
-                                style,
-                                backgroundStyle,
-                              }: {
+  layout,
+  style,
+  backgroundStyle,
+}: {
   layout: LayoutConfig;
   style?: SectionStyle;
   backgroundStyle?: BackgroundStyle;
@@ -38,12 +38,11 @@ export const createSection = ({
   };
 };
 
-
 export const createItem = ({
-                             type,
-                             commonStyle = {},
-                             componentProps,
-                           }: {
+  type,
+  commonStyle = {},
+  componentProps,
+}: {
   type: Shapes;
   commonStyle?: CommonStyle;
   componentProps?: Partial<ComponentProps>;

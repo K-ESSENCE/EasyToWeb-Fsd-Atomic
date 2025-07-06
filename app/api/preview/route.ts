@@ -1,16 +1,20 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
+export async function POST(req: NextRequest) {
   console.log("[PREVIEW API] parsedSections:");
 
-  const { projectId, sections } = req.body;
+  const { projectId, sections } = await req.json();
 
   // sections는 stringified JSON임
   let parsedSections = null;
   try {
     parsedSections = JSON.parse(sections);
   } catch (e) {
-    return res.status(400).json({ error: "Invalid sections format" });
+    console.error("[PREVIEW API] Invalid sections format:", e);
+    return NextResponse.json(
+      { error: "Invalid sections format" },
+      { status: 400 }
+    );
   }
 
   // 여기서 원하는 로직 수행 (예: 미리보기용 임시 저장 등)
@@ -20,5 +24,8 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
 
   // 실제로는 미리보기용 URL을 생성해서 반환해야 함
   // 여기서는 더미 URL 반환
-  return res.status(200).json({ url: `preview-${projectId}-${Date.now()}` });
+  return NextResponse.json(
+    { url: `preview-${projectId}-${Date.now()}` },
+    { status: 200 }
+  );
 }
