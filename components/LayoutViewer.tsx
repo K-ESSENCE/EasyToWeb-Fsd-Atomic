@@ -13,16 +13,16 @@ const LayoutViewer = ({ layouts }: LayoutViewerProps) => {
 
   const wrapperStyle: React.CSSProperties = {
     maxWidth: layoutStyle?.maxWidth || "100%",
-    padding: layoutStyle?.padding || "2rem 1.5rem",
+    padding: layoutStyle?.padding || "3rem 2rem",
     backgroundColor: layoutStyle?.backgroundColor,
     display: "flex",
     flexDirection: "column",
-    gap: layoutStyle?.gapBetweenSections || "1.5rem",
+    gap: layoutStyle?.gapBetweenSections || "2.5rem",
   };
 
   return (
     <div
-      className="flex flex-col transition-all duration-200 min-h-0 overflow-y-auto mb-[80px]"
+      className="flex flex-col transition-all duration-300 min-h-0 overflow-y-auto"
       style={wrapperStyle}
     >
       {sections.map((section, key) => {
@@ -68,10 +68,10 @@ const LayoutViewer = ({ layouts }: LayoutViewerProps) => {
         return (
           <div
             key={key}
-            className="p-4 rounded-md transition-all duration-150 ease-in-out"
+            className="p-6 rounded-2xl transition-all duration-300 ease-in-out hover:shadow-lg bg-white/30 backdrop-blur-sm border border-white/20"
           >
             <section
-              className="transition-all duration-400 w-full"
+              className="transition-all duration-500 w-full relative"
               style={sectionStyle}
             >
               {section.items.map((item) => {
@@ -107,10 +107,13 @@ const LayoutViewer = ({ layouts }: LayoutViewerProps) => {
                   return (
                     <div
                       key={item.id}
-                      className="w-full h-full overflow-hidden"
+                      className="w-full h-full overflow-hidden group"
                     >
                       <div className="w-full">
-                        <div style={style} className="text-gray-800">
+                        <div
+                          style={style}
+                          className="text-gray-800 group-hover:text-gray-900 transition-colors duration-200"
+                        >
                           {textProps?.text ?? ""}
                         </div>
                       </div>
