@@ -15,14 +15,24 @@ import { Toolbox } from './Toolbox';
 import { Toolbar } from './Toolbar';
 import { Layers } from './Layers';
 
+// Advanced Features
+import { History } from './History';
+import { Serialization } from './Serialization';
+import { EventLogger, EventHandlers } from './Events';
+import { NodeValidator } from './NodeManager';
+// import { Viewport } from './Viewport';
+
+// Utilities
+import { CanvasController, CanvasStats } from './utils/Canvas';
+import { DragIndicator, GridLines } from './utils/DragIndicator';
+import { SelectionBox, HoverHighlight, SnapGuides, StatusBar } from './utils/EditorHelpers';
+
 interface CraftEditorProps {
-  initialContent?: string;
   onContentChange?: (content: string) => void;
   className?: string;
 }
 
 export const CraftEditor: React.FC<CraftEditorProps> = ({
-  initialContent,
   onContentChange,
   className = ''
 }) => {
@@ -46,6 +56,9 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
             }
           }}
         >
+          {/* Event Handlers */}
+          <EventHandlers />
+          
           {/* Header Controls */}
           <div className="craft-editor-header bg-white border-b border-gray-200 p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -69,9 +82,24 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                 >
                   레이어
                 </button>
+                
+                {/* History Controls */}
+                <History />
+                
+                {/* Serialization */}
+                <Serialization />
+                
+                {/* Event Logger */}
+                <EventLogger />
+                
+                {/* Node Validator */}
+                <NodeValidator />
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Canvas Controls */}
+              <CanvasController />
+              
               <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
                 임시저장
               </button>
@@ -89,9 +117,24 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
 
             {/* Main Editor Area */}
             <div className="craft-canvas flex-1 relative bg-gray-100 overflow-hidden">
+              {/* Grid Lines */}
+              <GridLines enabled={enabled} spacing={20} />
+              
+              {/* Drag Indicator */}
+              <DragIndicator />
+              
+              {/* Selection Box */}
+              <SelectionBox />
+              
+              {/* Hover Highlight */}
+              <HoverHighlight />
+              
+              {/* Snap Guides */}
+              <SnapGuides enabled={enabled} />
+              
               <div className="absolute inset-0 overflow-auto">
                 <div className="min-h-full p-8">
-                  <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px]">
+                  <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px] relative">
                     <Frame>
                       <Element 
                         is={Container} 
@@ -216,6 +259,14 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               </div>
             )}
           </div>
+
+          {/* Canvas Stats */}
+          <div className="px-4 py-2 bg-white border-t border-gray-200">
+            <CanvasStats />
+          </div>
+
+          {/* Status Bar */}
+          <StatusBar />
         </Editor>
       </div>
     </DndProvider>

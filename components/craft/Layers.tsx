@@ -5,13 +5,12 @@ const LayerItem: React.FC<{
   id: string;
   depth: number;
 }> = ({ id, depth }) => {
-  const { actions, query, isSelected } = useEditor((state) => ({
+  const { actions, isSelected } = useEditor((state) => ({
     isSelected: state.events.selected.has(id),
   }));
 
   const {
-    data: { type, props, nodes, linkedNodes },
-    rules: { canDrag, canDrop, canMoveOut, canMoveIn },
+    data: { type, nodes },
   } = useEditor((state) => state.nodes[id]);
 
   const { isHover, isDragging } = useEditor((state) => ({
@@ -33,7 +32,7 @@ const LayerItem: React.FC<{
     ? type === 'div' 
       ? 'Container' 
       : type 
-    : (type as any)?.displayName || (type as any)?.name || 'Component';
+    : (type as React.ComponentType)?.displayName || (type as React.ComponentType & { name?: string })?.name || 'Component';
     
   const name = getKoreanName(componentName);
 

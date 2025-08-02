@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
+import { ContainerToolbar } from './toolbars/ContainerToolbar';
 
 export interface ContainerProps {
   background?: string;
@@ -142,7 +143,7 @@ export const Container: React.FC<ContainerProps> = ({
   );
 };
 
-(Container as any).craft = {
+(Container as React.ComponentType & { craft: unknown }).craft = {
   displayName: 'Container',
   props: {
     background: 'transparent',
@@ -168,6 +169,6 @@ export const Container: React.FC<ContainerProps> = ({
     canMoveOut: () => true,
   },
   related: {
-    // toolbar: () => import('./toolbars/ContainerToolbar').then(comp => comp.ContainerToolbar),
+    toolbar: ContainerToolbar,
   },
 };

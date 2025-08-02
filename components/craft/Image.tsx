@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { FULL_API_URL } from '../../shared/api/axios';
+import { ImageToolbar } from './toolbars/ImageToolbar';
 
 export interface ImageProps {
   src?: string;
   alt?: string;
-  width?: number;
-  height?: number;
+  width?: string;
+  height?: string;
   borderRadius?: number;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   opacity?: number;
@@ -22,8 +23,8 @@ export interface ImageProps {
 export const Image: React.FC<ImageProps> = ({
   src,
   alt = 'Image',
-  width = 200,
-  height = 160,
+  width = '200px',
+  height = '160px',
   borderRadius = 8,
   objectFit = 'cover',
   opacity = 1,
@@ -47,8 +48,8 @@ export const Image: React.FC<ImageProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const imageContainerStyle: React.CSSProperties = {
-    width: `${width}px`,
-    height: `${height}px`,
+    width,
+    height,
     margin,
     padding,
     backgroundColor,
@@ -171,13 +172,13 @@ export const Image: React.FC<ImageProps> = ({
   );
 };
 
-(Image as any).craft = {
+(Image as React.ComponentType & { craft: unknown }).craft = {
   displayName: 'Image',
   props: {
     src: '',
     alt: 'Image',
-    width: 200,
-    height: 160,
+    width: '200px',
+    height: '160px',
     borderRadius: 8,
     objectFit: 'cover',
     opacity: 1,
@@ -190,6 +191,6 @@ export const Image: React.FC<ImageProps> = ({
     boxShadow: 'none'
   },
   related: {
-    // toolbar: () => import('./toolbars/ImageToolbar').then(comp => comp.ImageToolbar),
+    toolbar: ImageToolbar,
   },
 };

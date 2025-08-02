@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEditor, useNode } from '@craftjs/core';
+import { useEditor } from '@craftjs/core';
 
 const SelectedComponentToolbar = () => {
   const { selected } = useEditor((state) => {
@@ -20,7 +20,7 @@ const SelectedComponentToolbar = () => {
     };
   });
 
-  const { actions, query } = useEditor();
+  const { actions } = useEditor();
 
   if (!selected) {
     return (

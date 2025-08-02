@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
+import { TextToolbar } from './toolbars/TextToolbar';
 
 export interface TextProps {
   text?: string;
@@ -81,7 +82,7 @@ export const Text: React.FC<TextProps> = ({
   );
 };
 
-(Text as any).craft = {
+(Text as React.ComponentType & { craft: unknown }).craft = {
   displayName: 'Text',
   props: {
     text: '텍스트',
@@ -96,6 +97,6 @@ export const Text: React.FC<TextProps> = ({
     padding: '8px'
   },
   related: {
-    // toolbar: () => import('./toolbars/TextToolbar').then(comp => comp.TextToolbar),
+    toolbar: TextToolbar,
   },
 };
