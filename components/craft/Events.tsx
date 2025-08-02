@@ -190,21 +190,29 @@ export const EventHandlers: React.FC = () => {
         }
       }
 
-      // Delete key - simplified approach
+      // Delete key - only when not editing text
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        // This will work with the current editor selection
-        try {
-          const state = query.getState();
-          const selectedNodes = Array.from(state.events.selected);
-          if (selectedNodes.length > 0) {
-            const selectedNodeId = selectedNodes[0];
-            if (selectedNodeId && selectedNodeId !== 'ROOT') {
-              actions.delete(selectedNodeId);
+        // Check if user is editing text in a contentEditable element
+        const target = e.target as HTMLElement;
+        const isEditingText = target.contentEditable === 'true' || 
+                             target.tagName === 'INPUT' || 
+                             target.tagName === 'TEXTAREA';
+        
+        // Only delete elements when not editing text
+        if (!isEditingText) {
+          e.preventDefault();
+          try {
+            const state = query.getState();
+            const selectedNodes = Array.from(state.events.selected);
+            if (selectedNodes.length > 0) {
+              const selectedNodeId = selectedNodes[0];
+              if (selectedNodeId && selectedNodeId !== 'ROOT') {
+                actions.delete(selectedNodeId);
+              }
             }
+          } catch (error) {
+            console.warn('Failed to delete selected node:', error);
           }
-        } catch (error) {
-          console.warn('Failed to delete selected node:', error);
         }
       }
 
