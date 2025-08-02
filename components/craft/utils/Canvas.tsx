@@ -2,7 +2,7 @@ import React from 'react';
 import { useEditor } from '@craftjs/core';
 
 export const CanvasController: React.FC = () => {
-  const { actions, enabled } = useEditor((state) => ({
+  const { actions, enabled, query } = useEditor((state, query) => ({
     enabled: state.options.enabled,
   }));
 
@@ -11,239 +11,27 @@ export const CanvasController: React.FC = () => {
       // Clear all selected events first
       actions.clearEvents();
       
-      // Create a clean ROOT state with Container as the base canvas
-      const cleanState = {
-        ROOT: {
-          data: {
-            type: { resolvedName: 'Container' },
-            isCanvas: true,
-            props: {
-              padding: '40px',
-              minHeight: 600,
-              background: 'white'
-            },
-            displayName: 'Container',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: null
+      // Get current state and find all non-ROOT nodes
+      const currentState = query.getState();
+      const allNodeIds = Object.keys(currentState.nodes);
+      
+      // Delete all nodes except ROOT
+      allNodeIds.forEach(nodeId => {
+        if (nodeId !== 'ROOT') {
+          try {
+            actions.delete(nodeId);
+          } catch (error) {
+            console.warn(`Failed to delete node ${nodeId}:`, error);
           }
         }
-      };
-      
-      actions.deserialize(JSON.stringify(cleanState));
+      });
     }
   };
 
   const resetCanvas = () => {
-    if (confirm('캔버스를 초기 상태로 되돌리시겠습니까?')) {
-      // Clear events first
-      actions.clearEvents();
-      
-      // Reset to initial state with sample content
-      const initialState = {
-        ROOT: {
-          data: {
-            type: { resolvedName: 'Container' },
-            isCanvas: true,
-            props: {
-              padding: '40px',
-              minHeight: 600,
-              background: 'white'
-            },
-            displayName: 'Container',
-            custom: {},
-            hidden: false,
-            nodes: ['node-welcome', 'node-features'],
-            linkedNodes: {},
-            parent: null
-          }
-        },
-        'node-welcome': {
-          data: {
-            type: { resolvedName: 'Container' },
-            isCanvas: true,
-            props: {
-              padding: '20px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: 12
-            },
-            displayName: 'Container',
-            custom: {},
-            hidden: false,
-            nodes: ['node-title', 'node-subtitle'],
-            linkedNodes: {},
-            parent: 'ROOT'
-          }
-        },
-        'node-title': {
-          data: {
-            type: { resolvedName: 'Text' },
-            isCanvas: false,
-            props: {
-              text: '새로운 웹사이트에 오신 것을 환영합니다',
-              fontSize: 32,
-              fontWeight: 'bold',
-              color: 'white',
-              textAlign: 'center',
-              padding: '20px'
-            },
-            displayName: 'Text',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: 'node-welcome'
-          }
-        },
-        'node-subtitle': {
-          data: {
-            type: { resolvedName: 'Text' },
-            isCanvas: false,
-            props: {
-              text: '드래그 앤 드롭 편집기로 아름다운 레이아웃을 만들어보세요',
-              fontSize: 18,
-              color: 'rgba(255,255,255,0.9)',
-              textAlign: 'center',
-              padding: '0 20px 20px'
-            },
-            displayName: 'Text',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: 'node-welcome'
-          }
-        },
-        'node-features': {
-          data: {
-            type: { resolvedName: 'Container' },
-            isCanvas: true,
-            props: {
-              flexDirection: 'row',
-              gap: 24,
-              padding: '40px 20px'
-            },
-            displayName: 'Container',
-            custom: {},
-            hidden: false,
-            nodes: ['node-feature1', 'node-feature2'],
-            linkedNodes: {},
-            parent: 'ROOT'
-          }
-        },
-        'node-feature1': {
-          data: {
-            type: { resolvedName: 'Container' },
-            isCanvas: true,
-            props: {
-              background: 'white',
-              padding: '24px',
-              borderRadius: 8,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            },
-            displayName: 'Container',
-            custom: {},
-            hidden: false,
-            nodes: ['node-feature1-title', 'node-feature1-desc'],
-            linkedNodes: {},
-            parent: 'node-features'
-          }
-        },
-        'node-feature1-title': {
-          data: {
-            type: { resolvedName: 'Text' },
-            isCanvas: false,
-            props: {
-              text: '기능 1',
-              fontSize: 20,
-              fontWeight: 'bold',
-              color: '#1f2937',
-              padding: '0 0 12px 0'
-            },
-            displayName: 'Text',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: 'node-feature1'
-          }
-        },
-        'node-feature1-desc': {
-          data: {
-            type: { resolvedName: 'Text' },
-            isCanvas: false,
-            props: {
-              text: '여기에 기능 설명을 추가하세요',
-              fontSize: 14,
-              color: '#6b7280'
-            },
-            displayName: 'Text',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: 'node-feature1'
-          }
-        },
-        'node-feature2': {
-          data: {
-            type: { resolvedName: 'Container' },
-            isCanvas: true,
-            props: {
-              background: 'white',
-              padding: '24px',
-              borderRadius: 8,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            },
-            displayName: 'Container',
-            custom: {},
-            hidden: false,
-            nodes: ['node-feature2-title', 'node-feature2-desc'],
-            linkedNodes: {},
-            parent: 'node-features'
-          }
-        },
-        'node-feature2-title': {
-          data: {
-            type: { resolvedName: 'Text' },
-            isCanvas: false,
-            props: {
-              text: '기능 2',
-              fontSize: 20,
-              fontWeight: 'bold',
-              color: '#1f2937',
-              padding: '0 0 12px 0'
-            },
-            displayName: 'Text',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: 'node-feature2'
-          }
-        },
-        'node-feature2-desc': {
-          data: {
-            type: { resolvedName: 'Text' },
-            isCanvas: false,
-            props: {
-              text: '여기에 기능 설명을 추가하세요',
-              fontSize: 14,
-              color: '#6b7280'
-            },
-            displayName: 'Text',
-            custom: {},
-            hidden: false,
-            nodes: [],
-            linkedNodes: {},
-            parent: 'node-feature2'
-          }
-        }
-      };
-      
-      actions.deserialize(JSON.stringify(initialState));
+    if (confirm('캔버스를 초기 상태로 되돌리시겠습니까? 페이지가 새로고침됩니다.')) {
+      // Simple approach: just reload the page to get initial state
+      window.location.reload();
     }
   };
 
