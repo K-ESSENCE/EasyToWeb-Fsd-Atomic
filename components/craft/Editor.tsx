@@ -1,31 +1,34 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Editor, Frame, Element } from '@craftjs/core';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import React, { useState } from "react";
+import { Editor, Frame, Element } from "@craftjs/core";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 // Craft components
-import { Text } from './Text';
-import { Image } from './Image';
-import { Container } from './Container';
+import { Text } from "./Text";
+import { Image } from "./Image";
+import { Container } from "./Container";
 
 // Toolbox and Toolbar
-import { Toolbox } from './Toolbox';
-import { Toolbar } from './Toolbar';
-import { Layers } from './Layers';
+import { Toolbox } from "./Toolbox";
+import { Toolbar } from "./Toolbar";
+import { Layers } from "./Layers";
 
 // Advanced Features
-import { History } from './History';
-import { Serialization } from './Serialization';
-import { EventLogger, EventHandlers } from './Events';
-import { NodeValidator } from './NodeManager';
+import { History } from "./History";
+import { Serialization } from "./Serialization";
+import { EventLogger, EventHandlers } from "./Events";
+import { NodeValidator } from "./NodeManager";
 // import { Viewport } from './Viewport';
 
 // Utilities
-import { CanvasController, CanvasStats } from './utils/Canvas';
-import { DragIndicator, GridLines } from './utils/DragIndicator';
-import { SelectionBox, HoverHighlight, SnapGuides, StatusBar } from './utils/EditorHelpers';
+import { CanvasController, CanvasStats } from "./utils/Canvas";
+import { DragIndicator, GridLines } from "./utils/DragIndicator";
+import {
+  SnapGuides,
+  StatusBar,
+} from "./utils/EditorHelpers";
 
 interface CraftEditorProps {
   onContentChange?: (content: string) => void;
@@ -34,7 +37,7 @@ interface CraftEditorProps {
 
 export const CraftEditor: React.FC<CraftEditorProps> = ({
   onContentChange,
-  className = ''
+  className = "",
 }) => {
   const [enabled, setEnabled] = useState(true);
   const [showLayers, setShowLayers] = useState(false);
@@ -46,7 +49,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
           resolver={{
             Text,
             Image,
-            Container
+            Container,
           }}
           enabled={enabled}
           onNodesChange={(query) => {
@@ -58,7 +61,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
         >
           {/* Event Handlers */}
           <EventHandlers />
-          
+
           {/* Header Controls */}
           <div className="craft-editor-header bg-white border-b border-gray-200 p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -70,11 +73,11 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                   onClick={() => setEnabled(!enabled)}
                   className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                     enabled
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200'
+                      ? "bg-blue-100 text-blue-700 border border-blue-200"
+                      : "bg-gray-100 text-gray-700 border border-gray-200"
                   }`}
                 >
-                  {enabled ? '편집 모드' : '미리보기 모드'}
+                  {enabled ? "편집 모드" : "미리보기 모드"}
                 </button>
                 <button
                   onClick={() => setShowLayers(!showLayers)}
@@ -82,16 +85,16 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                 >
                   레이어
                 </button>
-                
+
                 {/* History Controls */}
                 <History />
-                
+
                 {/* Serialization */}
                 <Serialization />
-                
+
                 {/* Event Logger */}
                 <EventLogger />
-                
+
                 {/* Node Validator */}
                 <NodeValidator />
               </div>
@@ -99,7 +102,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
             <div className="flex items-center gap-2">
               {/* Canvas Controls */}
               <CanvasController />
-              
+
               <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
                 임시저장
               </button>
@@ -119,25 +122,25 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
             <div className="craft-canvas flex-1 relative bg-gray-100 overflow-hidden">
               {/* Grid Lines */}
               <GridLines enabled={enabled} spacing={20} />
-              
+
               {/* Drag Indicator */}
               <DragIndicator />
-              
-              {/* Selection Box */}
-              <SelectionBox />
-              
-              {/* Hover Highlight */}
-              <HoverHighlight />
-              
+
+              {/* Selection Box - 비활성화됨 (임시 위치 때문) */}
+              {/* <SelectionBox /> */}
+
+              {/* Hover Highlight - 비활성화됨 (임시 위치 때문) */}
+              {/* <HoverHighlight /> */}
+
               {/* Snap Guides */}
               <SnapGuides enabled={enabled} />
-              
+
               <div className="absolute inset-0 overflow-auto">
                 <div className="min-h-full p-8">
                   <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm min-h-[800px] relative">
                     <Frame>
-                      <Element 
-                        is={Container} 
+                      <Element
+                        is={Container}
                         padding="40px"
                         minHeight={600}
                         background="white"
@@ -169,7 +172,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                             padding="0 20px 20px"
                           />
                         </Element>
-                        
+
                         <Element
                           is={Container}
                           flexDirection="row"
@@ -200,7 +203,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                               color="#6b7280"
                             />
                           </Element>
-                          
+
                           <Element
                             is={Container}
                             background="white"
@@ -247,8 +250,18 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                       onClick={() => setShowLayers(false)}
                       className="text-gray-400 hover:text-gray-600"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
