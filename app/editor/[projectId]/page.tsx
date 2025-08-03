@@ -13,6 +13,8 @@ import HistoryPanel from "../../../components/HistoryPanel";
 import PageLoader from "../../../components/PageLoader";
 import ProjectPublishModal from "../../../components/ProjectPublishModal";
 import { ProjectUpdateRequest } from "../../../shared/api/types";
+import { YjsProvider } from "../../../shared/collaboration/YjsProvider";
+import { CollaboratorList } from "../../../components/collaboration/CollaboratorList";
 
 const App = () => {
   const params = useParams();
@@ -100,7 +102,8 @@ const App = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <YjsProvider projectId={projectId}>
+      <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-4">
@@ -138,6 +141,9 @@ const App = () => {
         </div>
         
         <div className="flex items-center space-x-3">
+          {/* Collaborator List - added next to save button */}
+          <CollaboratorList className="mr-2" />
+          
           <button
             onClick={handleSave}
             disabled={permission === "READ_ONLY"}
@@ -196,6 +202,7 @@ const App = () => {
         <CraftEditor
           onContentChange={handleContentChange}
           className="h-full"
+          projectId={projectId}
         />
       </div>
 
@@ -208,6 +215,7 @@ const App = () => {
         <ProjectPublishModal modal={publishModal} projectId={projectId} />
       )}
     </div>
+    </YjsProvider>
   );
 };
 

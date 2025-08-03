@@ -30,7 +30,8 @@ export const Text: React.FC<TextProps> = ({
   const {
     connectors: { connect, drag },
     selected,
-    actions: { setProp }
+    actions: { setProp },
+    id
   } = useNode((state) => ({
     selected: state.events.selected,
     dragged: state.events.dragged,
@@ -76,6 +77,7 @@ export const Text: React.FC<TextProps> = ({
         });
       }}
       className="craft-text-component hover:bg-blue-50 transition-colors duration-200"
+      data-node-id={id}
     >
       {text}
     </div>

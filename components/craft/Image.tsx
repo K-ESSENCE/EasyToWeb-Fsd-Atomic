@@ -39,7 +39,8 @@ export const Image: React.FC<ImageProps> = ({
   const {
     connectors: { connect, drag },
     selected,
-    actions: { setProp }
+    actions: { setProp },
+    id
   } = useNode((state) => ({
     selected: state.events.selected,
     dragged: state.events.dragged,
@@ -113,6 +114,7 @@ export const Image: React.FC<ImageProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="craft-image-component"
+      data-node-id={id}
     >
       {src ? (
         <img

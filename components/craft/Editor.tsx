@@ -30,17 +30,110 @@ import {
   StatusBar,
 } from "./utils/EditorHelpers";
 
+// Collaboration
+import { CraftYjsSync } from "../../shared/collaboration/CraftYjsSync";
+import { CraftAwarenessSync } from "../../shared/collaboration/CraftAwarenessSync";
+import { CollaboratorOverlay } from "../collaboration/CollaboratorOverlay";
+
+// Save Manager
+import { SaveManager } from "./SaveManager";
+
 interface CraftEditorProps {
   onContentChange?: (content: string) => void;
   className?: string;
+  projectId?: string; // For collaboration
 }
 
 export const CraftEditor: React.FC<CraftEditorProps> = ({
   onContentChange,
   className = "",
+  projectId,
 }) => {
   const [enabled, setEnabled] = useState(true);
   const [showLayers, setShowLayers] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handleTempSave = async () => {
+    if (!projectId || isSaving) return;
+    
+    setIsSaving(true);
+    console.log('Editor: Starting temp save for project:', projectId);
+    
+    try {
+      // Trigger save event that SaveManager will handle
+      const event = new CustomEvent('craft-temp-save');
+      document.dispatchEvent(event);
+      console.log('Editor: craft-temp-save event dispatched');
+    } catch (error) {
+      console.error('임시저장 중 오류가 발생했습니다:', error);
+      alert('임시저장 중 오류가 발생했습니다.');
+      setIsSaving(false);
+    }
+  };
+
+  const onTempSaveComplete = () => {
+    setIsSaving(false);
+    console.log('임시저장 완료:', projectId);
+    alert('임시저장이 완료되었습니다!');
+  };
+
+  const onSaveData = (serializedData: string) => {
+    try {
+      const saveData = {
+        projectId,
+        content: serializedData,
+        type: 'temp_save',
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem(`craft_temp_${projectId}`, JSON.stringify(saveData));
+      console.log('임시저장 데이터 저장됨:', saveData);
+    } catch (error) {
+      console.error('임시저장 데이터 저장 실패:', error);
+    }
+  };
+
+  const onPublishData = (serializedData: string) => {
+    try {
+      const publishData = {
+        projectId,
+        content: serializedData,
+        type: 'publish',
+        published: true,
+        publishedAt: Date.now()
+      };
+      
+      localStorage.setItem(`craft_published_${projectId}`, JSON.stringify(publishData));
+      console.log('발행 데이터 저장됨:', publishData);
+    } catch (error) {
+      console.error('발행 데이터 저장 실패:', error);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!projectId || isPublishing) return;
+    
+    setIsPublishing(true);
+    console.log('Editor: Starting publish for project:', projectId);
+    
+    try {
+      // Trigger publish event that SaveManager will handle
+      const event = new CustomEvent('craft-publish');
+      document.dispatchEvent(event);
+      console.log('Editor: craft-publish event dispatched');
+    } catch (error) {
+      console.error('발행 중 오류가 발생했습니다:', error);
+      alert('발행 중 오류가 발생했습니다.');
+      setIsPublishing(false);
+    }
+  };
+
+  const onPublishComplete = () => {
+    setIsPublishing(false);
+    console.log('발행 완료:', projectId);
+    alert('발행이 완료되었습니다!');
+  };
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -53,12 +146,36 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
           }}
           enabled={enabled}
           onNodesChange={(query) => {
+            console.log('Editor: onNodesChange triggered');
             if (onContentChange) {
               const json = query.serialize();
               onContentChange(json);
             }
+            
+            // Trigger Yjs sync
+            if (projectId) {
+              const event = new CustomEvent('craft-nodes-changed', { 
+                detail: { query } 
+              });
+              document.dispatchEvent(event);
+            }
           }}
         >
+          {/* Collaboration Sync */}
+          {projectId && <CraftYjsSync onContentChange={onContentChange} />}
+          {projectId && <CraftAwarenessSync />}
+          
+          {/* Save Manager */}
+          {projectId && (
+            <SaveManager 
+              projectId={projectId} 
+              onSave={onSaveData} 
+              onPublish={onPublishData}
+              onTempSaveTriggered={onTempSaveComplete}
+              onPublishTriggered={onPublishComplete}
+            />
+          )}
+          
           {/* Event Handlers */}
           <EventHandlers />
 
@@ -103,11 +220,41 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               {/* Canvas Controls */}
               <CanvasController />
 
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-                임시저장
+              <button 
+                onClick={handleTempSave}
+                disabled={isSaving || !projectId}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isSaving || !projectId
+                    ? 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
+                    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {isSaving ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    저장 중...
+                  </div>
+                ) : (
+                  '임시저장'
+                )}
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors">
-                발행하기
+              <button 
+                onClick={handlePublish}
+                disabled={isPublishing || !projectId}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isPublishing || !projectId
+                    ? 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
+                    : 'text-white bg-blue-600 border border-transparent hover:bg-blue-700'
+                }`}
+              >
+                {isPublishing ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    발행 중...
+                  </div>
+                ) : (
+                  '발행하기'
+                )}
               </button>
             </div>
           </div>
@@ -134,6 +281,9 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
 
               {/* Snap Guides */}
               <SnapGuides enabled={enabled} />
+              
+              {/* Collaborator Selection Overlay */}
+              {projectId && <CollaboratorOverlay />}
 
               <div className="absolute inset-0 overflow-auto">
                 <div className="min-h-full p-8">

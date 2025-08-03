@@ -43,6 +43,7 @@ export const Container: React.FC<ContainerProps> = ({
     connectors: { connect, drag },
     selected,
     isHover,
+    id
   } = useNode((state) => ({
     selected: state.events.selected,
     isHover: state.events.hovered,
@@ -80,6 +81,7 @@ export const Container: React.FC<ContainerProps> = ({
       }}
       style={containerStyle}
       className="craft-container-component"
+      data-node-id={id}
     >
       {/* Selected indicator */}
       {selected && (
