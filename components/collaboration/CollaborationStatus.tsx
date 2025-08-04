@@ -4,7 +4,7 @@ import React from 'react';
 import { useYjs } from '../../shared/collaboration/YjsProvider';
 
 export const CollaborationStatus: React.FC = () => {
-  const { isConnected, collaborators, provider } = useYjs();
+  const { isConnected, collaborators } = useYjs();
   
   const otherUsers = collaborators.size;
   

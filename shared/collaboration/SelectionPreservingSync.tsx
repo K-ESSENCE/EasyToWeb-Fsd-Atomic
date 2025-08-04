@@ -24,15 +24,13 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     isEditing: boolean;
   }>({ nodeIds: [], isEditing: false });
   
-  // Y.Map for storing craft nodes
-  const nodesMap = doc?.getMap('craft-nodes') as Y.Map<any>;
-  const metaMap = doc?.getMap('craft-meta') as Y.Map<any>;
+  // Y.Map for storing craft nodes (using same keys as YjsProvider)
+  const nodesMap = doc?.getMap('nodes') as Y.Map<Record<string, unknown>>;
+  const metaMap = doc?.getMap('meta') as Y.Map<unknown>;
   
   // Check collaborators
   const totalConnectedUsers = provider?.awareness?.getStates()?.size || 0;
   const hasOtherCollaborators = totalConnectedUsers > 1;
-  
-  console.log('SelectionPreservingSync: Connected users:', totalConnectedUsers);
 
   // Enhanced selection preservation
   const preserveCurrentSelection = useCallback(() => {
@@ -56,7 +54,6 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
         isEditing: isContentEditable && focusedNodeId !== undefined
       };
       
-      console.log('SelectionPreservingSync: Preserved selection:', preservedSelection.current);
       return preservedSelection.current;
     } catch (error) {
       console.error('SelectionPreservingSync: Failed to preserve selection:', error);
@@ -116,8 +113,6 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
               }
             }
           }
-          
-          console.log('SelectionPreservingSync: Restored selection successfully');
         } catch (error) {
           console.error('SelectionPreservingSync: Failed to restore selection:', error);
         }
@@ -127,7 +122,7 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     }
   }, [actions, query]);
 
-  // Smart diff-based update
+  // Smart diff-based update with safe merging
   const applyRemoteChanges = useCallback(() => {
     if (!nodesMap || !doc || isApplyingRemoteChange.current || !hasOtherCollaborators) {
       return false;
@@ -135,17 +130,19 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
 
     try {
       isApplyingRemoteChange.current = true;
-      console.log('SelectionPreservingSync: Applying remote changes with selection preservation');
+      
+      // Get current local state first
+      const currentLocalState = query.serialize();
+      const localNodes = JSON.parse(currentLocalState);
       
       // Get remote state
-      const remoteNodes: Record<string, any> = {};
+      const remoteNodes: Record<string, unknown> = {};
       nodesMap.forEach((value, key) => {
         remoteNodes[key] = value;
       });
       
       // 원격 상태가 비어있으면 절대 적용하지 않음
       if (Object.keys(remoteNodes).length === 0) {
-        console.log('SelectionPreservingSync: Remote state is empty, skipping update');
         return false;
       }
 
@@ -153,7 +150,6 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
       
       // Skip if no actual changes
       if (remoteState === lastRemoteState.current) {
-        console.log('SelectionPreservingSync: No remote changes detected');
         return false;
       }
       
@@ -165,32 +161,48 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
       // Check if currently editing node was modified
       if (selectionInfo.isEditing && selectionInfo.focusedNodeId) {
         const currentNodeData = remoteNodes[selectionInfo.focusedNodeId];
-        const localState = query.serialize();
-        const localNodes = JSON.parse(localState);
         const localNodeData = localNodes[selectionInfo.focusedNodeId];
         
         // Skip update if currently edited node has local changes
         if (currentNodeData && localNodeData && 
             JSON.stringify(currentNodeData) !== JSON.stringify(localNodeData)) {
-          console.log('SelectionPreservingSync: Skipping update - node currently being edited');
           return false;
         }
       }
       
-      // Apply changes without triggering selection events
-      actions.deserialize(remoteState);
-      
-      // Restore selection immediately after DOM update
-      requestAnimationFrame(() => {
-        restoreSelection(selectionInfo);
-      });
-      
-      // Notify parent
-      if (onContentChange) {
-        onContentChange(remoteState);
+      // Safe merge: only update if remote state is structurally valid
+      try {
+        // Validate remote state structure
+        const hasValidRoot = remoteNodes['ROOT'] && typeof remoteNodes['ROOT'] === 'object';
+        if (!hasValidRoot) {
+          return false;
+        }
+        
+        // Apply changes without triggering selection events
+        actions.deserialize(remoteState);
+        
+        // Restore selection immediately after DOM update
+        requestAnimationFrame(() => {
+          restoreSelection(selectionInfo);
+        });
+        
+        // Notify parent
+        if (onContentChange) {
+          onContentChange(remoteState);
+        }
+        
+        return true;
+      } catch (deserializeError) {
+        console.error('SelectionPreservingSync: Failed to deserialize remote state:', deserializeError);
+        // Restore local state if deserialization fails
+        try {
+          actions.deserialize(currentLocalState);
+        } catch (restoreError) {
+          console.error('SelectionPreservingSync: Failed to restore local state:', restoreError);
+        }
+        return false;
       }
       
-      return true;
     } catch (error) {
       console.error('SelectionPreservingSync: Failed to apply remote changes:', error);
       return false;
@@ -202,7 +214,7 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     }
   }, [nodesMap, doc, hasOtherCollaborators, preserveCurrentSelection, restoreSelection, actions, query, onContentChange]);
 
-  // Optimized local changes sync
+  // Optimized local changes sync with validation
   const sendLocalChanges = useCallback(() => {
     if (!nodesMap || !doc || isApplyingRemoteChange.current || !hasOtherCollaborators) {
       return;
@@ -216,38 +228,68 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
         return;
       }
       
+      // Validate local state before sending
+      let currentNodes: Record<string, unknown>;
+      try {
+        currentNodes = JSON.parse(currentState);
+      } catch (parseError) {
+        console.error('SelectionPreservingSync: Invalid local state, skipping sync:', parseError);
+        return;
+      }
+      
+      // Ensure ROOT node exists (basic validation)
+      if (!currentNodes['ROOT']) {
+        console.error('SelectionPreservingSync: Missing ROOT node, skipping sync');
+        return;
+      }
+      
       lastLocalState.current = currentState;
-      console.log('SelectionPreservingSync: Sending local changes');
       
-      const currentNodes = JSON.parse(currentState);
-      
-      // Batch update in transaction
-      doc.transact(() => {
-        // Only update changed nodes instead of clearing all
-        const existingKeys = new Set(nodesMap.keys());
-        const currentKeys = new Set(Object.keys(currentNodes));
-        
-        // Add or update nodes
-        Object.entries(currentNodes).forEach(([nodeId, nodeData]) => {
-          const existingData = nodesMap.get(nodeId);
-          if (!existingData || JSON.stringify(existingData) !== JSON.stringify(nodeData)) {
-            nodesMap.set(nodeId, nodeData);
+      // Batch update in transaction with error handling
+      try {
+        doc.transact(() => {
+          // Only update changed nodes instead of clearing all
+          const existingKeys = new Set(nodesMap.keys());
+          const currentKeys = new Set(Object.keys(currentNodes));
+          
+          // Add or update nodes
+          Object.entries(currentNodes).forEach(([nodeId, nodeData]) => {
+            try {
+              const existingData = nodesMap.get(nodeId);
+              if (!existingData || JSON.stringify(existingData) !== JSON.stringify(nodeData)) {
+                nodesMap.set(nodeId, nodeData as Record<string, unknown>);
+              }
+            } catch (nodeError) {
+              console.error(`SelectionPreservingSync: Failed to update node ${nodeId}:`, nodeError);
+            }
+          });
+          
+          // Remove deleted nodes (but preserve existing nodes if something goes wrong)
+          existingKeys.forEach(nodeId => {
+            if (!currentKeys.has(nodeId)) {
+              try {
+                nodesMap.delete(nodeId);
+              } catch (deleteError) {
+                console.error(`SelectionPreservingSync: Failed to delete node ${nodeId}:`, deleteError);
+              }
+            }
+          });
+          
+          // Update metadata
+          if (metaMap) {
+            try {
+              metaMap.set('lastModified', Date.now());
+              metaMap.set('modifiedBy', provider?.awareness?.clientID || 'unknown');
+            } catch (metaError) {
+              console.error('SelectionPreservingSync: Failed to update metadata:', metaError);
+            }
           }
         });
-        
-        // Remove deleted nodes
-        existingKeys.forEach(nodeId => {
-          if (!currentKeys.has(nodeId)) {
-            nodesMap.delete(nodeId);
-          }
-        });
-        
-        // Update metadata
-        if (metaMap) {
-          metaMap.set('lastModified', Date.now());
-          metaMap.set('modifiedBy', provider?.awareness?.clientID || 'unknown');
-        }
-      });
+      } catch (transactionError) {
+        console.error('SelectionPreservingSync: Transaction failed:', transactionError);
+        // Reset the lastLocalState to allow retry
+        lastLocalState.current = '';
+      }
       
     } catch (error) {
       console.error('SelectionPreservingSync: Failed to send local changes:', error);
@@ -266,7 +308,6 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
         return;
       }
       
-      console.log('SelectionPreservingSync: Remote Y.Map change detected');
       
       // 즉시 실행을 위해 debounce 제거
       
@@ -291,11 +332,9 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     
     const handleCraftChange = () => {
       if (isApplyingRemoteChange.current) {
-        console.log('SelectionPreservingSync: Skipping local change - remote update in progress');
         return;
       }
       
-      console.log('SelectionPreservingSync: Local change detected');
       
       // 즉시 처리 - 디바운싱 제거
       if (!isApplyingRemoteChange.current) {
@@ -306,7 +345,6 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     const handleTextChange = (event: Event) => {
       if (isApplyingRemoteChange.current) return;
       
-      console.log('SelectionPreservingSync: Text change detected');
       
       // 즉시 처리 - 디바운싱 제거
       if (!isApplyingRemoteChange.current) {
@@ -315,7 +353,6 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     };
     
     const handleManualSync = () => {
-      console.log('SelectionPreservingSync: Manual sync requested');
       sendLocalChanges();
     };
     
@@ -331,41 +368,62 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     };
   }, [isConnected, nodesMap, hasOtherCollaborators, sendLocalChanges]);
 
-  // Initial sync with content preservation
+  // Initial sync with safe content preservation
   useEffect(() => {
     if (isConnected && nodesMap && hasOtherCollaborators) {
-      console.log('SelectionPreservingSync: Performing initial sync');
       
       // 안전한 초기 동기화 - 컨텐츠 보존 우선
-      setTimeout(() => {
-        const currentState = query.serialize();
-        const currentNodes = JSON.parse(currentState);
-        const hasLocalContent = Object.keys(currentNodes).length > 0;
-        const remoteHasContent = nodesMap.size > 0;
-        
-        if (remoteHasContent && !hasLocalContent) {
-          // 로컬에 내용이 없고 리모트에 있으면 리모트 적용
-          console.log('SelectionPreservingSync: Applying remote content to empty local');
-          applyRemoteChanges();
-        } else if (hasLocalContent && !remoteHasContent) {
-          // 로컬에 내용이 있고 리모트가 비어있으면 로컬 전송
-          console.log('SelectionPreservingSync: Sending local content to empty remote');
-          sendLocalChanges();
-        } else if (hasLocalContent && remoteHasContent) {
-          // 둘 다 내용이 있으면 타임스탬프 확인
-          const localTimestamp = metaMap?.get('lastModified') || 0;
-          const remoteTimestamp = Date.now(); // 현재 시점을 기준으로 원격이 더 최신
+      const syncTimeout = setTimeout(() => {
+        try {
+          const currentState = query.serialize();
+          let currentNodes: Record<string, unknown>;
           
-          if (remoteTimestamp > localTimestamp) {
-            console.log('SelectionPreservingSync: Remote content is newer, applying remote');
-            applyRemoteChanges();
-          } else {
-            console.log('SelectionPreservingSync: Local content is newer or same, keeping local');
-            // 로컬 유지, 별도 동작 없음
+          try {
+            currentNodes = JSON.parse(currentState);
+          } catch (parseError) {
+            console.error('SelectionPreservingSync: Invalid local state during initial sync:', parseError);
+            return;
           }
+          
+          const hasLocalContent = Object.keys(currentNodes).length > 1; // More than just ROOT
+          const hasValidLocalRoot = currentNodes['ROOT'] && typeof currentNodes['ROOT'] === 'object';
+          
+          // Check remote content
+          const remoteHasContent = nodesMap.size > 0;
+          let hasValidRemoteContent = false;
+          
+          if (remoteHasContent) {
+            const remoteRoot = nodesMap.get('ROOT');
+            hasValidRemoteContent = Boolean(remoteRoot && typeof remoteRoot === 'object');
+          }
+          
+          
+          if (hasValidRemoteContent && (!hasLocalContent || !hasValidLocalRoot)) {
+            // 로컬에 유효한 내용이 없고 리모트에 유효한 내용이 있으면 리모트 적용
+            applyRemoteChanges();
+          } else if (hasLocalContent && hasValidLocalRoot && !hasValidRemoteContent) {
+            // 로컬에 유효한 내용이 있고 리모트가 비어있거나 무효하면 로컬 전송
+            sendLocalChanges();
+          } else if (hasLocalContent && hasValidLocalRoot && hasValidRemoteContent) {
+            // 둘 다 유효한 내용이 있으면 타임스탬프 확인
+            const remoteTimestamp = (metaMap?.get('lastModified') as number) || 0;
+            const localTimestamp = Date.now() - 5000; // 5초 전을 기준으로 비교
+            
+            if (remoteTimestamp > localTimestamp) {
+              applyRemoteChanges();
+            } else {
+              sendLocalChanges();
+            }
+          }
+          // 둘 다 비어있거나 무효하면 아무것도 하지 않음
+        } catch (error) {
+          console.error('SelectionPreservingSync: Initial sync failed:', error);
         }
-        // 둘 다 비어있으면 아무것도 하지 않음
       }, 1000); // 1초 지연으로 안정성 확보
+      
+      return () => {
+        clearTimeout(syncTimeout);
+      };
     }
   }, [isConnected, nodesMap, hasOtherCollaborators, applyRemoteChanges, sendLocalChanges, query, metaMap]);
 
