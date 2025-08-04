@@ -51,12 +51,19 @@ export const CollaboratorOverlay: React.FC = () => {
     const handleResize = () => updateSelections();
     window.addEventListener('resize', handleResize);
 
-    // Update periodically to catch DOM changes
-    const interval = setInterval(updateSelections, 500);
+    // Listen for collaboration events - immediate update
+    const handleCollaborationChange = () => {
+      updateSelections(); // 즉시 업데이트
+    };
+
+    // Listen for awareness changes and selection events
+    document.addEventListener('craft-awareness-change', handleCollaborationChange);
+    document.addEventListener('craft-selection-changed', handleCollaborationChange);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      clearInterval(interval);
+      document.removeEventListener('craft-awareness-change', handleCollaborationChange);
+      document.removeEventListener('craft-selection-changed', handleCollaborationChange);
     };
   }, [collaborators, query]);
 
@@ -87,8 +94,11 @@ const CollaboratorSelectionOutline: React.FC<CollaboratorSelectionOutlineProps> 
 
     updateBounds();
     
-    // Update on scroll
-    const handleScroll = () => updateBounds();
+    // 스크롤 시 즉시 업데이트 - throttle 제거
+    const handleScroll = () => {
+      updateBounds();
+    };
+    
     document.addEventListener('scroll', handleScroll, true);
 
     return () => {
@@ -102,7 +112,7 @@ const CollaboratorSelectionOutline: React.FC<CollaboratorSelectionOutlineProps> 
         <div key={index}>
           {/* Selection outline */}
           <div
-            className="absolute border-2 rounded-sm transition-all duration-200"
+            className="absolute border-2 rounded-sm"
             style={{
               left: rect.left,
               top: rect.top,
@@ -110,6 +120,8 @@ const CollaboratorSelectionOutline: React.FC<CollaboratorSelectionOutlineProps> 
               height: rect.height,
               borderColor: selection.collaborator.color,
               backgroundColor: `${selection.collaborator.color}10`, // 10% opacity
+              willChange: 'transform',
+              transform: 'translate3d(0,0,0)', // Force GPU acceleration
             }}
           />
           

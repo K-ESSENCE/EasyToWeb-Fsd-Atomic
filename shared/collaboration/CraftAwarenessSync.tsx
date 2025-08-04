@@ -20,17 +20,21 @@ export const CraftAwarenessSync: React.FC = () => {
       return;
     }
 
-    // Debounce selection updates to prevent excessive awareness events
-    const timeoutId = setTimeout(() => {
-      try {
-        console.log('CraftAwarenessSync: Updating selection:', selectedNodeIds);
-        updateUserSelection(provider.awareness, selectedNodeIds);
-      } catch (error) {
-        console.error('Failed to update awareness:', error);
-      }
-    }, 100);
+    // 즉시 업데이트 - 디바운싱 제거  
+    try {
+      console.log('CraftAwarenessSync: Updating selection:', selectedNodeIds);
+      updateUserSelection(provider.awareness, selectedNodeIds);
+      
+      // Dispatch custom event to notify CollaboratorOverlay
+      const event = new CustomEvent('craft-awareness-change', {
+        detail: { selectedNodeIds, timestamp: Date.now() }
+      });
+      document.dispatchEvent(event);
+    } catch (error) {
+      console.error('Failed to update awareness:', error);
+    }
 
-    return () => clearTimeout(timeoutId);
+    // 더 이상 timeout 필요 없음
   }, [provider, selectedNodeIds, hasOtherCollaborators]);
 
   return null;

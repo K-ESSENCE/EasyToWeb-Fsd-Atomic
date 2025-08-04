@@ -24,16 +24,13 @@ import { NodeValidator } from "./NodeManager";
 // Utilities
 import { CanvasController, CanvasStats } from "./utils/Canvas";
 import { DragIndicator, GridLines } from "./utils/DragIndicator";
-import {
-  SnapGuides,
-  StatusBar,
-} from "./utils/EditorHelpers";
+import { SnapGuides, StatusBar } from "./utils/EditorHelpers";
 
 // Collaboration
-import { OptimizedCraftSync } from "../../shared/collaboration/OptimizedCraftSync";
+import { SelectionPreservingSync } from "../../shared/collaboration/SelectionPreservingSync";
 import { CraftAwarenessSync } from "../../shared/collaboration/CraftAwarenessSync";
 import { CollaboratorOverlay } from "../collaboration/CollaboratorOverlay";
-import { CollaborationStatus } from "../collaboration/CollaborationStatus";
+import { AntiFlickerManager } from "../../shared/collaboration/AntiFlickerManager";
 
 // Save Manager
 import { SaveManager } from "./SaveManager";
@@ -57,26 +54,26 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
 
   const handleTempSave = async () => {
     if (!projectId || isSaving) return;
-    
+
     setIsSaving(true);
-    console.log('Editor: Starting temp save for project:', projectId);
-    
+    console.log("Editor: Starting temp save for project:", projectId);
+
     try {
       // Trigger save event that SaveManager will handle
-      const event = new CustomEvent('craft-temp-save');
+      const event = new CustomEvent("craft-temp-save");
       document.dispatchEvent(event);
-      console.log('Editor: craft-temp-save event dispatched');
+      console.log("Editor: craft-temp-save event dispatched");
     } catch (error) {
-      console.error('임시저장 중 오류가 발생했습니다:', error);
-      alert('임시저장 중 오류가 발생했습니다.');
+      console.error("임시저장 중 오류가 발생했습니다:", error);
+      alert("임시저장 중 오류가 발생했습니다.");
       setIsSaving(false);
     }
   };
 
   const onTempSaveComplete = () => {
     setIsSaving(false);
-    console.log('임시저장 완료:', projectId);
-    alert('임시저장이 완료되었습니다!');
+    console.log("임시저장 완료:", projectId);
+    alert("임시저장이 완료되었습니다!");
   };
 
   const onSaveData = (serializedData: string) => {
@@ -84,14 +81,14 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
       const saveData = {
         projectId,
         content: serializedData,
-        type: 'temp_save',
-        timestamp: Date.now()
+        type: "temp_save",
+        timestamp: Date.now(),
       };
-      
+
       localStorage.setItem(`craft_temp_${projectId}`, JSON.stringify(saveData));
-      console.log('임시저장 데이터 저장됨:', saveData);
+      console.log("임시저장 데이터 저장됨:", saveData);
     } catch (error) {
-      console.error('임시저장 데이터 저장 실패:', error);
+      console.error("임시저장 데이터 저장 실패:", error);
     }
   };
 
@@ -100,40 +97,43 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
       const publishData = {
         projectId,
         content: serializedData,
-        type: 'publish',
+        type: "publish",
         published: true,
-        publishedAt: Date.now()
+        publishedAt: Date.now(),
       };
-      
-      localStorage.setItem(`craft_published_${projectId}`, JSON.stringify(publishData));
-      console.log('발행 데이터 저장됨:', publishData);
+
+      localStorage.setItem(
+        `craft_published_${projectId}`,
+        JSON.stringify(publishData)
+      );
+      console.log("발행 데이터 저장됨:", publishData);
     } catch (error) {
-      console.error('발행 데이터 저장 실패:', error);
+      console.error("발행 데이터 저장 실패:", error);
     }
   };
 
   const handlePublish = async () => {
     if (!projectId || isPublishing) return;
-    
+
     setIsPublishing(true);
-    console.log('Editor: Starting publish for project:', projectId);
-    
+    console.log("Editor: Starting publish for project:", projectId);
+
     try {
       // Trigger publish event that SaveManager will handle
-      const event = new CustomEvent('craft-publish');
+      const event = new CustomEvent("craft-publish");
       document.dispatchEvent(event);
-      console.log('Editor: craft-publish event dispatched');
+      console.log("Editor: craft-publish event dispatched");
     } catch (error) {
-      console.error('발행 중 오류가 발생했습니다:', error);
-      alert('발행 중 오류가 발생했습니다.');
+      console.error("발행 중 오류가 발생했습니다:", error);
+      alert("발행 중 오류가 발생했습니다.");
       setIsPublishing(false);
     }
   };
 
   const onPublishComplete = () => {
     setIsPublishing(false);
-    console.log('발행 완료:', projectId);
-    alert('발행이 완료되었습니다!');
+    console.log("발행 완료:", projectId);
+    alert("발행이 완료되었습니다!");
   };
 
   return (
@@ -148,45 +148,55 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
           enabled={enabled}
           onNodesChange={(query) => {
             const now = Date.now();
-            
+
             // Throttle changes to prevent excessive events
             if (now - lastChangeTimeRef.current < 100) {
               return;
             }
             lastChangeTimeRef.current = now;
-            
+
             // Simple callback for parent component only - no real-time sync
             if (onContentChange) {
               const json = query.serialize();
               onContentChange(json);
             }
-            
-            // Dispatch custom event for collaboration sync
+
+            // Dispatch custom events for collaboration sync - 즉시 실행
             if (projectId) {
-              setTimeout(() => {
-                const event = new CustomEvent('craft-nodes-changed', {
-                  detail: { timestamp: now }
-                });
-                document.dispatchEvent(event);
-              }, 50);
+              // Event for sync
+              const nodesEvent = new CustomEvent("craft-nodes-changed", {
+                detail: { timestamp: now },
+              });
+              document.dispatchEvent(nodesEvent);
+              
+              // Event for selection overlay updates
+              const selectionEvent = new CustomEvent("craft-selection-changed", {
+                detail: { timestamp: now },
+              });
+              document.dispatchEvent(selectionEvent);
             }
           }}
         >
           {/* Collaboration Sync */}
-          {projectId && <OptimizedCraftSync onContentChange={onContentChange} />}
+          {projectId && (
+            <SelectionPreservingSync onContentChange={onContentChange} />
+          )}
           {projectId && <CraftAwarenessSync />}
           
+          {/* Anti-Flicker Manager */}
+          <AntiFlickerManager enabled={enabled} />
+
           {/* Save Manager */}
           {projectId && (
-            <SaveManager 
-              projectId={projectId} 
-              onSave={onSaveData} 
+            <SaveManager
+              projectId={projectId}
+              onSave={onSaveData}
               onPublish={onPublishData}
               onTempSaveTriggered={onTempSaveComplete}
               onPublishTriggered={onPublishComplete}
             />
           )}
-          
+
           {/* Event Handlers */}
           <EventHandlers />
 
@@ -231,16 +241,13 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               {/* Canvas Controls */}
               <CanvasController />
 
-              {/* Collaboration Status */}
-              {projectId && <CollaborationStatus />}
-              
-              <button 
+              <button
                 onClick={handleTempSave}
                 disabled={isSaving || !projectId}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   isSaving || !projectId
-                    ? 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
-                    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                    ? "text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed"
+                    : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 {isSaving ? (
@@ -249,16 +256,16 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                     저장 중...
                   </div>
                 ) : (
-                  '임시저장'
+                  "임시저장"
                 )}
               </button>
-              <button 
+              <button
                 onClick={handlePublish}
                 disabled={isPublishing || !projectId}
                 className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                   isPublishing || !projectId
-                    ? 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
-                    : 'text-white bg-blue-600 border border-transparent hover:bg-blue-700'
+                    ? "text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed"
+                    : "text-white bg-blue-600 border border-transparent hover:bg-blue-700"
                 }`}
               >
                 {isPublishing ? (
@@ -267,22 +274,32 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                     발행 중...
                   </div>
                 ) : (
-                  '발행하기'
+                  "발행하기"
                 )}
               </button>
-              
+
               {/* Manual Sync Button */}
               {projectId && (
                 <button
                   onClick={() => {
-                    const event = new CustomEvent('craft-manual-sync');
+                    const event = new CustomEvent("craft-manual-sync");
                     document.dispatchEvent(event);
                   }}
                   className="px-3 py-2 text-sm font-medium bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 rounded-md transition-colors"
                   title="다른 사용자와 수동 동기화"
                 >
-                  <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg
+                    className="w-4 h-4 inline mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                   동기화
                 </button>
@@ -312,7 +329,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
 
               {/* Snap Guides */}
               <SnapGuides enabled={enabled} />
-              
+
               {/* Collaborator Selection Overlay */}
               {projectId && <CollaboratorOverlay />}
 
