@@ -32,7 +32,7 @@ export const DropZone: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className = '' }) => {
-  const { connectors, isOver } = useEditor((state, query) => ({
+  const { isOver } = useEditor(() => ({
     isOver: false, // This would need to be implemented with proper drop detection
   }));
 

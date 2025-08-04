@@ -5,10 +5,6 @@ import {ELEMENTS} from "./constants";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../store/configureStore";
 import {Item} from "../types/common/layout";
-// import { useSelector, useDispatch } from "react-redux";
-// import { RootState } from "../../store/configureStore";
-// import { addSection, deleteSection } from "../../store/slices/layouts";
-// import { changeNowSectionKey, changeNowItemKey } from "../../store/slices/keys";
 
 const SectionList = ({
 	                     searchTerm,

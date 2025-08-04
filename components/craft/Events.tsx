@@ -5,9 +5,8 @@ export const EventLogger: React.FC = () => {
   const [events, setEvents] = useState<Array<{ type: string; timestamp: Date; data?: unknown }>>([]);
   const [isVisible, setIsVisible] = useState(false);
   
-  const { selectedNodeIds, hoveredNodeIds, draggedNodeIds, nodeCount } = useEditor((state) => ({
+  const { selectedNodeIds, draggedNodeIds, nodeCount } = useEditor((state) => ({
     selectedNodeIds: Array.from(state.events.selected),
-    hoveredNodeIds: Array.from(state.events.hovered),
     draggedNodeIds: Array.from(state.events.dragged),
     nodeCount: Object.keys(state.nodes).length,
   }));
@@ -23,15 +22,6 @@ export const EventLogger: React.FC = () => {
     }
   }, [selectedNodeIds]);
 
-  useEffect(() => {
-    if (hoveredNodeIds.length > 0) {
-      setEvents(prev => [...prev.slice(-50), {
-        type: 'hover_changed',
-        timestamp: new Date(),
-        data: { hovered: hoveredNodeIds }
-      }]);
-    }
-  }, [hoveredNodeIds]);
 
   useEffect(() => {
     if (draggedNodeIds.length > 0) {

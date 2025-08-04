@@ -312,53 +312,62 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
     updateLocalUser();
 
-    // Listen for awareness changes (other users)
+    // Listen for awareness changes (other users) with debouncing
+    let awarenessTimeout: NodeJS.Timeout;
+    
     const handleAwarenessChange = () => {
-      const states = awareness.getStates();
-      const newCollaborators = new Map<string, CollaboratorInfo>();
-      const userNameCounts = new Map<string, number>();
+      // Debounce awareness changes to prevent excessive updates
+      if (awarenessTimeout) {
+        clearTimeout(awarenessTimeout);
+      }
+      
+      awarenessTimeout = setTimeout(() => {
+        const states = awareness.getStates();
+        const newCollaborators = new Map<string, CollaboratorInfo>();
+        const userNameCounts = new Map<string, number>();
 
-      // First pass: collect all users and count duplicates
-      const allUsers: Array<{ clientId: string; state: any }> = [];
-      states.forEach((state, clientId) => {
-        if (clientId !== awareness.clientID && state.user) {
-          allUsers.push({ clientId: clientId.toString(), state });
-          
-          const baseEmail = state.user.email;
-          const currentCount = userNameCounts.get(baseEmail) || 0;
-          userNameCounts.set(baseEmail, currentCount + 1);
-        }
-      });
-
-      // Second pass: assign unique display names
-      const emailCounters = new Map<string, number>();
-      allUsers.forEach(({ clientId, state }) => {
-        const baseEmail = state.user.email;
-        const baseName = state.user.name;
-        
-        let displayName = baseName;
-        
-        // If there are multiple users with same email, add numbers
-        if (userNameCounts.get(baseEmail)! > 1) {
-          const currentNumber = (emailCounters.get(baseEmail) || 0) + 1;
-          emailCounters.set(baseEmail, currentNumber);
-          displayName = `${baseName} (${currentNumber})`;
-        }
-
-        newCollaborators.set(clientId, {
-          id: state.user.id,
-          baseUserId: state.user.baseUserId,
-          name: displayName, // This now includes the number suffix if needed
-          email: state.user.email,
-          profileUrl: state.user.profileUrl,
-          cursor: state.cursor,
-          selection: state.selection,
-          editLock: state.editLock,
-          color: state.user.color,
+        // First pass: collect all users and count duplicates
+        const allUsers: Array<{ clientId: string; state: any }> = [];
+        states.forEach((state, clientId) => {
+          if (clientId !== awareness.clientID && state.user) {
+            allUsers.push({ clientId: clientId.toString(), state });
+            
+            const baseEmail = state.user.email;
+            const currentCount = userNameCounts.get(baseEmail) || 0;
+            userNameCounts.set(baseEmail, currentCount + 1);
+          }
         });
-      });
 
-      setCollaborators(newCollaborators);
+        // Second pass: assign unique display names
+        const emailCounters = new Map<string, number>();
+        allUsers.forEach(({ clientId, state }) => {
+          const baseEmail = state.user.email;
+          const baseName = state.user.name;
+          
+          let displayName = baseName;
+          
+          // If there are multiple users with same email, add numbers
+          if (userNameCounts.get(baseEmail)! > 1) {
+            const currentNumber = (emailCounters.get(baseEmail) || 0) + 1;
+            emailCounters.set(baseEmail, currentNumber);
+            displayName = `${baseName} (${currentNumber})`;
+          }
+
+          newCollaborators.set(clientId, {
+            id: state.user.id,
+            baseUserId: state.user.baseUserId,
+            name: displayName, // This now includes the number suffix if needed
+            email: state.user.email,
+            profileUrl: state.user.profileUrl,
+            cursor: state.cursor,
+            selection: state.selection,
+            editLock: state.editLock,
+            color: state.user.color,
+          });
+        });
+
+        setCollaborators(newCollaborators);
+      }, 150); // Debounce awareness changes
     };
 
     awareness.on('change', handleAwarenessChange);
@@ -368,6 +377,9 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
     // Cleanup
     return () => {
+      if (awarenessTimeout) {
+        clearTimeout(awarenessTimeout);
+      }
       awareness.off('change', handleAwarenessChange);
       wsProvider.destroy();
       yjsDoc.destroy();
@@ -379,26 +391,25 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     if (!provider?.awareness) return;
     
     const awareness = provider.awareness;
-    const currentState = awareness.getLocalState();
+    const currentState = awareness.getLocalState() || {};
     
-    if (currentState) {
-      awareness.setLocalState({
-        ...currentState,
-        editLock: {
-          nodeId,
-          timestamp: Date.now(),
-        }
-      });
-    }
+    // Update only the editLock field, preserving all other state
+    awareness.setLocalState({
+      ...currentState,
+      editLock: {
+        nodeId,
+        timestamp: Date.now(),
+      }
+    });
   };
 
   const unlockNode = (nodeId: string) => {
     if (!provider?.awareness) return;
     
     const awareness = provider.awareness;
-    const currentState = awareness.getLocalState();
+    const currentState = awareness.getLocalState() || {};
     
-    if (currentState && currentState.editLock?.nodeId === nodeId) {
+    if (currentState.editLock?.nodeId === nodeId) {
       const { editLock, ...stateWithoutLock } = currentState;
       awareness.setLocalState(stateWithoutLock);
     }
@@ -518,15 +529,15 @@ export const updateUserSelection = (
   awareness: any,
   nodeIds: string[]
 ) => {
-  const currentState = awareness.getLocalState();
-  if (currentState) {
-    awareness.setLocalState({
-      ...currentState,
-      selection: {
-        nodeIds,
-      },
-    });
-  }
+  const currentState = awareness.getLocalState() || {};
+  // Update only the selection field, preserving all other state
+  awareness.setLocalState({
+    ...currentState,
+    selection: {
+      nodeIds,
+      timestamp: Date.now(),
+    },
+  });
 };
 
 export const cleanupYjsProvider = (provider: any) => {

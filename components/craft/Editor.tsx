@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Editor, Frame, Element } from "@craftjs/core";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -20,7 +20,6 @@ import { History } from "./History";
 import { Serialization } from "./Serialization";
 import { EventLogger, EventHandlers } from "./Events";
 import { NodeValidator } from "./NodeManager";
-// import { Viewport } from './Viewport';
 
 // Utilities
 import { CanvasController, CanvasStats } from "./utils/Canvas";
@@ -31,9 +30,10 @@ import {
 } from "./utils/EditorHelpers";
 
 // Collaboration
-import { CraftYjsSync } from "../../shared/collaboration/CraftYjsSync";
+import { OptimizedCraftSync } from "../../shared/collaboration/OptimizedCraftSync";
 import { CraftAwarenessSync } from "../../shared/collaboration/CraftAwarenessSync";
 import { CollaboratorOverlay } from "../collaboration/CollaboratorOverlay";
+import { CollaborationStatus } from "../collaboration/CollaborationStatus";
 
 // Save Manager
 import { SaveManager } from "./SaveManager";
@@ -53,6 +53,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
   const [showLayers, setShowLayers] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const lastChangeTimeRef = useRef<number>(0);
 
   const handleTempSave = async () => {
     if (!projectId || isSaving) return;
@@ -146,23 +147,33 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
           }}
           enabled={enabled}
           onNodesChange={(query) => {
-            console.log('Editor: onNodesChange triggered');
+            const now = Date.now();
+            
+            // Throttle changes to prevent excessive events
+            if (now - lastChangeTimeRef.current < 100) {
+              return;
+            }
+            lastChangeTimeRef.current = now;
+            
+            // Simple callback for parent component only - no real-time sync
             if (onContentChange) {
               const json = query.serialize();
               onContentChange(json);
             }
             
-            // Trigger Yjs sync
+            // Dispatch custom event for collaboration sync
             if (projectId) {
-              const event = new CustomEvent('craft-nodes-changed', { 
-                detail: { query } 
-              });
-              document.dispatchEvent(event);
+              setTimeout(() => {
+                const event = new CustomEvent('craft-nodes-changed', {
+                  detail: { timestamp: now }
+                });
+                document.dispatchEvent(event);
+              }, 50);
             }
           }}
         >
           {/* Collaboration Sync */}
-          {projectId && <CraftYjsSync onContentChange={onContentChange} />}
+          {projectId && <OptimizedCraftSync onContentChange={onContentChange} />}
           {projectId && <CraftAwarenessSync />}
           
           {/* Save Manager */}
@@ -220,6 +231,9 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               {/* Canvas Controls */}
               <CanvasController />
 
+              {/* Collaboration Status */}
+              {projectId && <CollaborationStatus />}
+              
               <button 
                 onClick={handleTempSave}
                 disabled={isSaving || !projectId}
@@ -256,6 +270,23 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                   '발행하기'
                 )}
               </button>
+              
+              {/* Manual Sync Button */}
+              {projectId && (
+                <button
+                  onClick={() => {
+                    const event = new CustomEvent('craft-manual-sync');
+                    document.dispatchEvent(event);
+                  }}
+                  className="px-3 py-2 text-sm font-medium bg-green-100 hover:bg-green-200 text-green-700 border border-green-200 rounded-md transition-colors"
+                  title="다른 사용자와 수동 동기화"
+                >
+                  <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  동기화
+                </button>
+              )}
             </div>
           </div>
 

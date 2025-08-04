@@ -7,36 +7,31 @@ import { useYjs, updateUserSelection } from './YjsProvider';
 // Component to sync Craft.js selection with Yjs awareness
 export const CraftAwarenessSync: React.FC = () => {
   const { provider } = useYjs();
-  const { query } = useEditor();
+  const { selectedNodeIds } = useEditor((state) => ({
+    selectedNodeIds: Array.from(state.events.selected),
+  }));
+
+  // Check if there are other collaborators
+  const totalConnectedUsers = provider?.awareness?.getStates()?.size || 0;
+  const hasOtherCollaborators = totalConnectedUsers > 1;
 
   useEffect(() => {
-    if (!provider?.awareness) return;
+    if (!provider?.awareness || !hasOtherCollaborators) {
+      return;
+    }
 
-    // Listen for selection changes in Craft.js
-    const handleSelectionChange = () => {
+    // Debounce selection updates to prevent excessive awareness events
+    const timeoutId = setTimeout(() => {
       try {
-        const state = query.getState();
-        const selectedNodeIds = state.events.selected;
-        
-        // Convert Set to array if it exists
-        const nodeIds = selectedNodeIds ? Array.from(selectedNodeIds) : [];
-        
-        // Update awareness with current selection
-        updateUserSelection(provider.awareness, nodeIds);
+        console.log('CraftAwarenessSync: Updating selection:', selectedNodeIds);
+        updateUserSelection(provider.awareness, selectedNodeIds);
       } catch (error) {
         console.error('Failed to update awareness:', error);
       }
-    };
+    }, 100);
 
-    // Initial update
-    handleSelectionChange();
-
-    // Set up interval to check for selection changes
-    // (Craft.js doesn't provide direct selection change events)
-    const interval = setInterval(handleSelectionChange, 500);
-
-    return () => clearInterval(interval);
-  }, [provider, query]);
+    return () => clearTimeout(timeoutId);
+  }, [provider, selectedNodeIds, hasOtherCollaborators]);
 
   return null;
 };

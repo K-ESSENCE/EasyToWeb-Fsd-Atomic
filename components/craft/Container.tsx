@@ -67,9 +67,11 @@ export const Container: React.FC<ContainerProps> = ({
     borderStyle,
     boxShadow,
     position: 'relative',
-    transition: 'all 0.2s ease',
+    // Stable outline without transitions to prevent collaboration flickering
     outline: selected ? '2px solid #2563eb' : isHover ? '2px dashed #94a3b8' : 'none',
     outlineOffset: '2px',
+    // Prevent layout shifts during state changes
+    willChange: 'auto',
   };
 
   return (

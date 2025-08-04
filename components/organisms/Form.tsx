@@ -2,7 +2,6 @@
 
 import React, {useEffect, useState} from "react";
 import Button from "../atoms/Button";
-// import FormField from "../molecules/FormField";
 import SocialButton from "../molecules/SocialButton";
 import {useForm} from "../../hooks/useForm";
 import apiHandler from "../../shared/api/axios";
