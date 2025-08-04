@@ -31,6 +31,7 @@ import { SelectionPreservingSync } from "../../shared/collaboration/SelectionPre
 import { CraftAwarenessSync } from "../../shared/collaboration/CraftAwarenessSync";
 import { CollaboratorOverlay } from "../collaboration/CollaboratorOverlay";
 import { AntiFlickerManager } from "../../shared/collaboration/AntiFlickerManager";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 // Save Manager
 import { SaveManager } from "./SaveManager";
@@ -137,8 +138,9 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className={`craft-editor-container ${className}`}>
+    <ErrorBoundary>
+      <DndProvider backend={HTML5Backend}>
+        <div className={`craft-editor-container ${className}`}>
         <Editor
           resolver={{
             Text,
@@ -161,19 +163,31 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               onContentChange(json);
             }
 
-            // Dispatch custom events for collaboration sync - 즉시 실행
+            // 텍스트 편집 중인지 더 정확하게 확인
+            const activeElement = document.activeElement as HTMLElement;
+            const isTextEditing = activeElement?.contentEditable === 'true' && 
+                                 activeElement?.getAttribute?.('data-node-id');
+            const isContentEditable = activeElement?.contentEditable === 'true';
+            
+            // Dispatch custom events for collaboration sync
             if (projectId) {
-              // Event for sync
-              const nodesEvent = new CustomEvent("craft-nodes-changed", {
-                detail: { timestamp: now },
-              });
-              document.dispatchEvent(nodesEvent);
-              
-              // Event for selection overlay updates
-              const selectionEvent = new CustomEvent("craft-selection-changed", {
-                detail: { timestamp: now },
-              });
-              document.dispatchEvent(selectionEvent);
+              // 텍스트 편집 중이면 디바운스된 텍스트 이벤트만 발생
+              if (isTextEditing) {
+                // 텍스트 편집 중에는 즉시 이벤트 발생 안함 - debounce로 처리
+                console.log('Editor: Text editing in progress, skipping immediate event');
+              } else {
+                // 일반 노드 변경 이벤트 (드래그, 추가, 삭제 등)
+                const nodesEvent = new CustomEvent("craft-nodes-changed", {
+                  detail: { timestamp: now },
+                });
+                document.dispatchEvent(nodesEvent);
+                
+                // Selection 이벤트
+                const selectionEvent = new CustomEvent("craft-selection-changed", {
+                  detail: { timestamp: now },
+                });
+                document.dispatchEvent(selectionEvent);
+              }
             }
           }}
         >
@@ -479,7 +493,8 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
           {/* Status Bar */}
           <StatusBar />
         </Editor>
-      </div>
-    </DndProvider>
+        </div>
+      </DndProvider>
+    </ErrorBoundary>
   );
 };

@@ -143,7 +143,9 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
         remoteNodes[key] = value;
       });
       
+      // 원격 상태가 비어있으면 절대 적용하지 않음
       if (Object.keys(remoteNodes).length === 0) {
+        console.log('SelectionPreservingSync: Remote state is empty, skipping update');
         return false;
       }
 
@@ -329,21 +331,43 @@ export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = (
     };
   }, [isConnected, nodesMap, hasOtherCollaborators, sendLocalChanges]);
 
-  // Initial sync
+  // Initial sync with content preservation
   useEffect(() => {
     if (isConnected && nodesMap && hasOtherCollaborators) {
       console.log('SelectionPreservingSync: Performing initial sync');
       
-      // 즉시 초기 동기화
-      if (nodesMap.size > 0) {
-        // Apply remote state if exists
-        applyRemoteChanges();
-      } else {
-        // Send current state if Y.Map is empty
-        sendLocalChanges();
-      }
+      // 안전한 초기 동기화 - 컨텐츠 보존 우선
+      setTimeout(() => {
+        const currentState = query.serialize();
+        const currentNodes = JSON.parse(currentState);
+        const hasLocalContent = Object.keys(currentNodes).length > 0;
+        const remoteHasContent = nodesMap.size > 0;
+        
+        if (remoteHasContent && !hasLocalContent) {
+          // 로컬에 내용이 없고 리모트에 있으면 리모트 적용
+          console.log('SelectionPreservingSync: Applying remote content to empty local');
+          applyRemoteChanges();
+        } else if (hasLocalContent && !remoteHasContent) {
+          // 로컬에 내용이 있고 리모트가 비어있으면 로컬 전송
+          console.log('SelectionPreservingSync: Sending local content to empty remote');
+          sendLocalChanges();
+        } else if (hasLocalContent && remoteHasContent) {
+          // 둘 다 내용이 있으면 타임스탬프 확인
+          const localTimestamp = metaMap?.get('lastModified') || 0;
+          const remoteTimestamp = Date.now(); // 현재 시점을 기준으로 원격이 더 최신
+          
+          if (remoteTimestamp > localTimestamp) {
+            console.log('SelectionPreservingSync: Remote content is newer, applying remote');
+            applyRemoteChanges();
+          } else {
+            console.log('SelectionPreservingSync: Local content is newer or same, keeping local');
+            // 로컬 유지, 별도 동작 없음
+          }
+        }
+        // 둘 다 비어있으면 아무것도 하지 않음
+      }, 1000); // 1초 지연으로 안정성 확보
     }
-  }, [isConnected, nodesMap, hasOtherCollaborators, applyRemoteChanges, sendLocalChanges]);
+  }, [isConnected, nodesMap, hasOtherCollaborators, applyRemoteChanges, sendLocalChanges, query, metaMap]);
 
   return null;
 };

@@ -52,7 +52,7 @@ export const Text: React.FC<TextProps> = ({
     handleEditingChange,
   } = useTextEditSync(id);
 
-  // Real-time text update with debouncing and focus protection
+  // Real-time text update with proper debouncing
   const handleTextChange = useCallback(() => {
     if (!textRef.current || isDisabled) return;
 
@@ -61,51 +61,45 @@ export const Text: React.FC<TextProps> = ({
       clearTimeout(updateTimeoutRef.current);
     }
 
-    // Debounce text updates to prevent excessive sync
+    // Debounce text updates
     updateTimeoutRef.current = setTimeout(() => {
       const newText = textRef.current?.innerText || '';
       if (newText !== text) {
-        // Store focus state before prop update
-        const wasFocused = document.activeElement === textRef.current;
-        const cursorPosition = wasFocused ? window.getSelection()?.focusOffset : null;
+        // Store current cursor position before prop update
+        const selection = window.getSelection();
+        const cursorOffset = selection?.focusOffset || 0;
         
+        // Update prop
         setProp((props: TextProps) => {
           props.text = newText;
         });
         
-        // Restore focus after prop update if it was focused
-        if (wasFocused && textRef.current) {
-          setTimeout(() => {
-            if (textRef.current && !textRef.current.matches(':focus')) {
-              textRef.current.focus();
-              
-              // Restore cursor position
-              if (cursorPosition !== null && window.getSelection) {
-                const selection = window.getSelection();
-                const range = document.createRange();
-                const textNode = textRef.current.firstChild;
-                
-                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-                  const offset = Math.min(cursorPosition || 0, textNode.textContent?.length || 0);
-                  range.setStart(textNode, offset);
-                  range.setEnd(textNode, offset);
-                  selection?.removeAllRanges();
-                  selection?.addRange(range);
-                }
-              }
-            }
-          }, 5);
-        }
+        // Send text change event for collaboration
+        const textEvent = new CustomEvent("craft-text-changed", {
+          detail: { 
+            nodeId: id, 
+            text: newText,
+            timestamp: Date.now()
+          },
+        });
+        document.dispatchEvent(textEvent);
         
-        // Dispatch custom event for collaboration sync
-        setTimeout(() => {
-          const event = new CustomEvent('craft-text-changed', {
-            detail: { nodeId: id, text: newText }
-          });
-          document.dispatchEvent(event);
-        }, 50);
+        // Restore cursor position after a minimal delay
+        requestAnimationFrame(() => {
+          if (textRef.current && document.activeElement === textRef.current) {
+            const textNode = textRef.current.firstChild;
+            if (textNode && textNode.nodeType === Node.TEXT_NODE && selection) {
+              const range = document.createRange();
+              const offset = Math.min(cursorOffset, textNode.textContent?.length || 0);
+              range.setStart(textNode, offset);
+              range.setEnd(textNode, offset);
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }
+        });
       }
-    }, 300); // 300ms debounce for text changes
+    }, 300); // 300ms debounce for stability
   }, [text, setProp, id, isDisabled]);
 
   const textStyle: React.CSSProperties = {
@@ -160,13 +154,15 @@ export const Text: React.FC<TextProps> = ({
         onFocus={handleFocus}
         onBlur={(e) => {
           handleBlur(e);
-          // Keep the blur handler for backup
-          setProp((props: TextProps) => {
-            props.text = e.currentTarget.innerText;
-          });
+          // Final text update on blur - no debounce
+          const finalText = e.currentTarget.innerText;
+          if (finalText !== text) {
+            setProp((props: TextProps) => {
+              props.text = finalText;
+            });
+          }
         }}
         onInput={handleTextChange}
-        onKeyUp={handleTextChange}
         className="craft-text-component"
         data-node-id={id}
         title={isDisabled ? '다른 사용자가 편집 중입니다' : '클릭하여 편집'}
