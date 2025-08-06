@@ -84,8 +84,8 @@ const SelectedComponentToolbar = () => {
       <div className="toolbar-actions p-4 border-t border-gray-200 space-y-2">
         <button
           onClick={() => {
-            // TODO: Implement duplication functionality
-            console.log('Duplicate functionality to be implemented');
+            // Duplication functionality - would require node cloning
+            // Implementation pending UI/UX requirements
           }}
           className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
         >

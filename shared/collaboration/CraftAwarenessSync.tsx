@@ -22,7 +22,6 @@ export const CraftAwarenessSync: React.FC = () => {
 
     // 즉시 업데이트 - 디바운싱 제거  
     try {
-      console.log('CraftAwarenessSync: Updating selection:', selectedNodeIds);
       updateUserSelection(provider.awareness, selectedNodeIds);
       
       // Dispatch custom event to notify CollaboratorOverlay

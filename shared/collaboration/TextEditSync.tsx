@@ -45,12 +45,12 @@ export const TextEditSync: React.FC<TextEditSyncProps> = ({
           timestamp: now,
         });
         
-        console.log('TextEditSync: Started editing node', nodeId);
+        // Started editing node
       } else {
         // Remove editing status
         textEditMap.delete(nodeId);
         
-        console.log('TextEditSync: Stopped editing node', nodeId);
+        // Stopped editing node
       }
     } catch (error) {
       console.error('TextEditSync: Failed to sync editing state:', error);
@@ -72,7 +72,7 @@ export const TextEditSync: React.FC<TextEditSyncProps> = ({
         return;
       }
 
-      console.log('TextEditSync: Remote text edit change detected');
+      // Remote text edit change detected
 
       // Debounce checks to prevent excessive processing
       if (checkTimeout) {
@@ -88,7 +88,7 @@ export const TextEditSync: React.FC<TextEditSyncProps> = ({
             const editAge = Date.now() - editingInfo.timestamp;
             
             if (editAge < 30000) { // Valid for 30 seconds
-              console.log('TextEditSync: Another user is editing this node, disabling');
+              // Another user is editing this node, disabling
               
               // Check if current user is actually editing this node
               const currentElement = document.querySelector(`[data-node-id="${nodeId}"]`);
@@ -99,7 +99,7 @@ export const TextEditSync: React.FC<TextEditSyncProps> = ({
                 onEditingChange(false);
               } else {
                 // If we're actively editing, extend our edit lock
-                console.log('TextEditSync: Extending edit lock for active editing');
+                // Extending edit lock for active editing
                 if (textEditMap) {
                   textEditMap.set(nodeId, {
                     clientId,

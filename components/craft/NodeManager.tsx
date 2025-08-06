@@ -4,8 +4,8 @@ export const NodeActions: React.FC<{ nodeId: string }> = ({ nodeId }) => {
   const { actions, query } = useEditor();
 
   const duplicateNode = () => {
-    // TODO: Implement node duplication
-    console.log("Node duplication feature to be implemented");
+    // Node duplication - requires deep cloning and parent insertion
+    // Implementation requires handling of component props and refs
     alert("복제 기능은 곧 구현될 예정입니다.");
   };
 

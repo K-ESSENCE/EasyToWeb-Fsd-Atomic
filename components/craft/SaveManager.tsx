@@ -22,9 +22,7 @@ export const SaveManager: React.FC<SaveManagerProps> = ({
 
   const handleTempSave = useCallback(() => {
     try {
-      console.log('SaveManager: Attempting temp save...');
       const serializedState = query.serialize();
-      console.log('SaveManager: Serialized state:', serializedState);
       onSave(serializedState);
       onTempSaveTriggered?.();
     } catch (error) {
@@ -34,9 +32,7 @@ export const SaveManager: React.FC<SaveManagerProps> = ({
 
   const handlePublish = useCallback(() => {
     try {
-      console.log('SaveManager: Attempting publish...');
       const serializedState = query.serialize();
-      console.log('SaveManager: Serialized state for publish:', serializedState);
       onPublish(serializedState);
       onPublishTriggered?.();
     } catch (error) {
@@ -49,12 +45,12 @@ export const SaveManager: React.FC<SaveManagerProps> = ({
     document.addEventListener('craft-temp-save', handleTempSave);
     document.addEventListener('craft-publish', handlePublish);
 
-    console.log('SaveManager: Event listeners attached for project:', projectId);
+    // Event listeners attached for project save/publish
 
     return () => {
       document.removeEventListener('craft-temp-save', handleTempSave);
       document.removeEventListener('craft-publish', handlePublish);
-      console.log('SaveManager: Event listeners removed');
+      // Event listeners removed
     };
   }, [handleTempSave, handlePublish, projectId]);
 

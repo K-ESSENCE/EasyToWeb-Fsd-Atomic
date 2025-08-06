@@ -101,8 +101,8 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     // Create Yjs document
     const yjsDoc = new Y.Doc();
 
-    // Initialize Y.Map instances (like in existing yjs.ts)
-    const nodesMap = yjsDoc.getMap('nodes');
+    // Initialize Y.Map instances (matching existing yjs.ts keys)
+    const nodesMap = yjsDoc.getMap('layoutData');
     const metaMap = yjsDoc.getMap('meta');
     const uploadMap = yjsDoc.getMap('uploadStatus');
     const textEditMap = yjsDoc.getMap('textEditStatus');
@@ -140,9 +140,19 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
     // Handle connection events
     wsProvider.on('status', (event: { status: string }) => {
-      console.log('WebSocket status:', event.status);
-      setIsConnected(event.status === 'connected');
-      setIsLoading(event.status === 'connecting');
+      // WebSocket connection status changed
+      const connected = event.status === 'connected';
+      setIsConnected(connected);
+      
+      // Keep loading until initial sync is complete
+      if (connected) {
+        // Give some time for initial data sync
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1500);
+      } else {
+        setIsLoading(event.status === 'connecting');
+      }
     });
 
     wsProvider.on('connection-close', (event) => {
@@ -166,7 +176,7 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
           console.error('Invalid input value:', error.reason);
           break;
         case 1008:
-          console.log('project not found or access Deny');
+          // Project not found or access denied
           break;
         case 1011:
           console.error('Internal server error');
@@ -261,7 +271,7 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
             timestamp: Date.now(),
           };
           
-          console.log('Setting user info:', userInfo);
+          // Setting user info for collaboration
           awareness.setLocalStateField('user', userInfo);
         } catch (error) {
           console.error('Failed to parse token or set user info:', error);
@@ -291,7 +301,7 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
               timestamp: Date.now(),
             };
             
-            console.log('Using fallback user info:', fallbackUserInfo);
+            // Using fallback user info
             awareness.setLocalStateField('user', fallbackUserInfo);
           } catch (fallbackError) {
             console.error('Fallback user info also failed:', fallbackError);
