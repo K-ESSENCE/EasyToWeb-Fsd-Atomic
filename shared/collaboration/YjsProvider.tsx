@@ -128,7 +128,7 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     // Create WebSocket provider matching the API specification
     // The WebsocketProvider expects base URL without room path
     // It will internally append the room name to create the final URL
-    const wsUrl = `ws://${BASE_API_URL}`;
+    const wsUrl = `${BASE_SOCKET_PROTOCOL}${BASE_API_URL}`;
     
     console.log('YjsProvider: Attempting WebSocket connection to:', wsUrl);
     console.log('YjsProvider: Room name:', projectId);
