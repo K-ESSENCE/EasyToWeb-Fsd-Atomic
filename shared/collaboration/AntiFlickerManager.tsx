@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useEditor } from '@craftjs/core';
 
 interface AntiFlickerManagerProps {
   enabled?: boolean;
 }
 
-export const AntiFlickerManager: React.FC<AntiFlickerManagerProps> = ({ enabled = true }) => {
+export const AntiFlickerManager = ({ enabled = true }: AntiFlickerManagerProps) => {
   const { query } = useEditor();
   const rafRef = useRef<number | undefined>(undefined);
   const lastUpdateRef = useRef<number>(0);

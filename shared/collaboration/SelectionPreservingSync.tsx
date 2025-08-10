@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useEditor } from '@craftjs/core';
 import { useYjs } from './YjsProvider';
 import * as Y from 'yjs';
@@ -9,7 +9,7 @@ interface SelectionPreservingSyncProps {
   onContentChange?: (content: string) => void;
 }
 
-export const SelectionPreservingSync: React.FC<SelectionPreservingSyncProps> = ({ onContentChange }) => {
+export const SelectionPreservingSync = ({ onContentChange }: SelectionPreservingSyncProps) => {
   const { doc, isConnected, provider } = useYjs();
   const { actions, query } = useEditor();
   

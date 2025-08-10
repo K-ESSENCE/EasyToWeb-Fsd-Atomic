@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback, FocusEvent } from 'react';
 import { useEditor } from '@craftjs/core';
 import { useYjs } from './YjsProvider';
 import * as Y from 'yjs';
@@ -147,11 +147,11 @@ export const TextEditSync: React.FC<TextEditSyncProps> = ({
 
 // Hook for managing text editing state
 export const useTextEditSync = (nodeId: string) => {
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [isDisabled, setIsDisabled] = React.useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const editTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  const handleFocus = React.useCallback(() => {
+  const handleFocus = useCallback(() => {
     if (isDisabled) return;
     
     setIsEditing(true);
@@ -162,7 +162,7 @@ export const useTextEditSync = (nodeId: string) => {
     }
   }, [isDisabled]);
 
-  const handleBlur = React.useCallback((event?: React.FocusEvent) => {
+  const handleBlur = useCallback((event?: FocusEvent) => {
     // Check if we're losing focus to something outside the text element
     const relatedTarget = event?.relatedTarget as HTMLElement;
     const currentTarget = event?.currentTarget as HTMLElement;
@@ -183,11 +183,11 @@ export const useTextEditSync = (nodeId: string) => {
     }, 150); // Increased delay to prevent premature blur
   }, [nodeId]);
 
-  const handleEditingChange = React.useCallback((editing: boolean) => {
+  const handleEditingChange = useCallback((editing: boolean) => {
     setIsDisabled(!editing);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (editTimeoutRef.current) {
         clearTimeout(editTimeoutRef.current);

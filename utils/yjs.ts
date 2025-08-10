@@ -1,11 +1,10 @@
 import * as Y from "yjs";
 import {WebsocketProvider} from "y-websocket";
 import {Awareness} from "y-protocols/awareness";
-import {apiHandler, BASE_API_URL, BASE_SOCKET_PROTOCOL} from "../shared/api/axios";
+import {apiHandler, BASE_API_URL} from "../shared/api/axios";
 import html2canvas from "html2canvas";
 import {upload} from "../hooks/useChunkedImageUpload";
 import toast from "react-hot-toast";
-import {LayoutState} from "../store/slices/editor";
 
 export const messageCapture = 3;
 

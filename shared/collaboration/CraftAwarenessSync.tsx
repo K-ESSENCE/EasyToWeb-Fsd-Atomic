@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useEditor, useNode } from '@craftjs/core';
 import { useYjs, updateUserSelection } from './YjsProvider';
 
 // Component to sync Craft.js selection with Yjs awareness
-export const CraftAwarenessSync: React.FC = () => {
+export const CraftAwarenessSync = () => {
   const { provider } = useYjs();
   const { selectedNodeIds } = useEditor((state) => ({
     selectedNodeIds: Array.from(state.events.selected),
