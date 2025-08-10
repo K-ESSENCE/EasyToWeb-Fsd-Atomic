@@ -29,12 +29,12 @@ export const createYjsDocument = ({
 	const doc = new Y.Doc();
 
 	const provider = new WebsocketProvider(
-			BASE_SOCKET_PROTOCOL + BASE_API_URL,
-			"layout-modal-room",
+			`ws://${BASE_API_URL}`,
+			"layout-modal-room", // Room endpoint name
 			doc,
 			{
 				params: {
-					roomName: projectId,
+					roomName: projectId, // Actual project ID passed as parameter
 				},
 				protocols: [`Authorization_${accessToken}`],
 			}
@@ -66,26 +66,34 @@ export const createYjsDocument = ({
 
 		switch (error.code) {
 			case 1002:
-				console.error("Resource not found");
+				console.error("RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다.");
 				break;
 			case 1003:
-				console.error("Invalid input value:", error.reason);
-				error.reason = "Invalid input value:" + error.reason;
+				console.error("INPUT_VALUE_INVALID:", error.reason || "Invalid input");
+				error.reason = "INPUT_VALUE_INVALID: " + (error.reason || "Invalid input");
 				break;
 			case 1008:
-				console.log("project not found or access Deny");
+				if (error.reason?.includes('PROJECT_NOT_FOUND')) {
+					console.error('PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.');
+				} else if (error.reason?.includes('USER_NOT_LOGIN')) {
+					console.error('USER_NOT_LOGIN: 로그인이 필요합니다.');
+				} else if (error.reason?.includes('ACCESS_DENIED')) {
+					console.error('ACCESS_DENIED: 권한이 없습니다.');
+				} else {
+					console.error("PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다.");
+				}
 				break;
 			case 1011:
-				console.error("Internal server error");
+				console.error("UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요.");
 				break;
 			case 4401:
-				console.error("Access token expired");
+				console.error("ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.");
 				break;
 			case 1006:
-				console.error("network connecting close");
+				console.error("Network connection close");
 				break;
 			default:
-				console.error("Unknown error:", error);
+				console.error("Unknown WebSocket error:", error);
 		}
 
 		if (error.code !== 1006) closeEvent();
@@ -104,28 +112,30 @@ export const createYjsDocument = ({
 
 		switch (error.code) {
 			case 1002:
-				console.error("Resource not found");
+				console.error("RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다.");
 				break;
 			case 1003:
-				console.error("Invalid input value:", error.errorFieldName);
+				console.error("INPUT_VALUE_INVALID:", error.errorFieldName || "Unknown field");
 				break;
 			case 1008:
 				if (error.message === "PROJECT_NOT_FOUND") {
-					console.error("Project not found");
+					console.error("PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.");
 				} else if (error.message === "USER_NOT_LOGIN") {
-					console.error("User not logged in");
+					console.error("USER_NOT_LOGIN: 로그인이 필요합니다.");
 				} else if (error.message === "ACCESS_DENIED") {
-					console.error("Access denied");
+					console.error("ACCESS_DENIED: 권한이 없습니다.");
+				} else {
+					console.error("PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다.");
 				}
 				break;
 			case 1011:
-				console.error("Internal server error");
+				console.error("UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요.");
 				break;
 			case 4401:
-				console.error("Access token expired");
+				console.error("ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.");
 				break;
 			default:
-				console.error("Unknown error:", error);
+				console.error("Unknown WebSocket connection error:", error);
 		}
 	});
 

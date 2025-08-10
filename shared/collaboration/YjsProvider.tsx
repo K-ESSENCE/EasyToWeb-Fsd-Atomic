@@ -117,16 +117,35 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     // WebSocket connection using existing pattern
     const token = getAccessTokenFromLocal();
     
-    // Create WebSocket provider like in existing yjs.ts
+    // Validate token before creating connection
+    if (!token) {
+      console.error('YjsProvider: No access token available');
+      setIsLoading(false);
+      setIsConnected(false);
+      return;
+    }
+    
+    // Create WebSocket provider matching the API specification
+    // The WebsocketProvider expects base URL without room path
+    // It will internally append the room name to create the final URL
+    const wsUrl = `ws://${BASE_API_URL}`;
+    
+    console.log('YjsProvider: Attempting WebSocket connection to:', wsUrl);
+    console.log('YjsProvider: Room name:', projectId);
+    console.log('YjsProvider: Token available:', !!token);
+    
     const wsProvider = new WebsocketProvider(
-      BASE_SOCKET_PROTOCOL + BASE_API_URL,
-      'layout-modal-room',
+      wsUrl,
+      'layout-modal-room', // This should be the room endpoint name
       yjsDoc,
       {
         params: {
-          roomName: projectId,
+          roomName: projectId, // Actual project ID passed as parameter
         },
         protocols: [`Authorization_${token}`],
+        // Control reconnection behavior
+        resyncInterval: -1, // Disable automatic resync
+        maxBackoffTime: 30000, // Max 30 seconds backoff
       }
     );
 
@@ -140,23 +159,32 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
     // Handle connection events
     wsProvider.on('status', (event: { status: string }) => {
-      // WebSocket connection status changed
+      console.log('WebSocket status changed:', event.status);
       const connected = event.status === 'connected';
       setIsConnected(connected);
       
       // Keep loading until initial sync is complete
       if (connected) {
+        console.log('WebSocket connected successfully');
         // Give some time for initial data sync
         setTimeout(() => {
           setIsLoading(false);
         }, 1500);
+      } else if (event.status === 'connecting') {
+        console.log('WebSocket connecting...');
+        setIsLoading(true);
+      } else if (event.status === 'disconnected') {
+        console.log('WebSocket disconnected');
+        setIsLoading(false);
       } else {
-        setIsLoading(event.status === 'connecting');
+        setIsLoading(false);
       }
     });
 
     wsProvider.on('connection-close', (event) => {
       if (!event) {
+        console.log('WebSocket connection closed (no event data)');
+        setIsConnected(false);
         return;
       }
 
@@ -170,28 +198,43 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
       switch (error.code) {
         case 1002:
-          console.error('Resource not found');
+          console.error('RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다.');
           break;
         case 1003:
-          console.error('Invalid input value:', error.reason);
+          console.error('INPUT_VALUE_INVALID:', error.reason || 'Invalid input');
           break;
         case 1008:
-          // Project not found or access denied
+          // Check specific error messages for 1008
+          if (error.reason?.includes('PROJECT_NOT_FOUND')) {
+            console.error('PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.');
+          } else if (error.reason?.includes('USER_NOT_LOGIN')) {
+            console.error('USER_NOT_LOGIN: 로그인이 필요합니다.');
+          } else if (error.reason?.includes('ACCESS_DENIED')) {
+            console.error('ACCESS_DENIED: 권한이 없습니다.');
+          } else {
+            console.error('PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다.');
+          }
           break;
         case 1011:
-          console.error('Internal server error');
+          console.error('UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요.');
           break;
         case 4401:
-          console.error('Access token expired');
+          console.error('ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.');
           break;
         case 1006:
-          console.error('network connecting close');
+          console.error('Network connection close');
           break;
         default:
-          console.error('Unknown error:', error);
+          console.error('Unknown WebSocket error:', error);
       }
 
       setIsConnected(false);
+      
+      // Stop provider if critical errors occur to prevent infinite reconnection
+      if (error.code === 4401 || error.code === 1008) {
+        console.warn('Critical error detected, stopping WebSocket provider');
+        wsProvider.disconnect();
+      }
     });
 
     wsProvider.on('connection-error', (event: Event) => {
@@ -203,35 +246,51 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
         message: string;
         errorFieldName?: string;
       };
+      
+      // Don't log if error object is empty (prevents infinite empty logs)
+      if (!error || (typeof error === 'object' && Object.keys(error).length === 0)) {
+        console.error('WebSocket connection error: Empty error object - likely network issue');
+        setIsConnected(false);
+        setIsLoading(false);
+        return;
+      }
 
       switch (error.code) {
         case 1002:
-          console.error('Resource not found');
+          console.error('RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다.');
           break;
         case 1003:
-          console.error('Invalid input value:', error.errorFieldName);
+          console.error('INPUT_VALUE_INVALID:', error.errorFieldName || 'Unknown field');
           break;
         case 1008:
           if (error.message === 'PROJECT_NOT_FOUND') {
-            console.error('Project not found');
+            console.error('PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.');
           } else if (error.message === 'USER_NOT_LOGIN') {
-            console.error('User not logged in');
+            console.error('USER_NOT_LOGIN: 로그인이 필요합니다.');
           } else if (error.message === 'ACCESS_DENIED') {
-            console.error('Access denied');
+            console.error('ACCESS_DENIED: 권한이 없습니다.');
+          } else {
+            console.error('PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다.');
           }
           break;
         case 1011:
-          console.error('Internal server error');
+          console.error('UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요.');
           break;
         case 4401:
-          console.error('Access token expired');
+          console.error('ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.');
           break;
         default:
-          console.error('Unknown error:', error);
+          console.error('Unknown WebSocket connection error:', error);
       }
       
       setIsConnected(false);
       setIsLoading(false);
+      
+      // Stop provider if critical errors occur to prevent infinite reconnection
+      if (error.code === 4401 || error.code === 1008) {
+        console.warn('Critical error detected, stopping WebSocket provider');
+        wsProvider.disconnect();
+      }
     });
 
     // Handle awareness (user presence)
@@ -390,9 +449,21 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
       if (awarenessTimeout) {
         clearTimeout(awarenessTimeout);
       }
-      awareness.off('change', handleAwarenessChange);
-      wsProvider.destroy();
-      yjsDoc.destroy();
+      awareness?.off('change', handleAwarenessChange);
+      
+      // Clean disconnect
+      try {
+        wsProvider.disconnect();
+        wsProvider.destroy();
+      } catch (error) {
+        console.warn('Error during WebSocket cleanup:', error);
+      }
+      
+      try {
+        yjsDoc.destroy();
+      } catch (error) {
+        console.warn('Error during Y.Doc cleanup:', error);
+      }
     };
   }, [projectId]);
 
