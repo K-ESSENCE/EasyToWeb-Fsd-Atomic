@@ -46,9 +46,8 @@ const ProjectRoleModal = ({
 			const myPerm = fetched.find(m => m.email === myAccountEmail)?.permission ?? "READ_ONLY";
 			dispatch(setProjectPermission({projectPermission: myPerm}));
 
-		} catch (err) {
+		} catch {
 			toast.error("멤버 목록을 불러오지 못했습니다.");
-			console.log(err)
 		}
 	};
 

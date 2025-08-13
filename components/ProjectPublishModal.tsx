@@ -46,8 +46,8 @@ const ProjectPublishModal = ({
 				toast.error("게시 결과를 확인할 수 없습니다.");
 
 			}
-		} catch (err) {
-			console.log(err);
+		} catch {
+			toast.error("게시 중 오류가 발생했습니다.");
 
 		} finally {
 			setLoading(false);
@@ -61,8 +61,8 @@ const ProjectPublishModal = ({
 			toast.success("게시가 취소되었습니다.");
 			updateUrl(null);
 
-		} catch (err) {
-			console.log(err);
+		} catch {
+			toast.error("게시 취소 중 오류가 발생했습니다.");
 
 		} finally {
 			setLoading(false);
