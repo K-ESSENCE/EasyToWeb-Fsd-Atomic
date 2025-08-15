@@ -1,22 +1,35 @@
-import React from 'react';
+import React from "react";
+import apiHandler from "../../shared/api/axios";
 
 interface SocialButtonProps {
-  provider: 'google' | 'naver' | 'kakao';
+  provider: "google" | "naver" | "kakao";
   onClick?: () => void;
 }
 
 const providerConfig = {
   google: {
     icon: <i className="fab fa-google text-red-500 mr-2"></i>,
-    text: 'Google',
+    text: "Google",
   },
   naver: {
-    icon: <img src="https://ai-public.creatie.ai/gen_page/naver_icon.png" className="w-4 h-4 mr-2" alt="Naver" />,
-    text: 'Naver',
+    icon: (
+      <img
+        src="https://ai-public.creatie.ai/gen_page/naver_icon.png"
+        className="w-4 h-4 mr-2"
+        alt="Naver"
+      />
+    ),
+    text: "Naver",
   },
   kakao: {
-    icon: <img src="https://ai-public.creatie.ai/gen_page/kakao_icon.png" className="w-4 h-4 mr-2" alt="Kakao" />,
-    text: 'Kakao',
+    icon: (
+      <img
+        src="https://ai-public.creatie.ai/gen_page/kakao_icon.png"
+        className="w-4 h-4 mr-2"
+        alt="Kakao"
+      />
+    ),
+    text: "Kakao",
   },
 };
 
@@ -25,6 +38,9 @@ const SocialButton: React.FC<SocialButtonProps> = ({ provider, onClick }) => {
 
   const handleClick = () => {
     // 소셜 로그인 로직 추가
+
+    apiHandler.socialLogin(provider);
+
     console.log(`${provider} 로그인 시도`);
     if (onClick) {
       onClick();
