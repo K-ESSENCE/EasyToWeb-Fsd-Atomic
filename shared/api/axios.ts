@@ -10,7 +10,9 @@ import {
   Account,
   AccountJoinRequest,
   AccountLoginRequest,
-  AccountPasswordChangeRequest, AccountResponse, AccountUpdateRequest,
+  AccountPasswordChangeRequest,
+  AccountResponse,
+  AccountUpdateRequest,
   ApiError,
   ApiResponse,
   MailCertificationRequest,
@@ -25,19 +27,20 @@ import {
   ProjectMemberPermissionUpdateRequest,
   ProjectPublishContent,
   ProjectPublishResponse,
-  ProjectUpdateRequest, ProjectUpdateThumbnailRequest,
+  ProjectUpdateRequest,
+  ProjectUpdateThumbnailRequest,
   TokenResponse,
 } from "./types";
 import {
   clearSessionInLocal,
   getAccessTokenFromLocal,
-  updateTokenToLocal
+  updateTokenToLocal,
 } from "../../utils/session";
 import toast from "react-hot-toast";
 
 export const BASE_API_PROTOCOL = "https://";
-export const BASE_SOCKET_PROTOCOL = "wss://"
-export const BASE_API_URL = "dev-api.easytoweb.store"
+export const BASE_SOCKET_PROTOCOL = "wss://";
+export const BASE_API_URL = "dev-api.easytoweb.store";
 // export const BASE_API_PROTOCOL = "http://";
 // export const BASE_SOCKET_PROTOCOL = "ws://"
 // export const BASE_API_URL = "localhost:8080"
@@ -60,7 +63,7 @@ class ApiHandler {
       headers: {
         "Content-Type": "application/json",
       },
-      withCredentials: true
+      withCredentials: true,
     });
 
     // Response interceptor for error handling
@@ -87,12 +90,21 @@ class ApiHandler {
     );
   }
 
-  private async handleError(error: AxiosError<ApiResponse<ApiError>>): Promise<never> {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+  private async handleError(
+    error: AxiosError<ApiResponse<ApiError>>
+  ): Promise<never> {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
     const isReissueUrl = error.config?.url?.includes("/account/reissue");
     const isLoginUrl = error.config?.url?.includes("/account/login");
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isReissueUrl && !isLoginUrl) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isReissueUrl &&
+      !isLoginUrl
+    ) {
       originalRequest._retry = true;
 
       if (this.isRefreshing) {
@@ -108,7 +120,7 @@ class ApiHandler {
 
       try {
         const { data } = await this.refreshToken();
-        if (data?.accessToken){
+        if (data?.accessToken) {
           const newAccessToken = data.accessToken;
           updateTokenToLocal(data.accessToken);
 
@@ -120,18 +132,19 @@ class ApiHandler {
         }
 
         return this.client(originalRequest);
-
       } catch (err) {
         this.isRefreshing = false;
         this.requestQueue = [];
         clearSessionInLocal();
-        window.location.href = "/"
+        window.location.href = "/";
 
         return Promise.reject(err);
       }
     }
 
-    const errorMessage = error.response?.data?.errors?.errorDescription || "서버 오류가 발생하였습니다. 잠시후 다시 시도해주세요.";
+    const errorMessage =
+      error.response?.data?.errors?.errorDescription ||
+      "서버 오류가 발생하였습니다. 잠시후 다시 시도해주세요.";
 
     if (!isReissueUrl && !this.showAlertIn3Sec) {
       toast.error(errorMessage);
@@ -143,7 +156,6 @@ class ApiHandler {
 
     return Promise.reject(error);
   }
-
 
   // Account APIs
   async join(data: AccountJoinRequest): Promise<ApiResponse<Account>> {
@@ -163,25 +175,28 @@ class ApiHandler {
   }
 
   async logout(): Promise<ApiResponse<void>> {
-    const response = await this.client.post<ApiResponse<void>>(
-        "/account/logout"
-    );
+    const response =
+      await this.client.post<ApiResponse<void>>("/account/logout");
     return response.data;
   }
 
   async me(): Promise<ApiResponse<AccountResponse>> {
-    const response = await this.client.get<ApiResponse<AccountResponse>>(
-        "/account/me"
-    );
+    const response =
+      await this.client.get<ApiResponse<AccountResponse>>("/account/me");
     return response.data;
   }
 
   async updateProfile(data: AccountUpdateRequest): Promise<ApiResponse<void>> {
     const response = await this.client.put<ApiResponse<void>>(
-        "/account/me",
-        data
+      "/account/me",
+      data
     );
     return response.data;
+  }
+
+  socialLogin(provider: "google" | "kakao" | "naver") {
+    localStorage.setItem("accessToken", "TOKEN_FOR_SOCIAL");
+    window.location.href = `${FULL_API_URL}/oauth2/authorization/${provider}?next=${encodeURIComponent("/list")}`;
   }
 
   async changePassword(
@@ -223,10 +238,10 @@ class ApiHandler {
 
   // Token APIs
   async refreshToken(): Promise<ApiResponse<TokenResponse>> {
-    const response = await this.client.post<ApiResponse<TokenResponse>>("/account/reissue");
+    const response =
+      await this.client.post<ApiResponse<TokenResponse>>("/account/reissue");
     return response.data;
   }
-
 
   // Project APIs
   async getProject(projectId: string): Promise<ApiResponse<Project>> {
@@ -369,8 +384,13 @@ class ApiHandler {
     return response.data;
   }
 
-  async updateProjectThumbnail(data: ProjectUpdateThumbnailRequest): Promise<ApiResponse<void>> {
-    const response = await this.client.put<ApiResponse<void>>("/project/thumbnail", data);
+  async updateProjectThumbnail(
+    data: ProjectUpdateThumbnailRequest
+  ): Promise<ApiResponse<void>> {
+    const response = await this.client.put<ApiResponse<void>>(
+      "/project/thumbnail",
+      data
+    );
     return response.data;
   }
 
@@ -407,7 +427,7 @@ class ApiHandler {
 
   async uploadFileFormData(
     formData: FormData
-  ): Promise<{ data?: { fileId?:string, fileUrl?: string } }> {
+  ): Promise<{ data?: { fileId?: string; fileUrl?: string } }> {
     const response = await this.client.post("/file/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
