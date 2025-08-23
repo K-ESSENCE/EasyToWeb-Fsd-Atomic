@@ -95,9 +95,12 @@
 }
 
 .focus\:ring-4:focus {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0
+    var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0
+    calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+    var(--tw-shadow, 0 0 #0000);
 }
 
 .focus\:ring-blue-300\/50:focus {
@@ -125,13 +128,16 @@
 
 /* Improved shadow system */
 .shadow-xl {
-  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 .shadow-2xl {
   --tw-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 /* Responsive utilities */
@@ -154,23 +160,23 @@
   .no-print {
     display: none !important;
   }
-  
+
   .fixed {
     position: static !important;
   }
-  
+
   .shadow-xl,
   .shadow-2xl,
   .shadow-lg {
     box-shadow: none !important;
   }
-  
+
   .bg-gradient-to-br,
   .bg-gradient-to-r {
     background-image: none !important;
     background-color: white !important;
   }
-  
+
   .backdrop-blur-sm,
   .backdrop-blur-lg,
   .backdrop-blur-xl {
@@ -184,13 +190,13 @@
   .slide-up {
     animation: none !important;
   }
-  
+
   .transition-all,
   .transition-colors,
   .transition-transform {
     transition: none !important;
   }
-  
+
   .animate-pulse {
     animation: none !important;
   }
@@ -200,11 +206,11 @@
   .text-gray-500 {
     color: #374151;
   }
-  
+
   .border-gray-200 {
     border-color: #1f2937;
   }
-  
+
   .bg-white\/60,
   .bg-white\/80,
   .bg-white\/90 {
@@ -219,16 +225,21 @@
   .bg-white\/90 {
     background-color: rgba(31, 41, 55, 0.8);
   }
-  
+
   .text-gray-900 {
     color: #f9fafb;
   }
-  
+
   .text-gray-500 {
     color: #9ca3af;
   }
-  
+
   .border-gray-200 {
     border-color: #374151;
   }
+}
+
+/* Global text color */
+body {
+  color: black;
 }
