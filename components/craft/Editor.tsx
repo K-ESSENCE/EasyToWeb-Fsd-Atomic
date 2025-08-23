@@ -89,24 +89,6 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
     }
   };
 
-  const handlePublish = async () => {
-    if (!projectId || isPublishing) return;
-
-    setIsPublishing(true);
-    console.log("Editor: Starting publish for project:", projectId);
-
-    try {
-      // Trigger publish event that SaveManager will handle
-      const event = new CustomEvent("craft-publish");
-      document.dispatchEvent(event);
-      console.log("Editor: craft-publish event dispatched");
-    } catch (error) {
-      console.error("발행 중 오류가 발생했습니다:", error);
-      alert("발행 중 오류가 발생했습니다.");
-      setIsPublishing(false);
-    }
-  };
-
   const onPublishComplete = () => {
     setIsPublishing(false);
     console.log("발행 완료:", projectId);
@@ -206,25 +188,6 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               <div className="flex items-center gap-2">
                 {/* Canvas Controls */}
                 <CanvasController />
-
-                <button
-                  onClick={handlePublish}
-                  disabled={isPublishing || !projectId}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isPublishing || !projectId
-                      ? "text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed"
-                      : "text-white bg-blue-600 border border-transparent hover:bg-blue-700"
-                  }`}
-                >
-                  {isPublishing ? (
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      발행 중...
-                    </div>
-                  ) : (
-                    "발행하기"
-                  )}
-                </button>
 
                 {/* Manual Sync Button */}
               </div>
