@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Editor, Frame } from "@craftjs/core";
-import { Text } from "./Text";
-import { Image } from "./Image";
-import { Container } from "./Container";
+import { ReadOnlyText } from "./ReadOnlyText";
+import { ReadOnlyImage } from "./ReadOnlyImage";
+import { ReadOnlyContainer } from "./ReadOnlyContainer";
 import PublishStyles from "./PublishStyles";
-import PublishEnhancements from "./PublishEnhancements";
 
 interface PublishViewerProps {
   content: string;
@@ -351,9 +350,9 @@ export const PublishViewer: React.FC<PublishViewerProps> = ({
       <div className={containerClasses}>
         <Editor
           resolver={{
-            Text,
-            Image,
-            Container,
+            Text: ReadOnlyText,
+            Image: ReadOnlyImage,
+            Container: ReadOnlyContainer,
           }}
           enabled={false} // Always disabled for published view
         >
@@ -384,9 +383,7 @@ export const PublishViewer: React.FC<PublishViewerProps> = ({
           </div>
         )}
 
-        {/* <PublishEnhancements
-          url={typeof window !== "undefined" ? window.location.href : ""}
-        /> */}
+        {/* Read-only publish page - no enhancements needed */}
 
         {/* Print styles */}
         <style jsx>{`
