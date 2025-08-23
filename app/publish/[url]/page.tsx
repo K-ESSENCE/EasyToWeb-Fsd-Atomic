@@ -1,11 +1,12 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import apiHandler from "../../../shared/api/axios";
 import LayoutViewer from "../../../components/LayoutViewer";
 import CenteredStatus from "../../../components/CenteredStatus";
-import {LayoutState} from "../../../store/slices/editor";
+import { LayoutState } from "../../../store/slices/editor";
 import { PublishViewer } from "../../../components/craft/PublishViewer";
+import "./styles.css";
 
 function isAxiosErrorWithResponse(err: unknown): err is {
   response: { data?: { errors?: { errorDescription?: string } } };
@@ -32,34 +33,41 @@ export default function ProjectPage({
       setIsScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    setContent(null);
-    apiHandler
-      .getPublishedProject(url)
-      .then((res) => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      setContent(null);
+      try {
+        const res = await apiHandler.getPublishedProject(url);
         if (res.data?.content) {
-          console.log(res.data.content);
+          console.log("📄 발행 페이지: 받은 데이터:", res.data.content);
           const contentData = res.data.content;
-          
+
           // Check if content is Craft.js format (JSON string containing nodes)
           try {
             const parsedContent = JSON.parse(contentData);
+            console.log("📄 발행 페이지: 파싱된 데이터:", parsedContent);
+
             if (parsedContent.ROOT && parsedContent.ROOT.type) {
               // This is Craft.js format
+              console.log("✅ 발행 페이지: Craft.js 형식으로 감지됨");
               setCraftContent(contentData);
               setUseCraftViewer(true);
             } else {
               // This is legacy format
+              console.log(
+                "⚠️ 발행 페이지: 레거시 형식으로 감지됨:",
+                parsedContent
+              );
               setContent(parsedContent);
               setUseCraftViewer(false);
             }
-          } catch (e) {
+          } catch {
             // If it's not valid JSON, treat as legacy
             setContent(JSON.parse(contentData));
             setUseCraftViewer(false);
@@ -68,8 +76,7 @@ export default function ProjectPage({
         if (res?.data?.content === null) {
           setError("게시된 내용을 찾을 수 없습니다.");
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         let msg = "게시된 프로젝트를 불러오지 못했습니다.";
         if (isAxiosErrorWithResponse(err)) {
           const responseData = err.response?.data;
@@ -84,8 +91,12 @@ export default function ProjectPage({
           msg = err.message;
         }
         setError(msg);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [url]);
 
   if (loading) {
@@ -101,7 +112,7 @@ export default function ProjectPage({
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 relative overflow-hidden">
@@ -114,7 +125,7 @@ export default function ProjectPage({
       </div>
     );
   }
-  
+
   if (!content && !craftContent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
@@ -133,12 +144,13 @@ export default function ProjectPage({
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative">
         {/* Modern Header for Craft.js content */}
-        <header 
+        <header
           className={`
             fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out
-            ${isScrolled 
-              ? 'bg-white/90 backdrop-blur-xl shadow-xl border-b border-gray-200/50' 
-              : 'bg-transparent'
+            ${
+              isScrolled
+                ? "bg-white/90 backdrop-blur-xl shadow-xl border-b border-gray-200/50"
+                : "bg-transparent"
             }
           `}
         >
@@ -152,58 +164,41 @@ export default function ProjectPage({
                   EasyToWeb
                 </span>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-gray-500 bg-white/50 px-3 py-1 rounded-full">
-                  Craft.js로 제작됨
-                </div>
-              </div>
             </div>
           </div>
         </header>
 
-        {/* Craft.js Content */}
         <main className="pt-16">
-          <PublishViewer content={craftContent} className="min-h-screen" />
+          <PublishViewer
+            content={craftContent}
+            className="min-h-screen fade-in"
+          />
         </main>
-
-        {/* Floating Action Button */}
-        {isScrolled && (
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300/50"
-            aria-label="맨 위로 이동"
-          >
-            <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
-          </button>
-        )}
       </div>
     );
   }
 
   // Legacy viewer for backward compatibility
   if (!content) return null;
-  
+
   const hasBackgroundColor = content.layoutStyle?.backgroundColor;
   const defaultGradient = "from-indigo-50 via-white to-purple-50";
 
   return (
     <div className="min-h-screen relative">
       {/* Dynamic Background */}
-      <div 
+      <div
         className={`
           fixed inset-0 transition-all duration-700 ease-in-out
-          ${hasBackgroundColor 
-            ? '' 
-            : `bg-gradient-to-br ${defaultGradient}`
-          }
+          ${hasBackgroundColor ? "" : `bg-gradient-to-br ${defaultGradient}`}
         `}
         style={{
-          backgroundColor: hasBackgroundColor ? content.layoutStyle?.backgroundColor : undefined,
+          backgroundColor: hasBackgroundColor
+            ? content.layoutStyle?.backgroundColor
+            : undefined,
         }}
       />
-      
+
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" />
@@ -212,12 +207,13 @@ export default function ProjectPage({
       </div>
 
       {/* Floating Header */}
-      <header 
+      <header
         className={`
           fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out
-          ${isScrolled 
-            ? 'bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200/50' 
-            : 'bg-transparent'
+          ${
+            isScrolled
+              ? "bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200/50"
+              : "bg-transparent"
           }
         `}
       >
@@ -227,11 +223,11 @@ export default function ProjectPage({
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-bold">E</span>
               </div>
-              <span className="text-lg font-semibold text-gray-900">EasyToWeb</span>
+              <span className="text-lg font-semibold text-gray-900">
+                EasyToWeb
+              </span>
             </div>
-            <div className="text-sm text-gray-500">
-              발행된 프로젝트
-            </div>
+            <div className="text-sm text-gray-500">발행된 프로젝트</div>
           </div>
         </div>
       </header>
@@ -241,12 +237,13 @@ export default function ProjectPage({
         <div className="max-w-7xl mx-auto">
           {/* Content Container with Glass Effect */}
           <div className="mx-4 sm:mx-6 lg:mx-8 my-8">
-            <div 
+            <div
               className={`
                 relative overflow-hidden transition-all duration-500 ease-in-out
-                ${hasBackgroundColor 
-                  ? 'bg-transparent' 
-                  : 'bg-white/60 backdrop-blur-sm border border-white/20 shadow-xl'
+                ${
+                  hasBackgroundColor
+                    ? "bg-transparent"
+                    : "bg-white/60 backdrop-blur-sm border border-white/20 shadow-xl"
                 }
                 rounded-2xl
               `}
@@ -255,28 +252,15 @@ export default function ProjectPage({
               {!hasBackgroundColor && (
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-white/20 pointer-events-none" />
               )}
-              
+
               {/* Layout Viewer Container */}
-              <div className="relative">
+              <div className="relative slide-up">
                 <LayoutViewer layouts={[content]} />
               </div>
             </div>
           </div>
         </div>
       </main>
-
-      {/* Floating Action Button for Scroll to Top */}
-      {isScrolled && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300/50"
-          aria-label="맨 위로 이동"
-        >
-          <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-          </svg>
-        </button>
-      )}
     </div>
   );
 }

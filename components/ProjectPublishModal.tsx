@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {UseModalReturnType} from "../hooks/useModal";
 import BaseModal from "./BaseModal";
 import apiHandler from "../shared/api/axios";
@@ -19,8 +19,11 @@ const ProjectPublishModal = ({
 	                             projectId,
                              }: ProjectPublishModalProps) => {
 	const dispatch = useDispatch();
-	const layoutData = useSelector(
-			(state: RootState) => state.layouts.layouts[0]
+	const [currentCraftContent, setCurrentCraftContent] = useState<string | null>(null);
+	
+	// Fallback을 위한 Redux state
+	const legacyLayoutData = useSelector(
+		(state: RootState) => state.layouts.layouts[0]
 	);
 
 	const publishUrl = useSelector(
@@ -30,12 +33,93 @@ const ProjectPublishModal = ({
 	const isPublished = !!publishUrl;
 	const [loading, setLoading] = useState(false);
 
+	// Craft.js 현재 상태를 실시간으로 가져오기
+	useEffect(() => {
+		const getCraftContent = () => {
+			// craft-publish 이벤트를 통해 현재 Craft.js 상태 요청
+			const event = new CustomEvent('craft-get-state');
+			document.dispatchEvent(event);
+		};
+
+		const handleCraftState = (event: CustomEvent) => {
+			if (event.detail && typeof event.detail === 'string') {
+				setCurrentCraftContent(event.detail);
+			}
+		};
+
+		// 상태 받기 이벤트 리스너
+		document.addEventListener('craft-state-response', handleCraftState as EventListener);
+		
+		// 모달이 열릴 때 현재 상태 요청
+		if (modal.show) {
+			getCraftContent();
+		}
+
+		return () => {
+			document.removeEventListener('craft-state-response', handleCraftState as EventListener);
+		};
+	}, [modal.show]);
+
 	const handleDeploy = async () => {
 		setLoading(true);
 		try {
+			// Craft.js 현재 상태가 없으면 요청해서 가져오기
+			let contentToPublish = currentCraftContent;
+			console.log("ProjectPublishModal: 현재 Craft 상태:", currentCraftContent);
+			
+			if (!contentToPublish) {
+				console.log("ProjectPublishModal: Craft 상태가 없음. 요청 중...");
+				// 최신 상태 요청
+				const event = new CustomEvent('craft-get-state');
+				document.dispatchEvent(event);
+				
+				// 잠시 대기 후 다시 확인
+				await new Promise(resolve => setTimeout(resolve, 500));
+				contentToPublish = currentCraftContent;
+				console.log("ProjectPublishModal: 재시도 후 상태:", contentToPublish);
+			}
+
+			// Craft.js 상태를 가져오지 못했으면 fallback으로 Redux state 사용
+			if (!contentToPublish) {
+				console.warn("ProjectPublishModal: Craft 상태를 가져올 수 없음. Fallback으로 Redux state 사용");
+				if (legacyLayoutData && legacyLayoutData.layoutId !== "init") {
+					contentToPublish = JSON.stringify(legacyLayoutData);
+					console.log("ProjectPublishModal: Redux fallback 사용:", contentToPublish);
+				} else {
+					console.error("ProjectPublishModal: 사용할 수 있는 데이터가 없음");
+					toast.error("발행할 데이터가 없습니다. 에디터에서 콘텐츠를 생성한 후 다시 시도해주세요.");
+					setLoading(false);
+					return;
+				}
+			}
+
+			// 데이터 형식 확인 및 타입 결정
+			let isLegacyFormat = false;
+			try {
+				const parsed = JSON.parse(contentToPublish);
+				if (parsed.ROOT && parsed.ROOT.type) {
+					console.log("ProjectPublishModal: Craft.js 형식으로 발행");
+					isLegacyFormat = false;
+				} else if (parsed.layoutId && parsed.sections !== undefined) {
+					console.log("ProjectPublishModal: 레거시 형식으로 발행");
+					isLegacyFormat = true;
+				} else {
+					console.error("ProjectPublishModal: 알 수 없는 데이터 형식:", parsed);
+					toast.error("에디터 데이터 형식을 인식할 수 없습니다.");
+					setLoading(false);
+					return;
+				}
+			} catch (e) {
+				console.error("ProjectPublishModal: JSON 파싱 실패:", e);
+				toast.error("에디터 데이터를 읽을 수 없습니다.");
+				setLoading(false);
+				return;
+			}
+
+			console.log("ProjectPublishModal: 발행 요청 전송 중...", contentToPublish.substring(0, 100) + "...");
 			const response = await apiHandler.publishProject(
 					projectId,
-					JSON.stringify(layoutData)
+					contentToPublish // Craft.js serialize된 상태 직접 사용
 			);
 			const url = response.data?.url;
 			if (url) {

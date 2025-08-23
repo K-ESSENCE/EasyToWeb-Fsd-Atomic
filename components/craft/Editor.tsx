@@ -36,6 +36,7 @@ import { ErrorBoundary } from "../ErrorBoundary";
 
 // Save Manager
 import { SaveManager } from "./SaveManager";
+import CraftStateProvider from "./CraftStateProvider";
 
 interface CraftEditorProps {
   onContentChange?: (content: string) => void;
@@ -173,6 +174,9 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
 
             {/* Event Handlers */}
             <EventHandlers />
+            
+            {/* Craft State Provider for Publishing */}
+            <CraftStateProvider />
 
             {/* Header Controls */}
             <div className="craft-editor-header bg-white border-b border-gray-200 p-4 flex items-center justify-between">
