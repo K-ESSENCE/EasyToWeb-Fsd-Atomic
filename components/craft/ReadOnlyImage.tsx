@@ -72,7 +72,6 @@ export const ReadOnlyImage: React.FC<ReadOnlyImageProps> = ({
     borderRadius: `${borderRadius}px`,
     // 이미지 드래그 방지 (선택적)
     userSelect: 'none',
-    WebkitUserDrag: 'none',
   };
 
   const placeholderStyle: React.CSSProperties = {
@@ -98,6 +97,7 @@ export const ReadOnlyImage: React.FC<ReadOnlyImageProps> = ({
           src={src.startsWith('http') ? src : `${FULL_API_URL}${src}`}
           alt={alt}
           style={imageStyle}
+          draggable={false}
           // 완전히 읽기 전용 - 클릭 이벤트 없음
         />
       ) : (
