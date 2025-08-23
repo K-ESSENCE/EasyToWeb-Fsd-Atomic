@@ -142,7 +142,7 @@ export default function ProjectPage({
   // Use Craft.js viewer if available, otherwise fall back to legacy viewer
   if (useCraftViewer && craftContent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative text-black">
         {/* Modern Header for Craft.js content */}
         <header
           className={`
