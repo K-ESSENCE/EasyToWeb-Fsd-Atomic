@@ -83,12 +83,6 @@ const App = () => {
     }
   };
 
-  const handleSave = () => {
-    // Save functionality handled by SaveManager component
-    const event = new CustomEvent("craft-temp-save");
-    document.dispatchEvent(event);
-  };
-
   if (isLoading) {
     return <PageLoader message="불러오는 중입니다..." />;
   }
@@ -137,19 +131,6 @@ const App = () => {
           <div className="flex items-center space-x-3">
             {/* Collaborator List - added next to save button */}
             <CollaboratorList className="mr-2" />
-
-            <button
-              onClick={handleSave}
-              disabled={permission === "READ_ONLY"}
-              className={`${
-                permission === "READ_ONLY"
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              } px-4 py-2 rounded-md text-sm font-medium flex items-center`}
-            >
-              <i className="fas fa-save mr-2"></i>
-              저장
-            </button>
 
             <button
               onClick={() => publishModal.open()}
