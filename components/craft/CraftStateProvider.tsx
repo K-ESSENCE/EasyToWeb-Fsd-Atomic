@@ -41,13 +41,35 @@ export const CraftStateProvider: React.FC = () => {
       }
     };
 
+    // 텍스트/이미지 변경 이벤트 로깅 (협업 동기화용)
+    const handleTextChanged = (event: CustomEvent) => {
+      console.log('CraftStateProvider: 텍스트 변경 감지:', {
+        nodeId: event.detail?.nodeId,
+        text: event.detail?.text?.substring(0, 50) + '...',
+        timestamp: event.detail?.timestamp
+      });
+    };
+
+    const handleImageChanged = (event: CustomEvent) => {
+      console.log('CraftStateProvider: 이미지 변경 감지:', {
+        nodeId: event.detail?.nodeId,
+        src: event.detail?.src,
+        fileId: event.detail?.fileId,
+        timestamp: event.detail?.timestamp
+      });
+    };
+
     console.log('CraftStateProvider: 이벤트 리스너 등록됨');
     // 상태 요청 이벤트 리스너 등록
     document.addEventListener('craft-get-state', handleGetState);
+    document.addEventListener('craft-text-changed', handleTextChanged as EventListener);
+    document.addEventListener('craft-image-changed', handleImageChanged as EventListener);
 
     return () => {
       console.log('CraftStateProvider: 이벤트 리스너 제거됨');
       document.removeEventListener('craft-get-state', handleGetState);
+      document.removeEventListener('craft-text-changed', handleTextChanged as EventListener);
+      document.removeEventListener('craft-image-changed', handleImageChanged as EventListener);
     };
   }, [query]);
 

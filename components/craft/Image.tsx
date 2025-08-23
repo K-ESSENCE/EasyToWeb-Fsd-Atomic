@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNode } from '@craftjs/core';
 import { FULL_API_URL } from '../../shared/api/axios';
 import { ImageToolbar } from './toolbars/ImageToolbar';
+import { useChunkedImageUpload } from '../../hooks/useChunkedImageUpload';
+import toast from 'react-hot-toast';
 
 export interface ImageProps {
   src?: string;
@@ -47,6 +49,7 @@ export const Image: React.FC<ImageProps> = ({
   }));
 
   const [isHovered, setIsHovered] = useState(false);
+  const { uploadImage, status } = useChunkedImageUpload();
 
   const imageContainerStyle: React.CSSProperties = {
     width,
@@ -90,17 +93,66 @@ export const Image: React.FC<ImageProps> = ({
     fontWeight: '500',
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProp((props: ImageProps) => {
-          props.src = e.target?.result as string;
+      console.log('Image 컴포넌트: 이미지 업로드 시작:', file.name);
+      
+      // 파일 타입 검사
+      if (!file.type.startsWith('image/')) {
+        toast.error('이미지 파일만 업로드 가능합니다.');
+        return;
+      }
+      
+      // 파일 크기 검사 (10MB 제한)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('파일 크기는 10MB 이하만 가능합니다.');
+        return;
+      }
+      
+      try {
+        toast.loading('이미지 업로드 중...', { id: 'image-upload' });
+        
+        const result = await uploadImage(file, (status) => {
+          console.log('Image 컴포넌트: 업로드 진행률:', status.progress + '%');
         });
-      };
-      reader.readAsDataURL(file);
+        
+        if (result.error) {
+          console.error('Image 컴포넌트: 업로드 실패:', result.error);
+          toast.error(result.error, { id: 'image-upload' });
+          return;
+        }
+        
+        if (result.fileUrl) {
+          console.log('Image 컴포넌트: 업로드 성공:', result.fileUrl);
+          setProp((props: ImageProps) => {
+            props.src = result.fileUrl;
+          });
+          
+          // Craft.js 상태 변경 이벤트 발송 (동기화용)
+          const imageEvent = new CustomEvent("craft-image-changed", {
+            detail: { 
+              nodeId: id, 
+              src: result.fileUrl,
+              fileId: result.fileId,
+              timestamp: Date.now()
+            },
+          });
+          document.dispatchEvent(imageEvent);
+          
+          toast.success('이미지 업로드 완료!', { id: 'image-upload' });
+        } else {
+          console.error('Image 컴포넌트: 파일 URL이 없음:', result);
+          toast.error('업로드된 이미지 URL을 받지 못했습니다.', { id: 'image-upload' });
+        }
+      } catch (error) {
+        console.error('Image 컴포넌트: 업로드 중 에러:', error);
+        toast.error('이미지 업로드 중 오류가 발생했습니다.', { id: 'image-upload' });
+      }
     }
+    
+    // 파일 인풋 리셋
+    event.target.value = '';
   };
 
   return (
@@ -137,16 +189,43 @@ export const Image: React.FC<ImageProps> = ({
             <circle cx="8.5" cy="8.5" r="1.5" />
             <polyline points="21,15 16,10 5,21" />
           </svg>
-          <span>클릭해서 이미지 추가</span>
+          {status.uploading ? (
+            <span>업로드 중... {status.progress}%</span>
+          ) : (
+            <span>클릭해서 이미지 추가</span>
+          )}
+          {status.uploading && (
+            <div
+              style={{
+                width: '80%',
+                height: '4px',
+                backgroundColor: '#e5e7eb',
+                borderRadius: '2px',
+                marginTop: '8px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${status.progress}%`,
+                  height: '100%',
+                  backgroundColor: '#2563eb',
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease',
+                }}
+              />
+            </div>
+          )}
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
+            disabled={status.uploading}
             style={{
               position: 'absolute',
               inset: 0,
               opacity: 0,
-              cursor: 'pointer',
+              cursor: status.uploading ? 'wait' : 'pointer',
             }}
           />
         </div>
