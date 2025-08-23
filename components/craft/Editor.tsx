@@ -49,7 +49,6 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
   className = "",
   projectId,
 }) => {
-  const [enabled, setEnabled] = useState(true);
   const [showLayers, setShowLayers] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const lastChangeTimeRef = useRef<number>(0);
@@ -126,7 +125,6 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               Image,
               Container,
             }}
-            enabled={enabled}
             onNodesChange={(query) => {
               const now = Date.now();
 
@@ -160,7 +158,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
             {projectId && <CraftAwarenessSync />}
 
             {/* Anti-Flicker Manager */}
-            <AntiFlickerManager enabled={enabled} />
+            <AntiFlickerManager />
 
             {/* Save Manager */}
             {projectId && (
@@ -174,7 +172,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
 
             {/* Event Handlers */}
             <EventHandlers />
-            
+
             {/* Craft State Provider for Publishing */}
             <CraftStateProvider />
 
@@ -185,16 +183,6 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                   페이지 편집기
                 </h2>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setEnabled(!enabled)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      enabled
-                        ? "bg-blue-100 text-blue-700 border border-blue-200"
-                        : "bg-gray-100 text-gray-700 border border-gray-200"
-                    }`}
-                  >
-                    {enabled ? "편집 모드" : "미리보기 모드"}
-                  </button>
                   <button
                     onClick={() => setShowLayers(!showLayers)}
                     className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors"
@@ -251,7 +239,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
               {/* Main Editor Area */}
               <div className="craft-canvas flex-1 relative bg-gray-100 overflow-hidden">
                 {/* Grid Lines */}
-                <GridLines enabled={enabled} spacing={20} />
+                <GridLines spacing={20} />
 
                 {/* Drag Indicator */}
                 <DragIndicator />
@@ -263,7 +251,7 @@ export const CraftEditor: React.FC<CraftEditorProps> = ({
                 {/* <HoverHighlight /> */}
 
                 {/* Snap Guides */}
-                <SnapGuides enabled={enabled} />
+                <SnapGuides />
 
                 {/* Collaborator Selection Overlay */}
                 {projectId && <CollaboratorOverlay />}
