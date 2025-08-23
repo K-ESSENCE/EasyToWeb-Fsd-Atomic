@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNode } from '@craftjs/core';
-import { ContainerProps } from '../Container';
+import React from "react";
+import { useNode } from "@craftjs/core";
+import { ContainerProps } from "../Container";
 
 export const ContainerToolbar: React.FC = () => {
   const {
@@ -21,7 +21,9 @@ export const ContainerToolbar: React.FC = () => {
           <div className="flex gap-2">
             <input
               type="color"
-              value={props.background?.startsWith('#') ? props.background : '#ffffff'}
+              value={
+                props.background?.startsWith("#") ? props.background : "#ffffff"
+              }
               onChange={(e) =>
                 setProp((props: ContainerProps) => {
                   props.background = e.target.value;
@@ -43,13 +45,13 @@ export const ContainerToolbar: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-1">
             {[
-              'transparent',
-              '#ffffff',
-              '#f3f4f6',
-              '#e5e7eb',
-              '#3b82f6',
-              'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              'linear-gradient(45deg, #ff6b6b, #4ecdc4)',
+              "transparent",
+              "#ffffff",
+              "#f3f4f6",
+              "#e5e7eb",
+              "#3b82f6",
+              "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              "linear-gradient(45deg, #ff6b6b, #4ecdc4)",
             ].map((bg) => (
               <button
                 key={bg}
@@ -60,11 +62,20 @@ export const ContainerToolbar: React.FC = () => {
                 }
                 className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
                 style={{
-                  background: bg.startsWith('linear-gradient') ? bg : bg === 'transparent' ? 'rgba(0,0,0,0.1)' : bg,
-                  color: bg === '#ffffff' || bg === 'transparent' ? '#000' : '#fff'
+                  background: bg.startsWith("linear-gradient")
+                    ? bg
+                    : bg === "transparent"
+                      ? "rgba(0,0,0,0.1)"
+                      : bg,
+                  color:
+                    bg === "#ffffff" || bg === "transparent" ? "#000" : "#fff",
                 }}
               >
-                {bg === 'transparent' ? '투명' : bg.startsWith('#') ? bg : '그라데이션'}
+                {bg === "transparent"
+                  ? "투명"
+                  : bg.startsWith("#")
+                    ? bg
+                    : "그라데이션"}
               </button>
             ))}
           </div>
@@ -80,34 +91,54 @@ export const ContainerToolbar: React.FC = () => {
           <button
             onClick={() =>
               setProp((props: ContainerProps) => {
-                props.flexDirection = 'column';
+                props.flexDirection = "column";
               })
             }
             className={`flex-1 p-2 border rounded-md transition-colors ${
-              props.flexDirection === 'column'
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+              props.flexDirection === "column"
+                ? "bg-blue-500 text-white border-blue-500"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             }`}
           >
-            <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            <svg
+              className="w-4 h-4 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+              />
             </svg>
             <span className="text-xs mt-1 block">세로</span>
           </button>
           <button
             onClick={() =>
               setProp((props: ContainerProps) => {
-                props.flexDirection = 'row';
+                props.flexDirection = "row";
               })
             }
             className={`flex-1 p-2 border rounded-md transition-colors ${
-              props.flexDirection === 'row'
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+              props.flexDirection === "row"
+                ? "bg-blue-500 text-white border-blue-500"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             }`}
           >
-            <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            <svg
+              className="w-4 h-4 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
             </svg>
             <span className="text-xs mt-1 block">가로</span>
           </button>
@@ -123,7 +154,8 @@ export const ContainerToolbar: React.FC = () => {
           value={props.justifyContent}
           onChange={(e) =>
             setProp((props: ContainerProps) => {
-              props.justifyContent = e.target.value as ContainerProps['justifyContent'];
+              props.justifyContent = e.target
+                .value as ContainerProps["justifyContent"];
             })
           }
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -146,7 +178,7 @@ export const ContainerToolbar: React.FC = () => {
           value={props.alignItems}
           onChange={(e) =>
             setProp((props: ContainerProps) => {
-              props.alignItems = e.target.value as ContainerProps['alignItems'];
+              props.alignItems = e.target.value as ContainerProps["alignItems"];
             })
           }
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -271,7 +303,9 @@ export const ContainerToolbar: React.FC = () => {
         </label>
         <div className="space-y-2">
           <div>
-            <label className="text-xs text-gray-600">두께: {props.borderWidth}px</label>
+            <label className="text-xs text-gray-600">
+              두께: {props.borderWidth}px
+            </label>
             <input
               type="range"
               min={0}
@@ -300,7 +334,10 @@ export const ContainerToolbar: React.FC = () => {
               value={props.borderStyle}
               onChange={(e) =>
                 setProp((props: ContainerProps) => {
-                  props.borderStyle = e.target.value as 'solid' | 'dashed' | 'dotted';
+                  props.borderStyle = e.target.value as
+                    | "solid"
+                    | "dashed"
+                    | "dotted";
                 })
               }
               className="flex-1 px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -311,28 +348,6 @@ export const ContainerToolbar: React.FC = () => {
             </select>
           </div>
         </div>
-      </div>
-
-      {/* Box Shadow */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          그림자
-        </label>
-        <select
-          value={props.boxShadow}
-          onChange={(e) =>
-            setProp((props: ContainerProps) => {
-              props.boxShadow = e.target.value;
-            })
-          }
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="none">없음</option>
-          <option value="0 1px 3px rgba(0,0,0,0.1)">작은 그림자</option>
-          <option value="0 2px 4px rgba(0,0,0,0.1)">보통 그림자</option>
-          <option value="0 4px 8px rgba(0,0,0,0.1)">큰 그림자</option>
-          <option value="0 8px 16px rgba(0,0,0,0.15)">매우 큰 그림자</option>
-        </select>
       </div>
     </div>
   );
