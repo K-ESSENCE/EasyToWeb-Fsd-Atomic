@@ -1,10 +1,20 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
-import { BASE_SOCKET_PROTOCOL, BASE_API_URL } from '../api/axios';
-import { getAccessTokenFromLocal, getAccountInfoFromLocal } from '../../utils/session';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { BASE_SOCKET_PROTOCOL, BASE_API_URL } from "../api/axios";
+import {
+  getAccessTokenFromLocal,
+  getAccountInfoFromLocal,
+} from "../../utils/session";
+import { captureAndDownload, messageCapture } from "../../utils/yjs";
 
 interface YjsContextType {
   doc: Y.Doc | null;
@@ -75,24 +85,41 @@ interface YjsProviderProps {
 // Generate random color for collaborators
 const generateColor = (): string => {
   const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+    "#FF6B6B",
+    "#4ECDC4",
+    "#45B7D1",
+    "#96CEB4",
+    "#FFEAA7",
+    "#DDA0DD",
+    "#98D8C8",
+    "#F7DC6F",
+    "#BB8FCE",
+    "#85C1E9",
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId }) => {
+export const YjsProvider: React.FC<YjsProviderProps> = ({
+  children,
+  projectId,
+}) => {
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [provider, setProvider] = useState<WebsocketProvider | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [collaborators, setCollaborators] = useState<Map<string, CollaboratorInfo>>(new Map());
-  
+  const [collaborators, setCollaborators] = useState<
+    Map<string, CollaboratorInfo>
+  >(new Map());
+
   // Y.Map instances
   const [sharedNodesMap, setSharedNodesMap] = useState<Y.Map<any> | null>(null);
   const [sharedMetaMap, setSharedMetaMap] = useState<Y.Map<any> | null>(null);
-  const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<any> | null>(null);
-  const [textEditStatusMap, setTextEditStatusMap] = useState<Y.Map<any> | null>(null);
+  const [uploadStatusMap, setUploadStatusMap] = useState<Y.Map<any> | null>(
+    null
+  );
+  const [textEditStatusMap, setTextEditStatusMap] = useState<Y.Map<any> | null>(
+    null
+  );
   const [editLockMap, setEditLockMap] = useState<Y.Map<any> | null>(null);
 
   useEffect(() => {
@@ -102,41 +129,41 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     const yjsDoc = new Y.Doc();
 
     // Initialize Y.Map instances (matching existing yjs.ts keys)
-    const nodesMap = yjsDoc.getMap('layoutData');
-    const metaMap = yjsDoc.getMap('meta');
-    const uploadMap = yjsDoc.getMap('uploadStatus');
-    const textEditMap = yjsDoc.getMap('textEditStatus');
-    const lockMap = yjsDoc.getMap('editLocks');
-    
+    const nodesMap = yjsDoc.getMap("layoutData");
+    const metaMap = yjsDoc.getMap("meta");
+    const uploadMap = yjsDoc.getMap("uploadStatus");
+    const textEditMap = yjsDoc.getMap("textEditStatus");
+    const lockMap = yjsDoc.getMap("editLocks");
+
     setSharedNodesMap(nodesMap);
     setSharedMetaMap(metaMap);
     setUploadStatusMap(uploadMap);
     setTextEditStatusMap(textEditMap);
     setEditLockMap(lockMap);
-    
+
     // WebSocket connection using existing pattern
     const token = getAccessTokenFromLocal();
-    
+
     // Validate token before creating connection
     if (!token) {
-      console.error('YjsProvider: No access token available');
+      console.error("YjsProvider: No access token available");
       setIsLoading(false);
       setIsConnected(false);
       return;
     }
-    
+
     // Create WebSocket provider matching the API specification
     // The WebsocketProvider expects base URL without room path
     // It will internally append the room name to create the final URL
     const wsUrl = `${BASE_SOCKET_PROTOCOL}${BASE_API_URL}`;
-    
-    console.log('YjsProvider: Attempting WebSocket connection to:', wsUrl);
-    console.log('YjsProvider: Room name:', projectId);
-    console.log('YjsProvider: Token available:', !!token);
-    
+
+    console.log("YjsProvider: Attempting WebSocket connection to:", wsUrl);
+    console.log("YjsProvider: Room name:", projectId);
+    console.log("YjsProvider: Token available:", !!token);
+
     const wsProvider = new WebsocketProvider(
       wsUrl,
-      'layout-modal-room', // This should be the room endpoint name
+      "layout-modal-room", // This should be the room endpoint name
       yjsDoc,
       {
         params: {
@@ -153,43 +180,43 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     setProvider(wsProvider);
 
     // Add message handlers like in existing yjs.ts
-    // wsProvider.messageHandlers[messageCapture] = () => {
-    //   captureAndDownload(projectId);
-    // };
+    wsProvider.messageHandlers[messageCapture] = () => {
+      captureAndDownload(projectId);
+    };
 
     // Handle connection events
-    wsProvider.on('status', (event: { status: string }) => {
-      console.log('WebSocket status changed:', event.status);
-      const connected = event.status === 'connected';
+    wsProvider.on("status", (event: { status: string }) => {
+      console.log("WebSocket status changed:", event.status);
+      const connected = event.status === "connected";
       setIsConnected(connected);
-      
+
       // Keep loading until initial sync is complete
       if (connected) {
-        console.log('WebSocket connected successfully');
+        console.log("WebSocket connected successfully");
         // Give some time for initial data sync
         setTimeout(() => {
           setIsLoading(false);
         }, 1500);
-      } else if (event.status === 'connecting') {
-        console.log('WebSocket connecting...');
+      } else if (event.status === "connecting") {
+        console.log("WebSocket connecting...");
         setIsLoading(true);
-      } else if (event.status === 'disconnected') {
-        console.log('WebSocket disconnected');
+      } else if (event.status === "disconnected") {
+        console.log("WebSocket disconnected");
         setIsLoading(false);
       } else {
         setIsLoading(false);
       }
     });
 
-    wsProvider.on('connection-close', (event) => {
+    wsProvider.on("connection-close", (event) => {
       if (!event) {
-        console.log('WebSocket connection closed (no event data)');
+        console.log("WebSocket connection closed (no event data)");
         setIsConnected(false);
         return;
       }
 
-      console.error('WebSocket connection close:', event);
-      
+      console.error("WebSocket connection close:", event);
+
       // Handle specific error codes like in the existing implementation
       const error = event as unknown as {
         code: number;
@@ -198,58 +225,72 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
       switch (error.code) {
         case 1002:
-          console.error('RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다.');
+          console.error(
+            "RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다."
+          );
           break;
         case 1003:
-          console.error('INPUT_VALUE_INVALID:', error.reason || 'Invalid input');
+          console.error(
+            "INPUT_VALUE_INVALID:",
+            error.reason || "Invalid input"
+          );
           break;
         case 1008:
           // Check specific error messages for 1008
-          if (error.reason?.includes('PROJECT_NOT_FOUND')) {
-            console.error('PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.');
-          } else if (error.reason?.includes('USER_NOT_LOGIN')) {
-            console.error('USER_NOT_LOGIN: 로그인이 필요합니다.');
-          } else if (error.reason?.includes('ACCESS_DENIED')) {
-            console.error('ACCESS_DENIED: 권한이 없습니다.');
+          if (error.reason?.includes("PROJECT_NOT_FOUND")) {
+            console.error("PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.");
+          } else if (error.reason?.includes("USER_NOT_LOGIN")) {
+            console.error("USER_NOT_LOGIN: 로그인이 필요합니다.");
+          } else if (error.reason?.includes("ACCESS_DENIED")) {
+            console.error("ACCESS_DENIED: 권한이 없습니다.");
           } else {
-            console.error('PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다.');
+            console.error(
+              "PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다."
+            );
           }
           break;
         case 1011:
-          console.error('UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요.');
+          console.error(
+            "UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요."
+          );
           break;
         case 4401:
-          console.error('ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.');
+          console.error("ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.");
           break;
         case 1006:
-          console.error('Network connection close');
+          console.error("Network connection close");
           break;
         default:
-          console.error('Unknown WebSocket error:', error);
+          console.error("Unknown WebSocket error:", error);
       }
 
       setIsConnected(false);
-      
+
       // Stop provider if critical errors occur to prevent infinite reconnection
       if (error.code === 4401 || error.code === 1008) {
-        console.warn('Critical error detected, stopping WebSocket provider');
+        console.warn("Critical error detected, stopping WebSocket provider");
         wsProvider.disconnect();
       }
     });
 
-    wsProvider.on('connection-error', (event: Event) => {
-      console.error('WebSocket connection error:', event);
-      
+    wsProvider.on("connection-error", (event: Event) => {
+      console.error("WebSocket connection error:", event);
+
       // Handle specific error codes like in the existing implementation
       const error = event as unknown as {
         code: number;
         message: string;
         errorFieldName?: string;
       };
-      
+
       // Don't log if error object is empty (prevents infinite empty logs)
-      if (!error || (typeof error === 'object' && Object.keys(error).length === 0)) {
-        console.error('WebSocket connection error: Empty error object - likely network issue');
+      if (
+        !error ||
+        (typeof error === "object" && Object.keys(error).length === 0)
+      ) {
+        console.error(
+          "WebSocket connection error: Empty error object - likely network issue"
+        );
         setIsConnected(false);
         setIsLoading(false);
         return;
@@ -257,123 +298,144 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
       switch (error.code) {
         case 1002:
-          console.error('RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다.');
+          console.error(
+            "RESOURCE_NOT_FOUND: 해당하는 요청이 존재하지 않습니다."
+          );
           break;
         case 1003:
-          console.error('INPUT_VALUE_INVALID:', error.errorFieldName || 'Unknown field');
+          console.error(
+            "INPUT_VALUE_INVALID:",
+            error.errorFieldName || "Unknown field"
+          );
           break;
         case 1008:
-          if (error.message === 'PROJECT_NOT_FOUND') {
-            console.error('PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.');
-          } else if (error.message === 'USER_NOT_LOGIN') {
-            console.error('USER_NOT_LOGIN: 로그인이 필요합니다.');
-          } else if (error.message === 'ACCESS_DENIED') {
-            console.error('ACCESS_DENIED: 권한이 없습니다.');
+          if (error.message === "PROJECT_NOT_FOUND") {
+            console.error("PROJECT_NOT_FOUND: 프로젝트가 존재하지 않습니다.");
+          } else if (error.message === "USER_NOT_LOGIN") {
+            console.error("USER_NOT_LOGIN: 로그인이 필요합니다.");
+          } else if (error.message === "ACCESS_DENIED") {
+            console.error("ACCESS_DENIED: 권한이 없습니다.");
           } else {
-            console.error('PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다.');
+            console.error(
+              "PROJECT_ACCESS_DENIED: 프로젝트를 찾을 수 없거나 권한이 없습니다."
+            );
           }
           break;
         case 1011:
-          console.error('UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요.');
+          console.error(
+            "UNEXPECTED_INTERNAL_SERVER_ERROR: 죄송합니다. 잠시후 시도해주세요."
+          );
           break;
         case 4401:
-          console.error('ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.');
+          console.error("ACCESS_TOKEN_EXPIRED: 엑세스 토큰이 만료되었습니다.");
           break;
         default:
-          console.error('Unknown WebSocket connection error:', error);
+          console.error("Unknown WebSocket connection error:", error);
       }
-      
+
       setIsConnected(false);
       setIsLoading(false);
-      
+
       // Stop provider if critical errors occur to prevent infinite reconnection
       if (error.code === 4401 || error.code === 1008) {
-        console.warn('Critical error detected, stopping WebSocket provider');
+        console.warn("Critical error detected, stopping WebSocket provider");
         wsProvider.disconnect();
       }
     });
 
     // Handle awareness (user presence)
     const awareness = wsProvider.awareness;
-    
+
     // Set local user info
     const updateLocalUser = () => {
       const token = getAccessTokenFromLocal();
       if (token) {
         try {
           // Parse JWT token to get user info
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          
+          const payload = JSON.parse(atob(token.split(".")[1]));
+
           // Get account info from localStorage - check both 'account' and 'accountInfo' keys
           let accountInfo = getAccountInfoFromLocal();
           if (!accountInfo) {
             try {
-              const accountStr = localStorage.getItem('account');
+              const accountStr = localStorage.getItem("account");
               accountInfo = accountStr ? JSON.parse(accountStr) : undefined;
             } catch {
               accountInfo = undefined;
             }
           }
-          
+
           // Create unique session ID to handle multiple sessions from same user
-          const baseUserId = payload.sub || payload.userId || accountInfo?.id || `user-${Date.now()}`;
+          const baseUserId =
+            payload.sub ||
+            payload.userId ||
+            accountInfo?.id ||
+            `user-${Date.now()}`;
           const sessionId = `${baseUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-          
-          const baseName = accountInfo?.nickname || accountInfo?.email?.split('@')[0] || payload.name || payload.email?.split('@')[0] || '사용자';
-          
+
+          const baseName =
+            accountInfo?.nickname ||
+            accountInfo?.email?.split("@")[0] ||
+            payload.name ||
+            payload.email?.split("@")[0] ||
+            "사용자";
+
           const userInfo = {
             id: sessionId, // Unique session-based ID
             baseUserId: baseUserId, // Original user ID for grouping
             name: baseName,
-            email: accountInfo?.email || payload.email || 'user@example.com',
+            email: accountInfo?.email || payload.email || "user@example.com",
             color: generateColor(),
             timestamp: Date.now(),
           };
-          
+
           // Setting user info for collaboration
-          awareness.setLocalStateField('user', userInfo);
+          awareness.setLocalStateField("user", userInfo);
         } catch (error) {
-          console.error('Failed to parse token or set user info:', error);
-          
+          console.error("Failed to parse token or set user info:", error);
+
           // Try to get info from localStorage as fallback
           try {
             let accountInfo = getAccountInfoFromLocal();
             if (!accountInfo) {
               try {
-                const accountStr = localStorage.getItem('account');
+                const accountStr = localStorage.getItem("account");
                 accountInfo = accountStr ? JSON.parse(accountStr) : undefined;
               } catch {
                 accountInfo = undefined;
               }
             }
-            
+
             const baseUserId = accountInfo?.id || `user-${Date.now()}`;
             const sessionId = `${baseUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-            const baseName = accountInfo?.nickname || accountInfo?.email?.split('@')[0] || 'Anonymous';
-            
+            const baseName =
+              accountInfo?.nickname ||
+              accountInfo?.email?.split("@")[0] ||
+              "Anonymous";
+
             const fallbackUserInfo = {
               id: sessionId,
               baseUserId: baseUserId,
               name: baseName,
-              email: accountInfo?.email || 'anonymous@example.com',
+              email: accountInfo?.email || "anonymous@example.com",
               color: generateColor(),
               timestamp: Date.now(),
             };
-            
+
             // Using fallback user info
-            awareness.setLocalStateField('user', fallbackUserInfo);
+            awareness.setLocalStateField("user", fallbackUserInfo);
           } catch (fallbackError) {
-            console.error('Fallback user info also failed:', fallbackError);
+            console.error("Fallback user info also failed:", fallbackError);
             const timestamp = Date.now();
             const ultimateFallback = {
               id: `anonymous-${timestamp}-${Math.random().toString(36).substr(2, 5)}`,
               baseUserId: `anonymous-${timestamp}`,
-              name: 'Anonymous',
-              email: 'anonymous@example.com',
+              name: "Anonymous",
+              email: "anonymous@example.com",
               color: generateColor(),
               timestamp: timestamp,
             };
-            awareness.setLocalStateField('user', ultimateFallback);
+            awareness.setLocalStateField("user", ultimateFallback);
           }
         }
       }
@@ -383,13 +445,13 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
     // Listen for awareness changes (other users) with debouncing
     let awarenessTimeout: NodeJS.Timeout;
-    
+
     const handleAwarenessChange = () => {
       // Debounce awareness changes to prevent excessive updates
       if (awarenessTimeout) {
         clearTimeout(awarenessTimeout);
       }
-      
+
       awarenessTimeout = setTimeout(() => {
         const states = awareness.getStates();
         const newCollaborators = new Map<string, CollaboratorInfo>();
@@ -400,7 +462,7 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
         states.forEach((state, clientId) => {
           if (clientId !== awareness.clientID && state.user) {
             allUsers.push({ clientId: clientId.toString(), state });
-            
+
             const baseEmail = state.user.email;
             const currentCount = userNameCounts.get(baseEmail) || 0;
             userNameCounts.set(baseEmail, currentCount + 1);
@@ -412,9 +474,9 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
         allUsers.forEach(({ clientId, state }) => {
           const baseEmail = state.user.email;
           const baseName = state.user.name;
-          
+
           let displayName = baseName;
-          
+
           // If there are multiple users with same email, add numbers
           if (userNameCounts.get(baseEmail)! > 1) {
             const currentNumber = (emailCounters.get(baseEmail) || 0) + 1;
@@ -439,7 +501,7 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
       }, 150); // Debounce awareness changes
     };
 
-    awareness.on('change', handleAwarenessChange);
+    awareness.on("change", handleAwarenessChange);
 
     setDoc(yjsDoc);
     setProvider(wsProvider);
@@ -449,20 +511,20 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
       if (awarenessTimeout) {
         clearTimeout(awarenessTimeout);
       }
-      awareness?.off('change', handleAwarenessChange);
-      
+      awareness?.off("change", handleAwarenessChange);
+
       // Clean disconnect
       try {
         wsProvider.disconnect();
         wsProvider.destroy();
       } catch (error) {
-        console.warn('Error during WebSocket cleanup:', error);
+        console.warn("Error during WebSocket cleanup:", error);
       }
-      
+
       try {
         yjsDoc.destroy();
       } catch (error) {
-        console.warn('Error during Y.Doc cleanup:', error);
+        console.warn("Error during Y.Doc cleanup:", error);
       }
     };
   }, [projectId]);
@@ -470,26 +532,26 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
   // Edit lock functions
   const lockNode = (nodeId: string) => {
     if (!provider?.awareness) return;
-    
+
     const awareness = provider.awareness;
     const currentState = awareness.getLocalState() || {};
-    
+
     // Update only the editLock field, preserving all other state
     awareness.setLocalState({
       ...currentState,
       editLock: {
         nodeId,
         timestamp: Date.now(),
-      }
+      },
     });
   };
 
   const unlockNode = (nodeId: string) => {
     if (!provider?.awareness) return;
-    
+
     const awareness = provider.awareness;
     const currentState = awareness.getLocalState() || {};
-    
+
     if (currentState.editLock?.nodeId === nodeId) {
       const { editLock, ...stateWithoutLock } = currentState;
       awareness.setLocalState(stateWithoutLock);
@@ -498,11 +560,13 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
   const isNodeLocked = (nodeId: string): boolean => {
     if (!provider?.awareness) return false;
-    
+
     const states = provider.awareness.getStates();
     for (const [clientId, state] of states) {
-      if (clientId !== provider.awareness.clientID && 
-          state.editLock?.nodeId === nodeId) {
+      if (
+        clientId !== provider.awareness.clientID &&
+        state.editLock?.nodeId === nodeId
+      ) {
         // Check if lock is still valid (within 30 seconds)
         const lockAge = Date.now() - state.editLock.timestamp;
         if (lockAge < 30000) {
@@ -515,12 +579,14 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
 
   const getNodeLocker = (nodeId: string): CollaboratorInfo | null => {
     if (!provider?.awareness) return null;
-    
+
     const states = provider.awareness.getStates();
     for (const [clientId, state] of states) {
-      if (clientId !== provider.awareness.clientID && 
-          state.editLock?.nodeId === nodeId &&
-          state.user) {
+      if (
+        clientId !== provider.awareness.clientID &&
+        state.editLock?.nodeId === nodeId &&
+        state.user
+      ) {
         // Check if lock is still valid
         const lockAge = Date.now() - state.editLock.timestamp;
         if (lockAge < 30000) {
@@ -544,12 +610,12 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
   // Editor state functions
   const setEditorEnabled = (enabled: boolean) => {
     if (!editLockMap) return;
-    editLockMap.set('editorEnabled', enabled);
+    editLockMap.set("editorEnabled", enabled);
   };
 
   const getEditorEnabled = (): boolean => {
     if (!editLockMap) return true;
-    return editLockMap.get('editorEnabled') ?? true;
+    return editLockMap.get("editorEnabled") ?? true;
   };
 
   const value: YjsContextType = {
@@ -571,17 +637,13 @@ export const YjsProvider: React.FC<YjsProviderProps> = ({ children, projectId })
     getEditorEnabled,
   };
 
-  return (
-    <YjsContext.Provider value={value}>
-      {children}
-    </YjsContext.Provider>
-  );
+  return <YjsContext.Provider value={value}>{children}</YjsContext.Provider>;
 };
 
 export const useYjs = () => {
   const context = useContext(YjsContext);
   if (!context) {
-    console.error('useYjs must be used within YjsProvider');
+    console.error("useYjs must be used within YjsProvider");
     // Return default values instead of throwing
     return {
       doc: null,
@@ -606,10 +668,7 @@ export const useYjs = () => {
 };
 
 // Helper functions like in existing yjs.ts
-export const updateUserSelection = (
-  awareness: any,
-  nodeIds: string[]
-) => {
+export const updateUserSelection = (awareness: any, nodeIds: string[]) => {
   const currentState = awareness.getLocalState() || {};
   // Update only the selection field, preserving all other state
   awareness.setLocalState({

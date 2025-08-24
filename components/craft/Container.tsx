@@ -1,49 +1,55 @@
-import React from 'react';
-import { useNode } from '@craftjs/core';
-import { ContainerToolbar } from './toolbars/ContainerToolbar';
+import React from "react";
+import { useNode } from "@craftjs/core";
+import { ContainerToolbar } from "./toolbars/ContainerToolbar";
 
 export interface ContainerProps {
   background?: string;
   padding?: string;
   margin?: string;
   borderRadius?: number;
-  flexDirection?: 'row' | 'column';
-  justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
-  alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  flexDirection?: "row" | "column";
+  justifyContent?:
+    | "flex-start"
+    | "center"
+    | "flex-end"
+    | "space-between"
+    | "space-around"
+    | "space-evenly";
+  alignItems?: "flex-start" | "center" | "flex-end" | "stretch";
   gap?: number;
   minHeight?: number;
   width?: string;
   height?: string;
   borderWidth?: number;
   borderColor?: string;
-  borderStyle?: 'solid' | 'dashed' | 'dotted';
+  borderStyle?: "solid" | "dashed" | "dotted";
   boxShadow?: string;
   children?: React.ReactNode;
 }
 
 export const Container: React.FC<ContainerProps> = ({
-  background = 'transparent',
-  padding = '16px',
-  margin = '0',
+  background = "transparent",
+  padding = "16px",
+  margin = "0",
   borderRadius = 8,
-  flexDirection = 'column',
-  justifyContent = 'flex-start',
-  alignItems = 'stretch',
+  flexDirection = "column",
+  justifyContent = "flex-start",
+  alignItems = "stretch",
   gap = 12,
   minHeight = 100,
-  width = '100%',
-  height = 'auto',
+  width = "100%",
+  height = "auto",
   borderWidth = 0,
-  borderColor = '#e5e7eb',
-  borderStyle = 'solid',
-  boxShadow = 'none',
-  children
+  borderColor = "#e5e7eb",
+  borderStyle = "solid",
+  boxShadow = "none",
+  children,
 }) => {
   const {
     connectors: { connect, drag },
     selected,
     isHover,
-    id
+    id,
   } = useNode((state) => ({
     selected: state.events.selected,
     isHover: state.events.hovered,
@@ -54,7 +60,7 @@ export const Container: React.FC<ContainerProps> = ({
     padding,
     margin,
     borderRadius: `${borderRadius}px`,
-    display: 'flex',
+    display: "flex",
     flexDirection,
     justifyContent,
     alignItems,
@@ -66,12 +72,16 @@ export const Container: React.FC<ContainerProps> = ({
     borderColor,
     borderStyle,
     boxShadow,
-    position: 'relative',
+    position: "relative",
     // Stable outline without transitions to prevent collaboration flickering
-    outline: selected ? '2px solid #2563eb' : isHover ? '2px dashed #94a3b8' : 'none',
-    outlineOffset: '2px',
+    outline: selected
+      ? "2px solid #2563eb"
+      : isHover
+        ? "2px dashed #94a3b8"
+        : "none",
+    outlineOffset: "2px",
     // Prevent layout shifts during state changes
-    willChange: 'auto',
+    willChange: "auto",
   };
 
   return (
@@ -83,61 +93,62 @@ export const Container: React.FC<ContainerProps> = ({
       }}
       style={containerStyle}
       className="craft-container-component"
+      id="craft-container-component"
       data-node-id={id}
     >
       {/* Selected indicator */}
       {selected && (
         <div
           style={{
-            position: 'absolute',
-            top: '-8px',
-            left: '8px',
-            background: '#2563eb',
-            color: 'white',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '12px',
-            fontWeight: '500',
+            position: "absolute",
+            top: "-8px",
+            left: "8px",
+            background: "#2563eb",
+            color: "white",
+            padding: "2px 8px",
+            borderRadius: "4px",
+            fontSize: "12px",
+            fontWeight: "500",
             zIndex: 10,
           }}
         >
           컨테이너
         </div>
       )}
-      
+
       {/* Hover indicator */}
       {isHover && !selected && (
         <div
           style={{
-            position: 'absolute',
-            top: '-8px',
-            left: '8px',
-            background: '#64748b',
-            color: 'white',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '12px',
-            fontWeight: '500',
+            position: "absolute",
+            top: "-8px",
+            left: "8px",
+            background: "#64748b",
+            color: "white",
+            padding: "2px 8px",
+            borderRadius: "4px",
+            fontSize: "12px",
+            fontWeight: "500",
             zIndex: 10,
           }}
         >
           컨테이너
         </div>
       )}
-      
+
       {children}
-      
+
       {/* Empty state */}
       {!children && (
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#9ca3af',
-            fontSize: '14px',
-            fontStyle: 'italic',
-            minHeight: '60px',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#9ca3af",
+            fontSize: "14px",
+            fontStyle: "italic",
+            minHeight: "60px",
           }}
         >
           여기에 컴포넌트를 드래그하세요
@@ -148,23 +159,23 @@ export const Container: React.FC<ContainerProps> = ({
 };
 
 (Container as React.ComponentType & { craft: unknown }).craft = {
-  displayName: 'Container',
+  displayName: "Container",
   props: {
-    background: 'transparent',
-    padding: '16px',
-    margin: '0',
+    background: "transparent",
+    padding: "16px",
+    margin: "0",
     borderRadius: 8,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'stretch',
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "stretch",
     gap: 12,
     minHeight: 100,
-    width: '100%',
-    height: 'auto',
+    width: "100%",
+    height: "auto",
     borderWidth: 0,
-    borderColor: '#e5e7eb',
-    borderStyle: 'solid',
-    boxShadow: 'none'
+    borderColor: "#e5e7eb",
+    borderStyle: "solid",
+    boxShadow: "none",
   },
   rules: {
     canDrag: () => true,
