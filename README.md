@@ -53,6 +53,7 @@
 # Domain
 
 https://dev.easytoweb.store/
+https://easytoweb.store/
 
 # 기능
 
